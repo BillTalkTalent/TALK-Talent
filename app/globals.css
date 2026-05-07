@@ -122,18 +122,32 @@
 
 @layer base {
   :root {
-    /* TALK brand — Indigo primary + Amber accent */
-    --primary: oklch(0.511 0.262 276.966);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.95 0.02 276.966);
-    --secondary-foreground: oklch(0.511 0.262 276.966);
-    --muted: oklch(0.96 0.008 276.966);
-    --muted-foreground: oklch(0.46 0.05 276.966);
-    --accent: oklch(0.85 0.18 85);
-    --accent-foreground: oklch(0.25 0.06 85);
-    --ring: oklch(0.511 0.262 276.966);
-    --border: oklch(0.91 0.015 276.966);
-    --input: oklch(0.91 0.015 276.966);
+    /* TALK brand — Forest / Teal / Sage palette */
+    --background: oklch(0.97 0.008 150);          /* warm white */
+    --foreground: oklch(0.22 0.04 168);            /* dark forest text */
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.22 0.04 168);
+    --primary: oklch(0.64 0.07 183);              /* Teal #5FA8A3 */
+    --primary-foreground: oklch(1 0 0);
+    --secondary: oklch(0.93 0.03 183);
+    --secondary-foreground: oklch(0.42 0.07 168);
+    --muted: oklch(0.94 0.02 183);
+    --muted-foreground: oklch(0.52 0.05 183);
+    --accent: oklch(0.77 0.05 222);               /* Mist #A8C0D6 */
+    --accent-foreground: oklch(0.3 0.05 183);
+    --ring: oklch(0.64 0.07 183);
+    --border: oklch(0.90 0.025 183);
+    --input: oklch(0.90 0.025 183);
+    --radius: 0.625rem;
+    /* Sidebar vars (kept for compat) */
+    --sidebar: oklch(0.42 0.07 168);
+    --sidebar-foreground: oklch(0.95 0.02 183);
+    --sidebar-primary: oklch(0.64 0.07 183);
+    --sidebar-primary-foreground: oklch(1 0 0);
+    --sidebar-accent: oklch(0.50 0.07 168);
+    --sidebar-accent-foreground: oklch(0.95 0.02 183);
+    --sidebar-border: oklch(0.50 0.07 168);
+    --sidebar-ring: oklch(0.64 0.07 183);
   }
 
   /* Smoother scrollbar for webkit browsers */

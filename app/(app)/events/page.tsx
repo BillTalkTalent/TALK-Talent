@@ -21,11 +21,11 @@ function EventCard({ event, attendeeCount }: { event: Event; attendeeCount: numb
   const eventDate = new Date(event.event_date);
   return (
     <Link href={`/events/${event.id}`}>
-      <div className="group rounded-2xl bg-white border border-zinc-100 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all overflow-hidden cursor-pointer h-full flex flex-col">
-        <div className="h-1 bg-gradient-to-r from-amber-400 to-orange-500" />
+      <div className="group rounded-2xl bg-white border border-zinc-100 shadow-sm hover:shadow-md hover:border-[#5FA8A3] transition-all overflow-hidden cursor-pointer h-full flex flex-col">
+        <div className="h-1 bg-gradient-to-r from-[#5FA8A3] to-[#3F7A6E]" />
         <div className="p-5 flex flex-col flex-1">
           <div className="flex items-center justify-between mb-3">
-            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-100 px-2.5 py-1 rounded-full">
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#2d5a52] bg-[#edf7f6] border border-[#c8e6e2] px-2.5 py-1 rounded-full">
               <CalendarDays className="size-3" />
               {format(eventDate, "MMM d, yyyy")}
             </span>
@@ -36,7 +36,7 @@ function EventCard({ event, attendeeCount }: { event: Event; attendeeCount: numb
             )}
           </div>
 
-          <h3 className="font-bold text-zinc-900 group-hover:text-indigo-600 transition-colors leading-snug text-base">
+          <h3 className="font-bold text-zinc-900 group-hover:text-[#3F7A6E] transition-colors leading-snug text-base">
             {event.title}
           </h3>
 
@@ -68,7 +68,7 @@ function TabButton({ href, label, active }: { href: string; label: string; activ
       href={href}
       className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
         active
-          ? "bg-indigo-600 text-white shadow-sm"
+          ? "bg-[#3F7A6E] text-white shadow-sm"
           : "text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100"
       }`}
     >
@@ -120,7 +120,7 @@ export default async function EventsPage({
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
           <div className="size-10 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ background: "linear-gradient(135deg, #f59e0b, #ea580c)" }}>
+            style={{ background: "linear-gradient(135deg, #5FA8A3, #3F7A6E)" }}>
             <CalendarDays className="size-5 text-white" />
           </div>
           <div>

@@ -16,7 +16,7 @@ export default async function VendorsPage() {
       <div className="flex items-center gap-3">
         <div
           className="size-10 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: "linear-gradient(135deg, #0ea5e9, #0891b2)" }}
+          style={{ background: "linear-gradient(135deg, #6B9BB8, #4A6B8A)" }}
         >
           <Building2 className="size-5 text-white" />
         </div>

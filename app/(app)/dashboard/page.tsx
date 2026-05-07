@@ -101,28 +101,28 @@ export default async function DashboardPage() {
       label: "Total Members",
       value: memberCount,
       icon: Users,
-      gradient: "from-blue-500 to-indigo-600",
+      style: { background: "linear-gradient(135deg, #7BA890, #3F7A6E)" },
       href: "/members",
     },
     {
       label: "Upcoming Events",
       value: upcomingEventCount,
       icon: CalendarDays,
-      gradient: "from-amber-400 to-orange-500",
+      style: { background: "linear-gradient(135deg, #5FA8A3, #3F7A6E)" },
       href: "/events",
     },
     {
       label: "Active Discussions",
       value: activeDiscussionsCount,
       icon: MessageSquare,
-      gradient: "from-emerald-400 to-teal-500",
+      style: { background: "linear-gradient(135deg, #6B9BB8, #4A6B8A)" },
       href: "/forum",
     },
     {
       label: "Jobs Posted",
       value: jobsPostedCount,
       icon: Briefcase,
-      gradient: "from-violet-500 to-purple-600",
+      style: { background: "linear-gradient(135deg, #A8C0D6, #6B9BB8)" },
       href: "/jobs",
     },
   ];
@@ -133,7 +133,7 @@ export default async function DashboardPage() {
       {/* Hero banner */}
       <div
         className="relative overflow-hidden rounded-2xl p-8 text-white"
-        style={{ background: "linear-gradient(135deg, #4f46e5 0%, #6d28d9 60%, #7c3aed 100%)" }}
+        style={{ background: "linear-gradient(135deg, #2d5a52 0%, #3F7A6E 55%, #5FA8A3 100%)" }}
       >
         {/* Dot grid pattern */}
         <div
@@ -165,15 +165,15 @@ export default async function DashboardPage() {
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {stats.map(({ label, value, icon: Icon, gradient, href }) => (
+        {stats.map((stat) => { const { label, value, icon: Icon, href } = stat; return (
           <Link key={label} href={href}>
-            <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${gradient} p-5 text-white cursor-pointer hover:scale-[1.02] transition-transform duration-150`}>
+            <div className="relative overflow-hidden rounded-2xl p-5 text-white cursor-pointer hover:scale-[1.02] transition-transform duration-150" style={stat.style}>
               <Icon className="absolute right-4 top-4 size-8 text-white/20" />
               <p className="text-4xl font-black leading-none">{value.toLocaleString()}</p>
               <p className="mt-2 text-sm text-white/75 font-medium">{label}</p>
             </div>
           </Link>
-        ))}
+        )})}
       </div>
 
       {/* Two-column content grid */}

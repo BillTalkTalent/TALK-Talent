@@ -40,7 +40,7 @@ export default async function ForumPage() {
       <div className="flex items-center gap-3">
         <div
           className="size-10 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: "linear-gradient(135deg, #6366f1, #7c3aed)" }}
+          style={{ background: "linear-gradient(135deg, #7BA890, #3F7A6E)" }}
         >
           <MessageSquare className="size-5 text-white" />
         </div>
@@ -60,19 +60,19 @@ export default async function ForumPage() {
         <div className="space-y-2">
           {categoriesWithStats.map((category) => (
             <Link key={category.id} href={`/forum/${category.slug}`}>
-              <div className="group flex items-center gap-4 rounded-2xl bg-white border border-zinc-100 p-4 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all cursor-pointer">
+              <div className="group flex items-center gap-4 rounded-2xl bg-white border border-zinc-100 p-4 shadow-sm hover:shadow-md hover:border-[#5FA8A3] transition-all cursor-pointer">
                 {/* Icon */}
-                <div className="size-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-2xl flex-shrink-0 group-hover:bg-indigo-100 transition-colors">
+                <div className="size-12 rounded-2xl bg-[#edf7f6] flex items-center justify-center text-2xl flex-shrink-0 group-hover:bg-[#d4eeeb] transition-colors">
                   {category.icon ? (
                     <span>{category.icon}</span>
                   ) : (
-                    <Hash className="size-5 text-indigo-500" />
+                    <Hash className="size-5 text-[#5FA8A3]" />
                   )}
                 </div>
 
                 {/* Name + description */}
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-zinc-900 group-hover:text-indigo-600 transition-colors">
+                  <p className="font-semibold text-zinc-900 group-hover:text-[#3F7A6E] transition-colors">
                     {category.name}
                   </p>
                   {category.description && (
@@ -96,7 +96,7 @@ export default async function ForumPage() {
                       </p>
                     </div>
                   )}
-                  <ChevronRight className="size-4 text-zinc-300 group-hover:text-indigo-400 transition-colors" />
+                  <ChevronRight className="size-4 text-zinc-300 group-hover:text-[#5FA8A3] transition-colors" />
                 </div>
               </div>
             </Link>
