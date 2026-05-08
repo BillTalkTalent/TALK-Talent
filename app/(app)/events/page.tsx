@@ -59,6 +59,13 @@ function EventCard({ event, attendeeCount }: { event: PaidEvent; attendeeCount: 
             </div>
           </div>
 
+          <div className="flex items-center gap-2 mb-1">
+            {event.is_paid ? (
+              <span className="text-[10px] font-black uppercase tracking-wide text-white bg-[#00b894] px-2 py-0.5 rounded-full">Class</span>
+            ) : (
+              <span className="text-[10px] font-black uppercase tracking-wide text-[#f97316] bg-[#f97316]/10 border border-[#f97316]/20 px-2 py-0.5 rounded-full">Event</span>
+            )}
+          </div>
           <h3 className="font-bold text-zinc-900 group-hover:text-[#f97316] transition-colors leading-snug text-base">
             {event.title}
           </h3>
@@ -147,8 +154,8 @@ export default async function EventsPage({
             <CalendarDays className="size-5 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-zinc-900">Events</h1>
-            <p className="text-sm text-zinc-500">Community gatherings and meetups</p>
+            <h1 className="text-xl font-bold text-zinc-900">Events &amp; Classes</h1>
+            <p className="text-sm text-zinc-500">Community gatherings, meetups, and paid classes</p>
           </div>
         </div>
       </div>

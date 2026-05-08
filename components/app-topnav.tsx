@@ -29,7 +29,7 @@ interface AppTopNavProps {
 const mainNav = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/members',   label: 'Members',   icon: Users },
-  { href: '/events',    label: 'Events',     icon: Calendar },
+  { href: '/events',    label: 'Events & Classes', icon: Calendar },
   { href: '/forum',     label: 'Forum',      icon: MessageSquare },
   { href: '/jobs',      label: 'Jobs',       icon: Briefcase },
   { href: '/polls',     label: 'Polls',      icon: BarChart2 },

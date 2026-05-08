@@ -105,7 +105,7 @@ export default async function DashboardPage() {
       href: "/members",
     },
     {
-      label: "Upcoming Events",
+      label: "Upcoming Events & Classes",
       value: upcomingEventCount,
       icon: CalendarDays,
       style: { background: "linear-gradient(135deg, #ea580c, #f97316)" },
@@ -186,7 +186,7 @@ export default async function DashboardPage() {
               <div className="size-7 rounded-lg bg-[#f97316]/15 flex items-center justify-center">
                 <CalendarDays className="size-3.5 text-[#f97316]" />
               </div>
-              <span className="text-sm font-semibold text-zinc-900">Upcoming Events</span>
+              <span className="text-sm font-semibold text-zinc-900">Upcoming Events &amp; Classes</span>
             </div>
             <Button variant="ghost" size="sm" className="text-xs text-[#00b894] hover:text-[#00d4aa] hover:bg-[#00d4aa]/10 -mr-1" render={<Link href="/events" />}>
               View all <ArrowRight className="size-3 ml-1" />
@@ -218,10 +218,17 @@ export default async function DashboardPage() {
                       </span>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium text-sm text-zinc-900 truncate group-hover:text-[#00d4aa] transition-colors">
-                        {event.title}
-                      </p>
-                      <p className="text-xs text-zinc-400 mt-0.5 flex items-center gap-1">
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        {(event as unknown as { is_paid: boolean }).is_paid ? (
+                          <span className="text-[9px] font-black uppercase tracking-wide text-white bg-[#00b894] px-1.5 py-0.5 rounded-full shrink-0">Class</span>
+                        ) : (
+                          <span className="text-[9px] font-black uppercase tracking-wide text-[#f97316] bg-[#f97316]/10 px-1.5 py-0.5 rounded-full shrink-0">Event</span>
+                        )}
+                        <p className="font-medium text-sm text-zinc-900 truncate group-hover:text-[#00d4aa] transition-colors">
+                          {event.title}
+                        </p>
+                      </div>
+                      <p className="text-xs text-zinc-400 flex items-center gap-1">
                         {event.is_virtual ? (
                           <><Monitor className="size-3" /> Virtual</>
                         ) : (
