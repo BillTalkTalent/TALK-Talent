@@ -70,19 +70,19 @@ export default function SignupPage() {
       {/* Left panel — hidden on mobile */}
       <div
         className="hidden md:flex md:w-2/5 flex-col justify-between p-12"
-        style={{ background: 'linear-gradient(160deg, #2d5a52 0%, #3F7A6E 55%, #5FA8A3 100%)' }}
+        style={{ background: 'linear-gradient(160deg, #0d0d0d 0%, #1a1a2e 55%, #16213e 100%)' }}
       >
         {/* Logo mark + wordmark */}
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-3">
             <svg width="44" height="44" viewBox="0 0 34 34" fill="none">
-              <rect width="34" height="34" rx="9" fill="#7BA890"/>
+              <rect width="34" height="34" rx="9" fill="#00d4aa"/>
               <rect x="8" y="12" width="18" height="3" rx="1.5" fill="white"/>
               <rect x="8" y="18.5" width="13" height="3" rx="1.5" fill="white"/>
             </svg>
             <span className="text-4xl font-black tracking-tight text-white">TALK</span>
           </div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-[#a8d8d3]">
+          <p className="text-xs font-semibold uppercase tracking-widest text-[#00d4aa]/60">
             Talent Acquisition Leadership Keynotes
           </p>
         </div>
@@ -90,7 +90,7 @@ export default function SignupPage() {
         <div className="flex flex-col gap-5">
           {benefits.map((benefit) => (
             <div key={benefit} className="flex items-center gap-3">
-              <CheckCircle2 className="size-5 shrink-0 text-[#7BA890]" />
+              <CheckCircle2 className="size-5 shrink-0 text-[#00d4aa]" />
               <span className="text-base text-white/90">{benefit}</span>
             </div>
           ))}
@@ -102,17 +102,17 @@ export default function SignupPage() {
       </div>
 
       {/* Right panel */}
-      <div className="flex flex-1 items-center justify-center bg-[#f7faf9] p-8">
+      <div className="flex flex-1 items-center justify-center bg-[#f5fffe] p-8">
         <div className="w-full max-w-sm space-y-8">
           {/* Mobile logo */}
           <div className="md:hidden flex flex-col items-center gap-2">
             <div className="flex items-center gap-2">
               <svg width="36" height="36" viewBox="0 0 34 34" fill="none">
-                <rect width="34" height="34" rx="9" fill="#7BA890"/>
+                <rect width="34" height="34" rx="9" fill="#00d4aa"/>
                 <rect x="8" y="12" width="18" height="3" rx="1.5" fill="white"/>
                 <rect x="8" y="18.5" width="13" height="3" rx="1.5" fill="white"/>
               </svg>
-              <span className="text-3xl font-black tracking-tight text-[#2d5a52]">TALK</span>
+              <span className="text-3xl font-black tracking-tight text-[#0d0d0d]">TALK</span>
             </div>
             <p className="text-xs font-semibold uppercase tracking-widest text-[#5FA8A3]">
               Talent Acquisition Leadership Keynotes
@@ -120,15 +120,15 @@ export default function SignupPage() {
           </div>
 
           {success ? (
-            <div className="rounded-xl border border-[#b8ddd9] bg-[#edf7f6] p-8 text-center space-y-3">
-              <CheckCircle2 className="size-10 text-[#3F7A6E] mx-auto" />
-              <h2 className="text-xl font-semibold text-[#2d5a52]">Application submitted!</h2>
-              <p className="text-sm text-[#3F7A6E]">
+            <div className="rounded-xl border border-[#00d4aa]/30 bg-[#00d4aa]/10 p-8 text-center space-y-3">
+              <CheckCircle2 className="size-10 text-[#00b894] mx-auto" />
+              <h2 className="text-xl font-semibold text-[#0d0d0d]">Application submitted!</h2>
+              <p className="text-sm text-[#00b894]">
                 We&apos;ll review your LinkedIn profile and be in touch.
               </p>
               <Link
                 href="/login"
-                className="inline-block mt-2 text-sm font-semibold text-[#3F7A6E] hover:underline"
+                className="inline-block mt-2 text-sm font-semibold text-[#00b894] hover:underline"
               >
                 Back to sign in
               </Link>
@@ -188,7 +188,7 @@ export default function SignupPage() {
                 <Button
                   type="submit"
                   className="w-full text-white font-semibold"
-                  style={{ background: 'linear-gradient(90deg, #3F7A6E, #5FA8A3)' }}
+                  style={{ background: 'linear-gradient(90deg, #00b894, #00d4aa)' }}
                   size="lg"
                   disabled={loading}
                 >
@@ -198,7 +198,7 @@ export default function SignupPage() {
 
               <p className="text-sm text-zinc-500 text-center">
                 Already have an account?{' '}
-                <Link href="/login" className="font-semibold text-[#3F7A6E] hover:underline">
+                <Link href="/login" className="font-semibold text-[#00b894] hover:underline">
                   Sign in
                 </Link>
               </p>

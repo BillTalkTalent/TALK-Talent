@@ -54,8 +54,8 @@ export default function MembersGrid({ members, chapters, memberships }: MembersG
           className={cn(
             "px-3 py-1.5 rounded-xl text-sm font-semibold transition-all",
             activeChapterId === null
-              ? "bg-[#3F7A6E] text-white shadow-sm"
-              : "bg-white border border-zinc-200 text-zinc-600 hover:border-[#5FA8A3] hover:text-[#3F7A6E]"
+              ? "bg-[#00d4aa] text-[#0d0d0d] shadow-sm"
+              : "bg-white border border-zinc-200 text-zinc-600 hover:border-[#00d4aa] hover:text-[#3F7A6E]"
           )}
         >
           All
@@ -67,8 +67,8 @@ export default function MembersGrid({ members, chapters, memberships }: MembersG
             className={cn(
               "px-3 py-1.5 rounded-xl text-sm font-semibold transition-all",
               activeChapterId === c.id
-                ? "bg-[#3F7A6E] text-white shadow-sm"
-                : "bg-white border border-zinc-200 text-zinc-600 hover:border-[#5FA8A3] hover:text-[#3F7A6E]"
+                ? "bg-[#00d4aa] text-[#0d0d0d] shadow-sm"
+                : "bg-white border border-zinc-200 text-zinc-600 hover:border-[#00d4aa] hover:text-[#3F7A6E]"
             )}
           >
             {c.icon && <span className="mr-1">{c.icon}</span>}
@@ -106,7 +106,7 @@ export default function MembersGrid({ members, chapters, memberships }: MembersG
 
             return (
               <Link key={member.id} href={`/members/${member.id}`}>
-                <div className="group rounded-2xl bg-white border border-zinc-100 shadow-sm hover:shadow-md hover:border-[#5FA8A3] transition-all cursor-pointer p-5 flex flex-col items-center text-center gap-3">
+                <div className="group rounded-2xl bg-white border border-zinc-100 shadow-sm hover:shadow-md hover:border-[#00d4aa] transition-all cursor-pointer p-5 flex flex-col items-center text-center gap-3">
                   <div className="relative">
                     <Avatar className="size-16 ring-2 ring-offset-2 ring-indigo-100">
                       {member.avatar_url && (
@@ -114,7 +114,7 @@ export default function MembersGrid({ members, chapters, memberships }: MembersG
                       )}
                       <AvatarFallback
                         className="text-sm font-bold"
-                        style={{ background: "linear-gradient(135deg, #5FA8A3, #3F7A6E)", color: "white" }}
+                        style={{ background: "linear-gradient(135deg, #00b894, #00d4aa)", color: "white" }}
                       >
                         {getInitials(member.full_name)}
                       </AvatarFallback>
@@ -122,14 +122,14 @@ export default function MembersGrid({ members, chapters, memberships }: MembersG
                   </div>
 
                   <div className="min-w-0 w-full space-y-1">
-                    <p className="font-bold text-zinc-900 truncate group-hover:text-[#3F7A6E] transition-colors">
+                    <p className="font-bold text-zinc-900 truncate group-hover:text-[#00d4aa] transition-colors">
                       {member.full_name ?? "Unnamed"}
                     </p>
                     {member.title && (
                       <p className="text-xs text-zinc-500 truncate">{member.title}</p>
                     )}
                     {member.company && (
-                      <span className="inline-block text-xs font-semibold text-[#3F7A6E] bg-[#edf7f6] px-2 py-0.5 rounded-full mt-1">
+                      <span className="inline-block text-xs font-semibold text-[#00b894] bg-[#00d4aa]/10 px-2 py-0.5 rounded-full mt-1">
                         {member.company}
                       </span>
                     )}

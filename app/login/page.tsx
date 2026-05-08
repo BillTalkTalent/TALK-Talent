@@ -44,19 +44,19 @@ export default function LoginPage() {
       {/* Left panel — hidden on mobile */}
       <div
         className="hidden md:flex md:w-2/5 flex-col justify-between p-12"
-        style={{ background: 'linear-gradient(160deg, #2d5a52 0%, #3F7A6E 55%, #5FA8A3 100%)' }}
+        style={{ background: 'linear-gradient(160deg, #0d0d0d 0%, #1a1a2e 55%, #16213e 100%)' }}
       >
         {/* Logo mark + wordmark */}
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-3">
             <svg width="44" height="44" viewBox="0 0 34 34" fill="none">
-              <rect width="34" height="34" rx="9" fill="#7BA890"/>
+              <rect width="34" height="34" rx="9" fill="#00d4aa"/>
               <rect x="8" y="12" width="18" height="3" rx="1.5" fill="white"/>
               <rect x="8" y="18.5" width="13" height="3" rx="1.5" fill="white"/>
             </svg>
             <span className="text-4xl font-black tracking-tight text-white">TALK</span>
           </div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-[#a8d8d3]">
+          <p className="text-xs font-semibold uppercase tracking-widest text-[#00d4aa]/60">
             Talent Acquisition Leadership Keynotes
           </p>
         </div>
@@ -64,7 +64,7 @@ export default function LoginPage() {
         <div className="flex flex-col gap-5">
           {benefits.map((benefit) => (
             <div key={benefit} className="flex items-center gap-3">
-              <CheckCircle2 className="size-5 shrink-0 text-[#7BA890]" />
+              <CheckCircle2 className="size-5 shrink-0 text-[#00d4aa]" />
               <span className="text-base text-white/90">{benefit}</span>
             </div>
           ))}
@@ -76,13 +76,13 @@ export default function LoginPage() {
       </div>
 
       {/* Right panel */}
-      <div className="flex flex-1 items-center justify-center bg-[#f7faf9] p-8">
+      <div className="flex flex-1 items-center justify-center bg-[#f5fffe] p-8">
         <div className="w-full max-w-sm space-y-8">
           {/* Mobile logo */}
           <div className="md:hidden flex flex-col items-center gap-2">
             <div className="flex items-center gap-2">
               <svg width="36" height="36" viewBox="0 0 34 34" fill="none">
-                <rect width="34" height="34" rx="9" fill="#7BA890"/>
+                <rect width="34" height="34" rx="9" fill="#00d4aa"/>
                 <rect x="8" y="12" width="18" height="3" rx="1.5" fill="white"/>
                 <rect x="8" y="18.5" width="13" height="3" rx="1.5" fill="white"/>
               </svg>
@@ -124,7 +124,7 @@ export default function LoginPage() {
             <Button
               type="submit"
               className="w-full text-white font-semibold"
-              style={{ background: 'linear-gradient(90deg, #3F7A6E, #5FA8A3)' }}
+              style={{ background: 'linear-gradient(90deg, #00b894, #00d4aa)' }}
               size="lg"
               disabled={loading}
             >
@@ -134,7 +134,7 @@ export default function LoginPage() {
 
           <p className="text-sm text-zinc-500 text-center">
             Don&apos;t have an account?{' '}
-            <Link href="/signup" className="font-semibold text-[#3F7A6E] hover:underline">
+            <Link href="/signup" className="font-semibold text-[#00b894] hover:underline">
               Sign up
             </Link>
           </p>

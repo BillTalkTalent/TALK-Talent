@@ -20,7 +20,7 @@ export default async function JobsPage() {
         <div className="flex items-center gap-3">
           <div
             className="size-10 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ background: "linear-gradient(135deg, #4A6B8A, #3F7A6E)" }}
+            style={{ background: "linear-gradient(135deg, #00b894, #00d4aa)" }}
           >
             <Briefcase className="size-5 text-white" />
           </div>

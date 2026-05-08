@@ -101,28 +101,28 @@ export default async function DashboardPage() {
       label: "Total Members",
       value: memberCount,
       icon: Users,
-      style: { background: "linear-gradient(135deg, #7BA890, #3F7A6E)" },
+      style: { background: "linear-gradient(135deg, #00b894, #00d4aa)" },
       href: "/members",
     },
     {
       label: "Upcoming Events",
       value: upcomingEventCount,
       icon: CalendarDays,
-      style: { background: "linear-gradient(135deg, #5FA8A3, #3F7A6E)" },
+      style: { background: "linear-gradient(135deg, #1a1a2e, #16213e)" },
       href: "/events",
     },
     {
       label: "Active Discussions",
       value: activeDiscussionsCount,
       icon: MessageSquare,
-      style: { background: "linear-gradient(135deg, #6B9BB8, #4A6B8A)" },
+      style: { background: "linear-gradient(135deg, #0d0d0d, #1a1a2e)" },
       href: "/forum",
     },
     {
       label: "Jobs Posted",
       value: jobsPostedCount,
       icon: Briefcase,
-      style: { background: "linear-gradient(135deg, #A8C0D6, #6B9BB8)" },
+      style: { background: "linear-gradient(135deg, #00b894, #009e7a)" },
       href: "/jobs",
     },
   ];
@@ -133,7 +133,7 @@ export default async function DashboardPage() {
       {/* Hero banner */}
       <div
         className="relative overflow-hidden rounded-2xl p-8 text-white"
-        style={{ background: "linear-gradient(135deg, #2d5a52 0%, #3F7A6E 55%, #5FA8A3 100%)" }}
+        style={{ background: "linear-gradient(135deg, #0d0d0d 0%, #1a1a2e 55%, #16213e 100%)" }}
       >
         {/* Dot grid pattern */}
         <div
@@ -144,9 +144,9 @@ export default async function DashboardPage() {
           }}
         />
         {/* Glowing orb */}
-        <div className="absolute -top-10 -right-10 size-48 rounded-full opacity-20 blur-3xl" style={{background: "radial-gradient(circle, #a78bfa, transparent)"}} />
+        <div className="absolute -top-10 -right-10 size-48 rounded-full opacity-20 blur-3xl" style={{background: "radial-gradient(circle, #00d4aa, transparent)"}} />
         <div className="relative">
-          <p className="text-sm font-medium text-indigo-200 mb-1">
+          <p className="text-sm font-medium text-[#00d4aa]/80 mb-1">
             {new Date().toLocaleDateString("en-US", {
               weekday: "long",
               month: "long",
@@ -157,7 +157,7 @@ export default async function DashboardPage() {
           <h1 className="text-3xl font-bold tracking-tight">
             {greeting}, {firstName}! 👋
           </h1>
-          <p className="text-indigo-200 mt-1.5 text-sm max-w-md">
+          <p className="text-white/60 mt-1.5 text-sm max-w-md">
             Here&apos;s what&apos;s happening in the TALK community today.
           </p>
         </div>
@@ -188,7 +188,7 @@ export default async function DashboardPage() {
               </div>
               <span className="text-sm font-semibold text-zinc-900">Upcoming Events</span>
             </div>
-            <Button variant="ghost" size="sm" className="text-xs text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 -mr-1" render={<Link href="/events" />}>
+            <Button variant="ghost" size="sm" className="text-xs text-[#00b894] hover:text-[#00d4aa] hover:bg-[#00d4aa]/10 -mr-1" render={<Link href="/events" />}>
               View all <ArrowRight className="size-3 ml-1" />
             </Button>
           </div>
@@ -218,7 +218,7 @@ export default async function DashboardPage() {
                       </span>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium text-sm text-zinc-900 truncate group-hover:text-indigo-600 transition-colors">
+                      <p className="font-medium text-sm text-zinc-900 truncate group-hover:text-[#00d4aa] transition-colors">
                         {event.title}
                       </p>
                       <p className="text-xs text-zinc-400 mt-0.5 flex items-center gap-1">
@@ -247,12 +247,12 @@ export default async function DashboardPage() {
         <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100">
             <div className="flex items-center gap-2.5">
-              <div className="size-7 rounded-lg bg-indigo-100 flex items-center justify-center">
-                <MessageSquare className="size-3.5 text-indigo-600" />
+              <div className="size-7 rounded-lg bg-[#00d4aa]/15 flex items-center justify-center">
+                <MessageSquare className="size-3.5 text-[#00b894]" />
               </div>
               <span className="text-sm font-semibold text-zinc-900">Recent Discussions</span>
             </div>
-            <Button variant="ghost" size="sm" className="text-xs text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 -mr-1" render={<Link href="/forum" />}>
+            <Button variant="ghost" size="sm" className="text-xs text-[#00b894] hover:text-[#00d4aa] hover:bg-[#00d4aa]/10 -mr-1" render={<Link href="/forum" />}>
               View all <ArrowRight className="size-3 ml-1" />
             </Button>
           </div>
@@ -274,11 +274,11 @@ export default async function DashboardPage() {
                   >
                     <div className="min-w-0 flex-1 space-y-1">
                       {cat && (
-                        <span className="inline-block text-[10px] font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
+                        <span className="inline-block text-[10px] font-semibold text-[#00b894] bg-[#00d4aa]/10 px-2 py-0.5 rounded-full border border-[#00d4aa]/20">
                           {cat.name}
                         </span>
                       )}
-                      <p className="font-medium text-sm text-zinc-900 truncate group-hover:text-indigo-600 transition-colors">
+                      <p className="font-medium text-sm text-zinc-900 truncate group-hover:text-[#00d4aa] transition-colors">
                         {topic.title}
                       </p>
                       <p className="text-xs text-zinc-400">
@@ -303,7 +303,7 @@ export default async function DashboardPage() {
             </div>
             <span className="text-sm font-semibold text-zinc-900">Recent Job Posts</span>
           </div>
-          <Button variant="ghost" size="sm" className="text-xs text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 -mr-1" render={<Link href="/jobs" />}>
+          <Button variant="ghost" size="sm" className="text-xs text-[#00b894] hover:text-[#00d4aa] hover:bg-[#00d4aa]/10 -mr-1" render={<Link href="/jobs" />}>
             View all <ArrowRight className="size-3 ml-1" />
           </Button>
         </div>
@@ -325,7 +325,7 @@ export default async function DashboardPage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-medium text-sm text-zinc-900 group-hover:text-indigo-600 transition-colors">
+                    <p className="font-medium text-sm text-zinc-900 group-hover:text-[#00d4aa] transition-colors">
                       {job.title}
                     </p>
                     <span className="text-[10px] font-semibold text-violet-700 bg-violet-50 border border-violet-100 px-1.5 py-0.5 rounded-full">
@@ -343,7 +343,7 @@ export default async function DashboardPage() {
                     )}
                   </p>
                 </div>
-                <ArrowRight className="size-4 text-zinc-300 group-hover:text-indigo-500 transition-colors shrink-0" />
+                <ArrowRight className="size-4 text-zinc-300 group-hover:text-[#00d4aa] transition-colors shrink-0" />
               </Link>
             ))}
           </div>

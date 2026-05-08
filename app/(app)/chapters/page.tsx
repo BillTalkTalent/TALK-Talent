@@ -97,7 +97,7 @@ export default function ChaptersPage() {
       <div className="flex items-center gap-3">
         <div
           className="size-10 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: "linear-gradient(135deg, #7BA890, #5FA8A3)" }}
+          style={{ background: "linear-gradient(135deg, #00b894, #00d4aa)" }}
         >
           <BookOpen className="size-5 text-white" />
         </div>
@@ -106,7 +106,7 @@ export default function ChaptersPage() {
           <p className="text-sm text-zinc-500">
             Join the topics that matter to you
             {joinedCount > 0 && (
-              <span className="ml-2 inline-flex items-center gap-1 text-[#3F7A6E] font-semibold">
+              <span className="ml-2 inline-flex items-center gap-1 text-[#00b894] font-semibold">
                 · {joinedCount} joined
               </span>
             )}
@@ -123,21 +123,21 @@ export default function ChaptersPage() {
               className={cn(
                 "group rounded-2xl p-5 border-2 transition-all cursor-pointer flex flex-col",
                 joined
-                  ? "border-[#5FA8A3] bg-[#f0f8f7]"
-                  : "border-zinc-100 bg-white hover:border-[#5FA8A3] hover:shadow-sm"
+                  ? "border-[#00d4aa] bg-[#00d4aa]/10"
+                  : "border-zinc-100 bg-white hover:border-[#00d4aa] hover:shadow-sm"
               )}
               onClick={() => toggleChapter(chapter.id)}
             >
               <div className="flex items-start justify-between mb-3">
                 <span className="text-4xl leading-none">{chapter.icon}</span>
                 {joined && (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#3F7A6E] bg-white border border-[#5FA8A3] px-2 py-0.5 rounded-full shadow-sm">
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#00b894] bg-white border border-[#5FA8A3] px-2 py-0.5 rounded-full shadow-sm">
                     <Check className="size-3" /> Joined
                   </span>
                 )}
               </div>
 
-              <p className={cn("font-bold text-base", joined ? "text-[#2d5a52]" : "text-zinc-900")}>
+              <p className={cn("font-bold text-base", joined ? "text-[#003d2e]" : "text-zinc-900")}>
                 {chapter.name}
               </p>
               {chapter.description && (
@@ -156,8 +156,8 @@ export default function ChaptersPage() {
                   className={cn(
                     "text-xs font-bold px-3 py-1.5 rounded-xl transition-all",
                     joined
-                      ? "bg-white text-[#3F7A6E] border border-[#5FA8A3] hover:bg-red-50 hover:text-red-500 hover:border-red-200"
-                      : "bg-[#5FA8A3] text-white hover:bg-[#3F7A6E] shadow-sm"
+                      ? "bg-white text-[#00b894] border border-[#5FA8A3] hover:bg-red-50 hover:text-red-500 hover:border-red-200"
+                      : "bg-[#00d4aa] text-[#0d0d0d] hover:bg-[#00b894] shadow-sm"
                   )}
                 >
                   {joined ? "Leave" : "Join"}
