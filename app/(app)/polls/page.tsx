@@ -16,12 +16,12 @@ function OptionBar({ text, votes, total, isTop }: { text: string; votes: number;
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between text-xs">
-        <span className={`truncate max-w-[70%] font-medium ${isTop ? "text-indigo-700" : "text-zinc-600"}`}>{text}</span>
-        <span className={`font-bold ${isTop ? "text-indigo-700" : "text-zinc-500"}`}>{pct}%</span>
+        <span className={`truncate max-w-[70%] font-medium ${isTop ? "text-[#7c3aed]" : "text-zinc-600"}`}>{text}</span>
+        <span className={`font-bold ${isTop ? "text-[#7c3aed]" : "text-zinc-500"}`}>{pct}%</span>
       </div>
       <div className="h-2 w-full rounded-full bg-zinc-100 overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all ${isTop ? "bg-gradient-to-r from-indigo-500 to-violet-500" : "bg-zinc-300"}`}
+          className={`h-full rounded-full transition-all ${isTop ? "bg-gradient-to-r from-[#7c3aed] to-[#8b5cf6]" : "bg-zinc-300"}`}
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -47,7 +47,7 @@ export default async function PollsPage() {
         <div className="flex items-center gap-3">
           <div
             className="size-10 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ background: "linear-gradient(135deg, #00b894, #00d4aa)" }}
+            style={{ background: "linear-gradient(135deg, #7c3aed, #8b5cf6)" }}
           >
             <BarChart2 className="size-5 text-white" />
           </div>
@@ -147,7 +147,7 @@ export default async function PollsPage() {
                     </div>
                     <Link
                       href={`/polls/${poll.id}`}
-                      className="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-xl transition-colors shrink-0"
+                      className="text-xs font-bold text-[#8b5cf6] bg-[#8b5cf6]/10 hover:bg-[#8b5cf6]/20 px-3 py-1.5 rounded-xl transition-colors shrink-0"
                     >
                       {isClosed ? "View Results →" : "Vote →"}
                     </Link>

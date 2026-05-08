@@ -108,21 +108,21 @@ export default async function DashboardPage() {
       label: "Upcoming Events",
       value: upcomingEventCount,
       icon: CalendarDays,
-      style: { background: "linear-gradient(135deg, #1a1a2e, #16213e)" },
+      style: { background: "linear-gradient(135deg, #ea580c, #f97316)" },
       href: "/events",
     },
     {
       label: "Active Discussions",
       value: activeDiscussionsCount,
       icon: MessageSquare,
-      style: { background: "linear-gradient(135deg, #0d0d0d, #1a1a2e)" },
+      style: { background: "linear-gradient(135deg, #7c3aed, #8b5cf6)" },
       href: "/forum",
     },
     {
       label: "Jobs Posted",
       value: jobsPostedCount,
       icon: Briefcase,
-      style: { background: "linear-gradient(135deg, #00b894, #009e7a)" },
+      style: { background: "linear-gradient(135deg, #ea580c, #f97316)" },
       href: "/jobs",
     },
   ];
@@ -183,8 +183,8 @@ export default async function DashboardPage() {
         <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100">
             <div className="flex items-center gap-2.5">
-              <div className="size-7 rounded-lg bg-amber-100 flex items-center justify-center">
-                <CalendarDays className="size-3.5 text-amber-600" />
+              <div className="size-7 rounded-lg bg-[#f97316]/15 flex items-center justify-center">
+                <CalendarDays className="size-3.5 text-[#f97316]" />
               </div>
               <span className="text-sm font-semibold text-zinc-900">Upcoming Events</span>
             </div>
@@ -210,7 +210,7 @@ export default async function DashboardPage() {
                   >
                     <div className="flex w-11 shrink-0 flex-col items-center justify-center rounded-xl py-2 text-indigo-700"
                       style={{background: "linear-gradient(135deg, #eef2ff, #e0e7ff)"}}>
-                      <span className="text-[10px] font-bold uppercase tracking-wide leading-none text-indigo-500">
+                      <span className="text-[10px] font-bold uppercase tracking-wide leading-none text-[#f97316]">
                         {format(eventDate, "MMM")}
                       </span>
                       <span className="text-xl font-black leading-tight">
@@ -247,8 +247,8 @@ export default async function DashboardPage() {
         <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100">
             <div className="flex items-center gap-2.5">
-              <div className="size-7 rounded-lg bg-[#00d4aa]/15 flex items-center justify-center">
-                <MessageSquare className="size-3.5 text-[#00b894]" />
+              <div className="size-7 rounded-lg bg-[#8b5cf6]/15 flex items-center justify-center">
+                <MessageSquare className="size-3.5 text-[#8b5cf6]" />
               </div>
               <span className="text-sm font-semibold text-zinc-900">Recent Discussions</span>
             </div>
@@ -274,7 +274,7 @@ export default async function DashboardPage() {
                   >
                     <div className="min-w-0 flex-1 space-y-1">
                       {cat && (
-                        <span className="inline-block text-[10px] font-semibold text-[#00b894] bg-[#00d4aa]/10 px-2 py-0.5 rounded-full border border-[#00d4aa]/20">
+                        <span className="inline-block text-[10px] font-semibold text-[#8b5cf6] bg-[#8b5cf6]/10 px-2 py-0.5 rounded-full border border-[#8b5cf6]/20">
                           {cat.name}
                         </span>
                       )}
@@ -298,8 +298,8 @@ export default async function DashboardPage() {
       <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100">
           <div className="flex items-center gap-2.5">
-            <div className="size-7 rounded-lg bg-violet-100 flex items-center justify-center">
-              <Briefcase className="size-3.5 text-violet-600" />
+            <div className="size-7 rounded-lg bg-[#f97316]/15 flex items-center justify-center">
+              <Briefcase className="size-3.5 text-[#f97316]" />
             </div>
             <span className="text-sm font-semibold text-zinc-900">Recent Job Posts</span>
           </div>
@@ -320,8 +320,8 @@ export default async function DashboardPage() {
                 href={`/jobs/${job.id}`}
                 className="flex items-center gap-4 px-5 py-3.5 hover:bg-zinc-50 transition-colors group"
               >
-                <div className="size-9 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center flex-shrink-0">
-                  <Briefcase className="size-4 text-violet-600" />
+                <div className="size-9 rounded-xl bg-[#f97316]/10 flex items-center justify-center flex-shrink-0">
+                  <Briefcase className="size-4 text-[#f97316]" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
