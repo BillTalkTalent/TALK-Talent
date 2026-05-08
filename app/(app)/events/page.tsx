@@ -22,7 +22,19 @@ function EventCard({ event, attendeeCount }: { event: Event; attendeeCount: numb
   return (
     <Link href={`/events/${event.id}`}>
       <div className="group rounded-2xl bg-white border border-zinc-100 shadow-sm hover:shadow-md hover:border-[#f97316] transition-all overflow-hidden cursor-pointer h-full flex flex-col">
-        <div className="h-1 bg-gradient-to-r from-[#ea580c] to-[#f97316]" />
+        {/* Hero image or accent bar */}
+        {event.image_url ? (
+          <div className="relative h-40 overflow-hidden bg-zinc-100">
+            <img
+              src={event.image_url}
+              alt={event.title}
+              className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+          </div>
+        ) : (
+          <div className="h-1 bg-gradient-to-r from-[#ea580c] to-[#f97316]" />
+        )}
         <div className="p-5 flex flex-col flex-1">
           <div className="flex items-center justify-between mb-3">
             <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#ea580c] bg-[#f97316]/10 border border-[#f97316]/20 px-2.5 py-1 rounded-full">

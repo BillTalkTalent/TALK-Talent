@@ -126,7 +126,20 @@ export default function EventDetailPage() {
   const isPast = new Date(event.event_date) < new Date();
 
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-6">
+    <div className="max-w-3xl mx-auto">
+      {/* Hero image */}
+      {event.image_url && (
+        <div className="relative w-full aspect-[16/6] overflow-hidden bg-zinc-100">
+          <img
+            src={event.image_url}
+            alt={event.title}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+        </div>
+      )}
+
+    <div className="p-6 space-y-6">
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-4">
           <h1 className="text-2xl font-semibold">{event.title}</h1>
@@ -218,6 +231,7 @@ export default function EventDetailPage() {
           )}
         </CardContent>
       </Card>
+    </div>
     </div>
   );
 }
