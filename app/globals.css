@@ -178,8 +178,10 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-poppins), 'Poppins', sans-serif;
   }
   html {
     @apply font-sans;
+    font-family: var(--font-poppins), 'Poppins', sans-serif;
   }
 }
