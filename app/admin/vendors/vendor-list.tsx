@@ -7,8 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Pencil, Trash2, Check, X } from "lucide-react";
+import { Pencil, Trash2, Check, X, Building2 } from "lucide-react";
 import type { Vendor } from "@/lib/supabase/types";
+import LogoUpload from "./logo-upload";
 
 export default function VendorList({ vendors }: { vendors: Vendor[] }) {
   const router = useRouter();
@@ -29,6 +30,7 @@ export default function VendorList({ vendors }: { vendors: Vendor[] }) {
       contact_name: vendor.contact_name ?? "",
       contact_email: vendor.contact_email ?? "",
       is_featured: vendor.is_featured,
+      logo_url: vendor.logo_url ?? null,
     });
   }
 
@@ -50,6 +52,7 @@ export default function VendorList({ vendors }: { vendors: Vendor[] }) {
           contact_name: form.contact_name || null,
           contact_email: form.contact_email || null,
           is_featured: form.is_featured ?? false,
+          logo_url: form.logo_url ?? null,
         })
         .eq("id", vendorId);
       setEditingId(null);
@@ -79,6 +82,13 @@ export default function VendorList({ vendors }: { vendors: Vendor[] }) {
           // ── Inline edit form ──────────────────────────────────
           <li key={vendor.id} className="py-4 space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="sm:col-span-2">
+                <LogoUpload
+                  currentUrl={form.logo_url ?? null}
+                  onUpload={(url) => setForm((f) => ({ ...f, logo_url: url }))}
+                  onClear={() => setForm((f) => ({ ...f, logo_url: null }))}
+                />
+              </div>
               <div className="space-y-1">
                 <Label className="text-xs">Name *</Label>
                 <Input
@@ -158,6 +168,18 @@ export default function VendorList({ vendors }: { vendors: Vendor[] }) {
         ) : (
           // ── Read view ─────────────────────────────────────────
           <li key={vendor.id} className="py-4 flex items-start justify-between gap-4">
+            <div className="flex items-start gap-3 min-w-0">
+              {vendor.logo_url ? (
+                <img
+                  src={vendor.logo_url}
+                  alt={vendor.name}
+                  className="size-12 rounded-xl object-contain border border-zinc-100 bg-white p-1 flex-shrink-0"
+                />
+              ) : (
+                <div className="size-12 rounded-xl bg-zinc-100 flex items-center justify-center flex-shrink-0">
+                  <Building2 className="size-5 text-zinc-400" />
+                </div>
+              )}
             <div className="space-y-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="font-medium text-zinc-900">{vendor.name}</p>
@@ -183,6 +205,7 @@ export default function VendorList({ vendors }: { vendors: Vendor[] }) {
                 {vendor.contact_name && <span>{vendor.contact_name}</span>}
                 {vendor.contact_email && <span>{vendor.contact_email}</span>}
               </div>
+            </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <Button

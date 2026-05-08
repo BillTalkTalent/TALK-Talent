@@ -50,9 +50,17 @@ export default function VendorsGrid({ vendors }: { vendors: Vendor[] }) {
               <div className="p-5 flex flex-col flex-1">
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="size-11 rounded-xl bg-sky-50 flex items-center justify-center flex-shrink-0">
-                      <Building2 className="size-5 text-sky-500" />
-                    </div>
+                    {vendor.logo_url ? (
+                      <img
+                        src={vendor.logo_url}
+                        alt={vendor.name}
+                        className="size-11 rounded-xl object-contain border border-zinc-100 bg-white p-1 flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="size-11 rounded-xl bg-sky-50 flex items-center justify-center flex-shrink-0">
+                        <Building2 className="size-5 text-sky-500" />
+                      </div>
+                    )}
                     <div className="min-w-0">
                       <p className="font-bold text-zinc-900 truncate">{vendor.name}</p>
                       {vendor.category && (
