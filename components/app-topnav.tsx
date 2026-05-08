@@ -15,6 +15,7 @@ import {
   Briefcase,
   BarChart2,
   BookOpen,
+  GraduationCap,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -32,8 +33,9 @@ const mainNav = [
   { href: '/forum',     label: 'Forum',      icon: MessageSquare },
   { href: '/jobs',      label: 'Jobs',       icon: Briefcase },
   { href: '/polls',     label: 'Polls',      icon: BarChart2 },
-  { href: '/chapters',  label: 'Chapters',   icon: BookOpen },
-  { href: '/vendors',   label: 'Vendors',    icon: Building2 },
+  { href: '/chapters',   label: 'Chapters',    icon: BookOpen },
+  { href: '/vendors',    label: 'Vendors',     icon: Building2 },
+  { href: '/mentorship', label: 'Mentorship',  icon: GraduationCap },
 ]
 
 const iconNav = [

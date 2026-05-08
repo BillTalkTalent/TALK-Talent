@@ -533,3 +533,55 @@ export type PollOption = Database["public"]["Tables"]["poll_options"]["Row"];
 export type PollVote = Database["public"]["Tables"]["poll_votes"]["Row"];
 export type Chapter = Database["public"]["Tables"]["chapters"]["Row"];
 export type ChapterMembership = Database["public"]["Tables"]["chapter_memberships"]["Row"];
+
+// ── Mentorship ────────────────────────────────────────────────────────────────
+export type MentorshipArea = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  icon: string | null;
+  sort_order: number;
+  created_at: string;
+};
+
+export type MentorshipProfile = {
+  id: string;
+  user_id: string;
+  is_mentor: boolean;
+  is_mentee: boolean;
+  bio: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type MentorshipAreaSelection = {
+  id: string;
+  user_id: string;
+  area_id: string;
+  as_mentor: boolean;
+  as_mentee: boolean;
+};
+
+export type MentorshipRequest = {
+  id: string;
+  requester_id: string;
+  mentor_id: string;
+  area_id: string;
+  message: string;
+  status: "pending" | "accepted" | "declined" | "withdrawn";
+  responded_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type MentorshipConnection = {
+  id: string;
+  request_id: string;
+  mentor_id: string;
+  mentee_id: string;
+  area_id: string;
+  is_active: boolean;
+  connected_at: string;
+};
