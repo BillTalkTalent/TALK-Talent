@@ -23,7 +23,7 @@ import {
   PartyPopper,
 } from "lucide-react";
 import type { Event, Profile } from "@/lib/supabase/types";
-import { formatPrice } from "@/lib/stripe";
+import { formatPrice } from "@/lib/format-price";
 
 type PaidEvent = Event & {
   is_paid: boolean;

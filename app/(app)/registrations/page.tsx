@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { format } from "date-fns";
 import { CreditCard, CalendarDays, Monitor, ExternalLink, Receipt } from "lucide-react";
-import { formatPrice } from "@/lib/stripe";
+import { formatPrice } from "@/lib/format-price";
 
 type Registration = {
   id: string;

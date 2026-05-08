@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { CalendarDays, MapPin, Monitor, Users, CreditCard } from "lucide-react";
 import type { Event } from "@/lib/supabase/types";
 import { Button } from "@/components/ui/button";
-import { formatPrice } from "@/lib/stripe";
+import { formatPrice } from "@/lib/format-price";
 
 type PaidEvent = Event & { is_paid: boolean; price: number | null; currency: string };
 
