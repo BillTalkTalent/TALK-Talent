@@ -1,11 +1,10 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
+import VendorList from './vendor-list'
 
 async function createVendor(formData: FormData) {
   'use server'
@@ -26,12 +25,6 @@ async function createVendor(formData: FormData) {
   revalidatePath('/admin/vendors')
 }
 
-async function deleteVendor(id: string) {
-  'use server'
-  const supabase = await createClient()
-  await supabase.from('vendors').delete().eq('id', id)
-  revalidatePath('/admin/vendors')
-}
 
 export default async function AdminVendorsPage() {
   const supabase = await createClient()
@@ -90,39 +83,7 @@ export default async function AdminVendorsPage() {
           <CardTitle>All Vendors</CardTitle>
         </CardHeader>
         <CardContent>
-          {!vendors || vendors.length === 0 ? (
-            <p className="text-sm text-zinc-500">No vendors yet.</p>
-          ) : (
-            <ul className="divide-y divide-zinc-100">
-              {vendors.map((vendor) => (
-                <li key={vendor.id} className="py-4 flex items-start justify-between gap-4">
-                  <div className="space-y-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-zinc-900">{vendor.name}</p>
-                      {vendor.is_featured && <Badge variant="secondary">Featured</Badge>}
-                      {vendor.category && (
-                        <Badge variant="outline" className="text-xs">{vendor.category}</Badge>
-                      )}
-                    </div>
-                    {vendor.description && (
-                      <p className="text-sm text-zinc-500 line-clamp-2">{vendor.description}</p>
-                    )}
-                    <div className="flex gap-4 text-xs text-zinc-400">
-                      {vendor.website && (
-                        <a href={vendor.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                          {vendor.website}
-                        </a>
-                      )}
-                      {vendor.contact_email && <span>{vendor.contact_email}</span>}
-                    </div>
-                  </div>
-                  <form action={deleteVendor.bind(null, vendor.id)}>
-                    <Button type="submit" size="sm" variant="destructive">Delete</Button>
-                  </form>
-                </li>
-              ))}
-            </ul>
-          )}
+          <VendorList vendors={vendors ?? []} />
         </CardContent>
       </Card>
     </div>
