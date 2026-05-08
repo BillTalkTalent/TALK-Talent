@@ -122,7 +122,7 @@ export default async function DashboardPage() {
       label: "Jobs Posted",
       value: jobsPostedCount,
       icon: Briefcase,
-      style: { background: "linear-gradient(135deg, #ea580c, #f97316)" },
+      style: { background: "linear-gradient(135deg, #1d4ed8, #3b82f6)" },
       href: "/jobs",
     },
   ];
@@ -298,8 +298,8 @@ export default async function DashboardPage() {
       <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100">
           <div className="flex items-center gap-2.5">
-            <div className="size-7 rounded-lg bg-[#f97316]/15 flex items-center justify-center">
-              <Briefcase className="size-3.5 text-[#f97316]" />
+            <div className="size-7 rounded-lg bg-[#3b82f6]/15 flex items-center justify-center">
+              <Briefcase className="size-3.5 text-[#3b82f6]" />
             </div>
             <span className="text-sm font-semibold text-zinc-900">Recent Job Posts</span>
           </div>
@@ -320,8 +320,8 @@ export default async function DashboardPage() {
                 href={`/jobs/${job.id}`}
                 className="flex items-center gap-4 px-5 py-3.5 hover:bg-zinc-50 transition-colors group"
               >
-                <div className="size-9 rounded-xl bg-[#f97316]/10 flex items-center justify-center flex-shrink-0">
-                  <Briefcase className="size-4 text-[#f97316]" />
+                <div className="size-9 rounded-xl bg-[#3b82f6]/10 flex items-center justify-center flex-shrink-0">
+                  <Briefcase className="size-4 text-[#3b82f6]" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -343,7 +343,7 @@ export default async function DashboardPage() {
                     )}
                   </p>
                 </div>
-                <ArrowRight className="size-4 text-zinc-300 group-hover:text-[#00d4aa] transition-colors shrink-0" />
+                <ArrowRight className="size-4 text-zinc-300 group-hover:text-[#3b82f6] transition-colors shrink-0" />
               </Link>
             ))}
           </div>
