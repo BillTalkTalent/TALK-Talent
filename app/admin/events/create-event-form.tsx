@@ -6,12 +6,13 @@ import { createClient } from "@/lib/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { ImageIcon, Upload, X, Loader2 } from "lucide-react";
+import { ImageIcon, Upload, X, Loader2, DollarSign } from "lucide-react";
 
 export default function CreateEventForm() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [isPaid, setIsPaid] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -66,8 +67,16 @@ export default function CreateEventForm() {
       const eventDate = fd.get("event_date") as string;
       const endDate = fd.get("end_date") as string;
       const maxAttendees = fd.get("max_attendees") as string;
+      const priceStr = fd.get("price") as string;
+      const paidFlag = (fd.get("is_paid") as string) === "on";
 
-      const { error: insertError } = await supabase.from("events").insert({
+      // Convert dollars → cents
+      const priceCents = paidFlag && priceStr
+        ? Math.round(parseFloat(priceStr) * 100)
+        : null;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: insertError } = await (supabase as any).from("events").insert({
         title: fd.get("title") as string,
         description: (fd.get("description") as string) || null,
         location: (fd.get("location") as string) || null,
@@ -80,6 +89,9 @@ export default function CreateEventForm() {
           ((fd.get("status") as string) as "draft" | "published" | "cancelled") ||
           "draft",
         image_url: imageUrl,
+        is_paid: paidFlag,
+        price: priceCents,
+        currency: (fd.get("currency") as string) || "usd",
         organizer_id: (await supabase.auth.getUser()).data.user?.id,
       });
 
@@ -195,6 +207,63 @@ export default function CreateEventForm() {
       <div className="flex items-center gap-2 sm:col-span-2">
         <input type="checkbox" id="is_virtual" name="is_virtual" className="size-4 rounded border-zinc-300" />
         <Label htmlFor="is_virtual" className="cursor-pointer">Virtual event</Label>
+      </div>
+
+      {/* Paid event toggle */}
+      <div className="sm:col-span-2 rounded-xl border border-zinc-200 p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="is_paid"
+            name="is_paid"
+            checked={isPaid}
+            onChange={(e) => setIsPaid(e.target.checked)}
+            className="size-4 rounded border-zinc-300"
+          />
+          <Label htmlFor="is_paid" className="cursor-pointer font-semibold">
+            <DollarSign className="size-3.5 inline mr-0.5 text-emerald-600" />
+            Paid event
+          </Label>
+        </div>
+
+        {isPaid && (
+          <div className="grid grid-cols-2 gap-3 pt-1">
+            <div className="space-y-1.5">
+              <Label htmlFor="price" className="text-xs">Price (USD) *</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-sm">$</span>
+                <Input
+                  id="price"
+                  name="price"
+                  type="number"
+                  min="0.50"
+                  step="0.01"
+                  placeholder="49.00"
+                  required={isPaid}
+                  className="pl-7"
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="currency" className="text-xs">Currency</Label>
+              <select
+                id="currency"
+                name="currency"
+                defaultValue="usd"
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                <option value="usd">USD — US Dollar</option>
+                <option value="cad">CAD — Canadian Dollar</option>
+                <option value="gbp">GBP — British Pound</option>
+                <option value="eur">EUR — Euro</option>
+                <option value="aud">AUD — Australian Dollar</option>
+              </select>
+            </div>
+            <p className="col-span-2 text-xs text-zinc-400">
+              Members will be taken to Stripe Checkout to pay. The virtual link is hidden until payment is confirmed.
+            </p>
+          </div>
+        )}
       </div>
 
       {error && (

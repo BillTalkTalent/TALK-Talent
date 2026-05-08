@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { format } from "date-fns";
-import { CalendarDays, MapPin, Monitor, Users, Plus } from "lucide-react";
+import { CalendarDays, MapPin, Monitor, Users, CreditCard } from "lucide-react";
 import type { Event } from "@/lib/supabase/types";
 import { Button } from "@/components/ui/button";
+import { formatPrice } from "@/lib/stripe";
+
+type PaidEvent = Event & { is_paid: boolean; price: number | null; currency: string };
 
 async function getEventAttendeeCount(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -17,7 +20,7 @@ async function getEventAttendeeCount(
   return count ?? 0;
 }
 
-function EventCard({ event, attendeeCount }: { event: Event; attendeeCount: number }) {
+function EventCard({ event, attendeeCount }: { event: PaidEvent; attendeeCount: number }) {
   const eventDate = new Date(event.event_date);
   return (
     <Link href={`/events/${event.id}`}>
@@ -41,11 +44,19 @@ function EventCard({ event, attendeeCount }: { event: Event; attendeeCount: numb
               <CalendarDays className="size-3" />
               {format(eventDate, "MMM d, yyyy")}
             </span>
-            {event.is_virtual ? (
-              <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">Virtual</span>
-            ) : (
-              <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">In Person</span>
-            )}
+            <div className="flex items-center gap-1.5">
+              {event.is_paid && event.price != null && (
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-white bg-[#00b894] px-2.5 py-1 rounded-full">
+                  <CreditCard className="size-3" />
+                  {formatPrice(event.price, event.currency)}
+                </span>
+              )}
+              {event.is_virtual ? (
+                <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">Virtual</span>
+              ) : (
+                <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">In Person</span>
+              )}
+            </div>
           </div>
 
           <h3 className="font-bold text-zinc-900 group-hover:text-[#f97316] transition-colors leading-snug text-base">
@@ -115,8 +126,8 @@ export default async function EventsPage({
       .limit(20),
   ]);
 
-  const upcomingEvents = upcomingResult.data ?? [];
-  const pastEvents = pastResult.data ?? [];
+  const upcomingEvents = (upcomingResult.data ?? []) as PaidEvent[];
+  const pastEvents = (pastResult.data ?? []) as PaidEvent[];
 
   const [upcomingCounts, pastCounts] = await Promise.all([
     Promise.all(upcomingEvents.map((e) => getEventAttendeeCount(supabase, e.id))),
