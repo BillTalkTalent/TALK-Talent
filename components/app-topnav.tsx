@@ -65,8 +65,8 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
           <Image
             src="/TALK Logo.png"
             alt="TALK"
-            height={36}
-            width={120}
+            height={28}
+            width={92}
             className="object-contain"
             priority
           />
