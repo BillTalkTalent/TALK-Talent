@@ -16,7 +16,7 @@ const NewsletterEditor = dynamic(() => import('@/components/newsletter-editor'),
 const SECTIONS = [
   { key: 'talk_news',          label: 'TALK News',            icon: Newspaper,  color: '#00b894', desc: 'Community updates, announcements, upcoming events' },
   { key: 'member_highlight',   label: 'Member Highlight',     icon: Star,       color: '#f59e0b', desc: 'Spotlight a member — their story, role, or advice' },
-  { key: 'industry_news',      label: 'Industry News',        icon: Globe,      color: '#3b82f6', desc: 'TA trends, research, and what's happening out there' },
+  { key: 'industry_news',      label: 'Industry News',        icon: Globe,      color: '#3b82f6', desc: "TA trends, research, and what's happening out there" },
   { key: 'career_opportunities', label: 'Career Opportunities', icon: Briefcase, color: '#8b5cf6', desc: 'Curated jobs and opportunities worth sharing' },
   { key: 'vendor_highlight',   label: 'Vendor Highlight',     icon: Building2,  color: '#ec4899', desc: 'A trusted tool or partner the community should know about' },
 ] as const
