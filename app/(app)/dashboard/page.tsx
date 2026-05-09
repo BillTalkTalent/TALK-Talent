@@ -101,28 +101,28 @@ export default async function DashboardPage() {
       label: "Total Members",
       value: memberCount,
       icon: Users,
-      style: { background: "linear-gradient(135deg, #00b894, #00d4aa)" },
+      style: { background: "linear-gradient(135deg, #e0365d, #c2185b)" },
       href: "/members",
     },
     {
       label: "Upcoming Events & Classes",
       value: upcomingEventCount,
       icon: CalendarDays,
-      style: { background: "linear-gradient(135deg, #ea580c, #f97316)" },
+      style: { background: "linear-gradient(135deg, #8b2fc9, #6d28d9)" },
       href: "/events",
     },
     {
       label: "Active Discussions",
       value: activeDiscussionsCount,
       icon: MessageSquare,
-      style: { background: "linear-gradient(135deg, #7c3aed, #8b5cf6)" },
+      style: { background: "linear-gradient(135deg, #3d5af1, #2563eb)" },
       href: "/forum",
     },
     {
       label: "Jobs Posted",
       value: jobsPostedCount,
       icon: Briefcase,
-      style: { background: "linear-gradient(135deg, #1d4ed8, #3b82f6)" },
+      style: { background: "linear-gradient(135deg, #8b2fc9, #3d5af1)" },
       href: "/jobs",
     },
   ];
@@ -133,20 +133,20 @@ export default async function DashboardPage() {
       {/* Hero banner */}
       <div
         className="relative overflow-hidden rounded-2xl p-8 text-white"
-        style={{ background: "linear-gradient(135deg, #0d0d0d 0%, #1a1a2e 55%, #16213e 100%)" }}
+        style={{ background: "linear-gradient(105deg, #e0365d 0%, #8b2fc9 50%, #3d5af1 100%)" }}
       >
         {/* Dot grid pattern */}
         <div
-          className="absolute inset-0 opacity-[0.07]"
+          className="absolute inset-0 opacity-[0.08]"
           style={{
             backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)",
             backgroundSize: "20px 20px",
           }}
         />
         {/* Glowing orb */}
-        <div className="absolute -top-10 -right-10 size-48 rounded-full opacity-20 blur-3xl" style={{background: "radial-gradient(circle, #00d4aa, transparent)"}} />
+        <div className="absolute -top-10 -right-10 size-48 rounded-full opacity-30 blur-3xl" style={{background: "radial-gradient(circle, #fff, transparent)"}} />
         <div className="relative">
-          <p className="text-sm font-medium text-[#00d4aa]/80 mb-1">
+          <p className="text-sm font-medium text-white/70 mb-1">
             {new Date().toLocaleDateString("en-US", {
               weekday: "long",
               month: "long",
@@ -188,7 +188,7 @@ export default async function DashboardPage() {
               </div>
               <span className="text-sm font-semibold text-zinc-900">Upcoming Events &amp; Classes</span>
             </div>
-            <Button variant="ghost" size="sm" className="text-xs text-[#00b894] hover:text-[#00d4aa] hover:bg-[#00d4aa]/10 -mr-1" render={<Link href="/events" />}>
+            <Button variant="ghost" size="sm" className="text-xs text-[#8b2fc9] hover:text-[#6d28d9] hover:bg-[#8b2fc9]/10 -mr-1" render={<Link href="/events" />}>
               View all <ArrowRight className="size-3 ml-1" />
             </Button>
           </div>
@@ -224,7 +224,7 @@ export default async function DashboardPage() {
                         ) : (
                           <span className="text-[9px] font-black uppercase tracking-wide text-[#f97316] bg-[#f97316]/10 px-1.5 py-0.5 rounded-full shrink-0">Event</span>
                         )}
-                        <p className="font-medium text-sm text-zinc-900 truncate group-hover:text-[#00d4aa] transition-colors">
+                        <p className="font-medium text-sm text-zinc-900 truncate group-hover:text-[#8b2fc9] transition-colors">
                           {event.title}
                         </p>
                       </div>
@@ -259,7 +259,7 @@ export default async function DashboardPage() {
               </div>
               <span className="text-sm font-semibold text-zinc-900">Recent Discussions</span>
             </div>
-            <Button variant="ghost" size="sm" className="text-xs text-[#00b894] hover:text-[#00d4aa] hover:bg-[#00d4aa]/10 -mr-1" render={<Link href="/forum" />}>
+            <Button variant="ghost" size="sm" className="text-xs text-[#8b2fc9] hover:text-[#6d28d9] hover:bg-[#8b2fc9]/10 -mr-1" render={<Link href="/forum" />}>
               View all <ArrowRight className="size-3 ml-1" />
             </Button>
           </div>
@@ -285,7 +285,7 @@ export default async function DashboardPage() {
                           {cat.name}
                         </span>
                       )}
-                      <p className="font-medium text-sm text-zinc-900 truncate group-hover:text-[#00d4aa] transition-colors">
+                      <p className="font-medium text-sm text-zinc-900 truncate group-hover:text-[#8b2fc9] transition-colors">
                         {topic.title}
                       </p>
                       <p className="text-xs text-zinc-400">
@@ -310,7 +310,7 @@ export default async function DashboardPage() {
             </div>
             <span className="text-sm font-semibold text-zinc-900">Recent Job Posts</span>
           </div>
-          <Button variant="ghost" size="sm" className="text-xs text-[#00b894] hover:text-[#00d4aa] hover:bg-[#00d4aa]/10 -mr-1" render={<Link href="/jobs" />}>
+          <Button variant="ghost" size="sm" className="text-xs text-[#8b2fc9] hover:text-[#6d28d9] hover:bg-[#8b2fc9]/10 -mr-1" render={<Link href="/jobs" />}>
             View all <ArrowRight className="size-3 ml-1" />
           </Button>
         </div>
@@ -332,7 +332,7 @@ export default async function DashboardPage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-medium text-sm text-zinc-900 group-hover:text-[#00d4aa] transition-colors">
+                    <p className="font-medium text-sm text-zinc-900 group-hover:text-[#8b2fc9] transition-colors">
                       {job.title}
                     </p>
                     <span className="text-[10px] font-semibold text-violet-700 bg-violet-50 border border-violet-100 px-1.5 py-0.5 rounded-full">
