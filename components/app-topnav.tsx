@@ -55,7 +55,7 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
   return (
     <header
       className="sticky top-0 z-50"
-      style={{ background: 'linear-gradient(105deg, #e0365d 0%, #8b2fc9 50%, #3d5af1 100%)' }}
+      style={{ background: 'linear-gradient(90deg, #0d0d0d 0%, #1a1a2e 100%)' }}
     >
       <div className="px-5 flex items-center h-14 gap-1">
 
@@ -85,8 +85,8 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
                 className={cn(
                   'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all',
                   active
-                    ? 'bg-white/25 text-white font-semibold'
-                    : 'text-white/60 hover:bg-white/15 hover:text-white'
+                    ? 'bg-[#00d4aa] text-[#0d0d0d] font-semibold'
+                    : 'text-white/60 hover:bg-white/10 hover:text-white'
                 )}
               >
                 <Icon className="size-4 shrink-0" />
@@ -108,8 +108,8 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
                 className={cn(
                   'flex items-center justify-center size-9 rounded-lg transition-all',
                   active
-                    ? 'bg-white/25 text-white'
-                    : 'text-white/60 hover:bg-white/15 hover:text-white'
+                    ? 'bg-[#00d4aa] text-[#0d0d0d]'
+                    : 'text-white/60 hover:bg-white/10 hover:text-white'
                 )}
               >
                 <Icon className="size-4" />
@@ -140,13 +140,13 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
             href="/profile"
             className="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-white/15 transition-colors group"
           >
-            <Avatar className="size-7 ring-2 ring-white/40 shrink-0">
+            <Avatar className="size-7 ring-2 ring-[#00d4aa]/60 shrink-0">
               {profile.avatar_url && (
                 <AvatarImage src={profile.avatar_url} alt={profile.full_name ?? ''} />
               )}
               <AvatarFallback
                 className="text-xs font-bold"
-                style={{ background: 'rgba(255,255,255,0.25)', color: 'white' }}
+                style={{ background: 'linear-gradient(135deg, #00b894, #00d4aa)', color: '#0d0d0d' }}
               >
                 {profile.full_name?.[0]?.toUpperCase() ?? '?'}
               </AvatarFallback>
