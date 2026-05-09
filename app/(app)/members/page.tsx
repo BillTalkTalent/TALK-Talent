@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import { Users } from "lucide-react";
+import { Users, Mail } from "lucide-react";
+import Link from "next/link";
 import MembersGrid from "./members-grid";
 
 export default async function MembersPage() {
@@ -18,17 +19,27 @@ export default async function MembersPage() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <div className="flex items-center gap-3">
-        <div
-          className="size-10 rounded-xl flex items-center justify-center flex-shrink-0"
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-3">
+          <div
+            className="size-10 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{ background: "linear-gradient(135deg, #00b894, #00d4aa)" }}
+          >
+            <Users className="size-5 text-white" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-zinc-900">Members</h1>
+            <p className="text-sm text-zinc-500">{members?.length ?? 0} approved members</p>
+          </div>
+        </div>
+        <Link
+          href="/invite"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-[#0d0d0d] hover:opacity-90 transition-opacity"
           style={{ background: "linear-gradient(135deg, #00b894, #00d4aa)" }}
         >
-          <Users className="size-5 text-white" />
-        </div>
-        <div>
-          <h1 className="text-xl font-bold text-zinc-900">Members</h1>
-          <p className="text-sm text-zinc-500">{members?.length ?? 0} approved members</p>
-        </div>
+          <Mail className="size-4" />
+          Invite a Member
+        </Link>
       </div>
       <MembersGrid
         members={members ?? []}

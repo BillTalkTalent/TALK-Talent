@@ -52,11 +52,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       {/* Admin sub-nav */}
       <div className="border-b border-zinc-100 bg-white px-6 py-2 flex items-center gap-1 overflow-x-auto">
         {[
-          { href: '/admin',          label: 'Overview' },
-          { href: '/admin/members',  label: 'Members' },
-          { href: '/admin/events',   label: 'Events' },
-          { href: '/admin/jobs',     label: 'Jobs' },
-          { href: '/admin/vendors',  label: 'Vendors' },
+          { href: '/admin',               label: 'Overview' },
+          { href: '/admin/members',       label: 'Members' },
+          { href: '/admin/events',        label: 'Events' },
+          { href: '/admin/jobs',          label: 'Jobs' },
+          { href: '/admin/vendors',       label: 'Vendors' },
+          { href: '/admin/suggestions',   label: 'Suggestions & Invites' },
         ].map(({ href, label }) => (
           <Link
             key={href}
