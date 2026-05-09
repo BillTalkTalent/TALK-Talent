@@ -57,6 +57,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           { href: '/admin/events',        label: 'Events' },
           { href: '/admin/jobs',          label: 'Jobs' },
           { href: '/admin/vendors',       label: 'Vendors' },
+          { href: '/admin/newsletter',    label: 'Newsletter' },
           { href: '/admin/suggestions',   label: 'Suggestions & Invites' },
         ].map(({ href, label }) => (
           <Link
