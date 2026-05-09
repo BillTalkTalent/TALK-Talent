@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard,
@@ -60,18 +61,15 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
       <div className="px-5 flex items-center h-14 gap-1">
 
         {/* ── Logo ── */}
-        <Link href="/dashboard" className="flex items-center gap-2 mr-5 shrink-0">
-          <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
-            <rect width="34" height="34" rx="9" fill="rgba(255,255,255,0.2)"/>
-            <rect x="8" y="12" width="18" height="3" rx="1.5" fill="white"/>
-            <rect x="8" y="18.5" width="13" height="3" rx="1.5" fill="white"/>
-          </svg>
-          <span
-            className="hidden sm:block font-black tracking-tight text-white"
-            style={{ fontSize: '1.25rem', letterSpacing: '-0.01em' }}
-          >
-            TALK
-          </span>
+        <Link href="/dashboard" className="flex items-center mr-5 shrink-0">
+          <Image
+            src="/TALK Logo.png"
+            alt="TALK"
+            height={36}
+            width={120}
+            className="object-contain"
+            priority
+          />
         </Link>
 
         {/* ── Main nav ── */}
