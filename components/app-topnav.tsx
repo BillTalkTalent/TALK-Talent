@@ -63,10 +63,10 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
         {/* ── Logo ── */}
         <Link href="/dashboard" className="flex items-center mr-5 shrink-0">
           <Image
-            src="/TALK Logo.png"
+            src="/talk-logo.svg"
             alt="TALK"
-            height={28}
-            width={92}
+            height={38}
+            width={126}
             className="object-contain"
             priority
           />
