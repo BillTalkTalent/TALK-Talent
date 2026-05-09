@@ -55,19 +55,17 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
   return (
     <header
       className="sticky top-0 z-50"
-      style={{ background: 'linear-gradient(90deg, #0d0d0d 0%, #1a1a2e 100%)' }}
+      style={{ background: 'linear-gradient(105deg, #e0365d 0%, #8b2fc9 50%, #3d5af1 100%)' }}
     >
       <div className="px-5 flex items-center h-14 gap-1">
 
         {/* ── Logo ── */}
         <Link href="/dashboard" className="flex items-center gap-2 mr-5 shrink-0">
-          {/* Icon mark: rounded square + two lines */}
           <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
-            <rect width="34" height="34" rx="9" fill="#00d4aa"/>
+            <rect width="34" height="34" rx="9" fill="rgba(255,255,255,0.2)"/>
             <rect x="8" y="12" width="18" height="3" rx="1.5" fill="white"/>
             <rect x="8" y="18.5" width="13" height="3" rx="1.5" fill="white"/>
           </svg>
-          {/* Wordmark */}
           <span
             className="hidden sm:block font-black tracking-tight text-white"
             style={{ fontSize: '1.25rem', letterSpacing: '-0.01em' }}
@@ -87,11 +85,11 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
                 className={cn(
                   'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all',
                   active
-                    ? 'bg-[#00d4aa] text-[#0d0d0d] shadow-sm font-semibold'
-                    : 'text-white/60 hover:bg-white/10 hover:text-white'
+                    ? 'bg-white/25 text-white font-semibold'
+                    : 'text-white/60 hover:bg-white/15 hover:text-white'
                 )}
               >
-                <Icon className={cn('size-4 shrink-0', active ? 'text-[#0d0d0d]' : '')} />
+                <Icon className="size-4 shrink-0" />
                 {label}
               </Link>
             )
@@ -110,8 +108,8 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
                 className={cn(
                   'flex items-center justify-center size-9 rounded-lg transition-all',
                   active
-                    ? 'bg-[#00d4aa] text-[#0d0d0d]'
-                    : 'text-white/60 hover:bg-white/10 hover:text-white'
+                    ? 'bg-white/25 text-white'
+                    : 'text-white/60 hover:bg-white/15 hover:text-white'
                 )}
               >
                 <Icon className="size-4" />
@@ -126,8 +124,8 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
               className={cn(
                 'flex items-center justify-center size-9 rounded-lg transition-all',
                 pathname.startsWith('/admin')
-                  ? 'bg-[#00d4aa] text-[#0d0d0d]'
-                  : 'text-white/60 hover:bg-white/10 hover:text-white'
+                  ? 'bg-white/25 text-white'
+                  : 'text-white/60 hover:bg-white/15 hover:text-white'
               )}
             >
               <Settings className="size-4" />
@@ -135,20 +133,20 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
           )}
 
           {/* Divider */}
-          <div className="w-px h-6 bg-white/20 mx-1" />
+          <div className="w-px h-6 bg-white/25 mx-1" />
 
           {/* Profile */}
           <Link
             href="/profile"
             className="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-white/15 transition-colors group"
           >
-            <Avatar className="size-7 ring-2 ring-[#00d4aa]/60 shrink-0">
+            <Avatar className="size-7 ring-2 ring-white/40 shrink-0">
               {profile.avatar_url && (
                 <AvatarImage src={profile.avatar_url} alt={profile.full_name ?? ''} />
               )}
               <AvatarFallback
                 className="text-xs font-bold"
-                style={{ background: 'linear-gradient(135deg, #00b894, #00d4aa)', color: '#0d0d0d' }}
+                style={{ background: 'rgba(255,255,255,0.25)', color: 'white' }}
               >
                 {profile.full_name?.[0]?.toUpperCase() ?? '?'}
               </AvatarFallback>
@@ -162,7 +160,7 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
           <button
             onClick={handleSignOut}
             title="Sign out"
-            className="flex items-center justify-center size-9 rounded-lg text-white/60 hover:text-red-400 hover:bg-white/10 transition-all"
+            className="flex items-center justify-center size-9 rounded-lg text-white/60 hover:text-white hover:bg-white/15 transition-all"
           >
             <LogOut className="size-4" />
           </button>

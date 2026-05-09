@@ -122,32 +122,32 @@
 
 @layer base {
   :root {
-    /* TALK brand — Forest / Teal / Sage palette */
-    --background: oklch(0.97 0.008 150);          /* warm white */
-    --foreground: oklch(0.22 0.04 168);            /* dark forest text */
+    /* TALK brand — Aurora palette */
+    --background: oklch(0.97 0.01 320);           /* soft pink-white */
+    --foreground: oklch(0.18 0.05 295);            /* deep violet-dark text */
     --card: oklch(1 0 0);
-    --card-foreground: oklch(0.22 0.04 168);
-    --primary: oklch(0.64 0.07 183);              /* Teal #5FA8A3 */
+    --card-foreground: oklch(0.18 0.05 295);
+    --primary: oklch(0.52 0.22 295);              /* Violet #8b2fc9 */
     --primary-foreground: oklch(1 0 0);
-    --secondary: oklch(0.93 0.03 183);
-    --secondary-foreground: oklch(0.42 0.07 168);
-    --muted: oklch(0.94 0.02 183);
-    --muted-foreground: oklch(0.52 0.05 183);
-    --accent: oklch(0.77 0.05 222);               /* Mist #A8C0D6 */
-    --accent-foreground: oklch(0.3 0.05 183);
-    --ring: oklch(0.64 0.07 183);
-    --border: oklch(0.90 0.025 183);
-    --input: oklch(0.90 0.025 183);
+    --secondary: oklch(0.94 0.02 310);
+    --secondary-foreground: oklch(0.35 0.1 295);
+    --muted: oklch(0.95 0.015 310);
+    --muted-foreground: oklch(0.52 0.06 295);
+    --accent: oklch(0.60 0.22 15);                /* Rose #e0365d */
+    --accent-foreground: oklch(1 0 0);
+    --ring: oklch(0.52 0.22 295);
+    --border: oklch(0.90 0.02 310);
+    --input: oklch(0.90 0.02 310);
     --radius: 0.625rem;
     /* Sidebar vars (kept for compat) */
-    --sidebar: oklch(0.42 0.07 168);
-    --sidebar-foreground: oklch(0.95 0.02 183);
-    --sidebar-primary: oklch(0.64 0.07 183);
+    --sidebar: oklch(0.35 0.18 295);
+    --sidebar-foreground: oklch(0.95 0.02 310);
+    --sidebar-primary: oklch(0.52 0.22 295);
     --sidebar-primary-foreground: oklch(1 0 0);
-    --sidebar-accent: oklch(0.50 0.07 168);
-    --sidebar-accent-foreground: oklch(0.95 0.02 183);
-    --sidebar-border: oklch(0.50 0.07 168);
-    --sidebar-ring: oklch(0.64 0.07 183);
+    --sidebar-accent: oklch(0.42 0.18 295);
+    --sidebar-accent-foreground: oklch(0.95 0.02 310);
+    --sidebar-border: oklch(0.42 0.18 295);
+    --sidebar-ring: oklch(0.52 0.22 295);
   }
 
   /* Smoother scrollbar for webkit browsers (vertical only) */

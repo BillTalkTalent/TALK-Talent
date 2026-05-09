@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TALK – Palette Options</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #f0f0f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 40px 24px; }
+  h1 { text-align: center; color: #333; font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 40px; }
+
+  .palette { margin-bottom: 56px; }
+  .palette-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #999; margin-bottom: 10px; padding-left: 4px; }
+  .palette-name { font-size: 22px; font-weight: 800; color: #111; margin-bottom: 4px; padding-left: 4px; }
+  .palette-desc { font-size: 13px; color: #666; margin-bottom: 16px; padding-left: 4px; }
+
+  /* NAV SHELL */
+  .nav { height: 56px; display: flex; align-items: center; padding: 0 20px; gap: 4px; border-radius: 14px; overflow: hidden; }
+  .logo-box { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; margin-right: 12px; flex-shrink: 0; }
+  .logo-word { font-size: 20px; font-weight: 900; letter-spacing: -0.02em; margin-right: 20px; flex-shrink: 0; }
+  .nav-items { display: flex; align-items: center; gap: 2px; flex: 1; }
+  .nav-item { padding: 7px 12px; border-radius: 8px; font-size: 13px; font-weight: 500; white-space: nowrap; cursor: pointer; }
+  .nav-item.active { font-weight: 700; }
+  .nav-right { display: flex; align-items: center; gap: 6px; margin-left: 12px; }
+  .icon-btn { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; }
+  .divider { width: 1px; height: 24px; margin: 0 4px; }
+  .avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; }
+
+  /* CONTENT PREVIEW */
+  .content-preview { margin-top: 12px; border-radius: 14px; padding: 24px; display: flex; gap: 16px; }
+  .card { border-radius: 10px; padding: 16px; flex: 1; }
+  .card-title { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  .card-sub { font-size: 11px; opacity: 0.6; }
+  .pill { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: 10px; font-weight: 700; margin-top: 10px; }
+
+  /* SWATCHES */
+  .swatches { display: flex; gap: 8px; margin-top: 14px; padding-left: 4px; }
+  .swatch { width: 32px; height: 32px; border-radius: 8px; }
+  .swatch-label { font-size: 10px; color: #999; margin-top: 4px; text-align: center; }
+  .swatch-wrap { text-align: center; }
+
+  hr { border: none; border-top: 1px solid #ddd; margin: 48px 0; }
+</style>
+</head>
+<body>
+
+<h1>TALK — 4 Palette Directions</h1>
+
+<!-- ═══════════════════════════════════════════════
+     OPTION 1 — MIDNIGHT GOLD
+     ═══════════════════════════════════════════════ -->
+<div class="palette">
+  <div class="palette-label">Option 1</div>
+  <div class="palette-name">Midnight Gold</div>
+  <div class="palette-desc">Deep navy/black background with warm gold accents. Premium, exclusive, finance-forward.</div>
+
+  <div class="nav" style="background: linear-gradient(90deg, #0a0a0f 0%, #0f0f1e 100%);">
+    <div class="logo-box" style="background: #f5c842;">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none"><rect width="34" height="34" rx="9" fill="#f5c842"/><rect x="8" y="12" width="18" height="3" rx="1.5" fill="#0a0a0f"/><rect x="8" y="18.5" width="13" height="3" rx="1.5" fill="#0a0a0f"/></svg>
+    </div>
+    <div class="logo-word" style="color: #ffffff;">TALK</div>
+    <div class="nav-items">
+      <div class="nav-item active" style="background: #f5c842; color: #0a0a0f;">Dashboard</div>
+      <div class="nav-item" style="color: rgba(255,255,255,0.55);">Members</div>
+      <div class="nav-item" style="color: rgba(255,255,255,0.55);">Events & Classes</div>
+      <div class="nav-item" style="color: rgba(255,255,255,0.55);">Forum</div>
+      <div class="nav-item" style="color: rgba(255,255,255,0.55);">Jobs</div>
+      <div class="nav-item" style="color: rgba(255,255,255,0.55);">Polls</div>
+      <div class="nav-item" style="color: rgba(255,255,255,0.55);">Vendors</div>
+      <div class="nav-item" style="color: rgba(255,255,255,0.55);">Mentorship</div>
+    </div>
+    <div class="nav-right">
+      <div class="icon-btn" style="color: rgba(255,255,255,0.5);">#</div>
+      <div class="icon-btn" style="color: rgba(255,255,255,0.5);">✉</div>
+      <div class="divider" style="background: rgba(255,255,255,0.15);"></div>
+      <div class="avatar" style="background: #f5c842; color: #0a0a0f; border: 2px solid rgba(245,200,66,0.5);">B</div>
+    </div>
+  </div>
+
+  <div class="content-preview" style="background: #f9f7f0;">
+    <div class="card" style="background: #ffffff; border: 1px solid #f0ead8;">
+      <div class="card-title" style="color: #0a0a0f;">Welcome back, Bill</div>
+      <div class="card-sub" style="color: #666;">Your community at a glance</div>
+      <div class="pill" style="background: #fef9e7; color: #b8860b;">⭐ 142 members</div>
+    </div>
+    <div class="card" style="background: #ffffff; border: 1px solid #f0ead8;">
+      <div class="card-title" style="color: #0a0a0f;">Upcoming Event</div>
+      <div class="card-sub" style="color: #666;">TA Leaders Roundtable — May 15</div>
+      <div class="pill" style="background: #0a0a0f; color: #f5c842;">Register →</div>
+    </div>
+    <div class="card" style="background: #ffffff; border: 1px solid #f0ead8;">
+      <div class="card-title" style="color: #0a0a0f;">New in Forum</div>
+      <div class="card-sub" style="color: #666;">12 new posts this week</div>
+      <div class="pill" style="background: #fef9e7; color: #b8860b;">View threads</div>
+    </div>
+  </div>
+
+  <div class="swatches">
+    <div class="swatch-wrap"><div class="swatch" style="background: #0a0a0f;"></div><div class="swatch-label">#0a0a0f</div></div>
+    <div class="swatch-wrap"><div class="swatch" style="background: #0f0f1e;"></div><div class="swatch-label">#0f0f1e</div></div>
+    <div class="swatch-wrap"><div class="swatch" style="background: #f5c842;"></div><div class="swatch-label">#f5c842</div></div>
+    <div class="swatch-wrap"><div class="swatch" style="background: #b8860b;"></div><div class="swatch-label">#b8860b</div></div>
+    <div class="swatch-wrap"><div class="swatch" style="background: #f9f7f0;"></div><div class="swatch-label">#f9f7f0</div></div>
+  </div>
+</div>
+
+<hr>
+
+<!-- ═══════════════════════════════════════════════
+     OPTION 2 — DEEP PLUM
+     ═══════════════════════════════════════════════ -->
+<div class="palette">
+  <div class="palette-label">Option 2</div>
+  <div class="palette-name">Deep Plum & Coral</div>
+  <div class="palette-desc">Rich deep purple/plum with a warm coral accent. Bold, modern, energetic.</div>
+
+  <div class="nav" style="background: linear-gradient(90deg, #1e0a2e 0%, #2d1048 100%);">
+    <div class="logo-box" style="background: #ff6b6b;">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none"><rect width="34" height="34" rx="9" fill="#ff6b6b"/><rect x="8" y="12" width="18" height="3" rx="1.5" fill="white"/><rect x="8" y="18.5" width="13" height="3" rx="1.5" fill="white"/></svg>
+    </div>
+    <div class="logo-word" style="color: #ffffff;">TALK</div>
+    <div class="nav-items">
+      <div class="nav-item active" style="background: #ff6b6b; color: #ffffff;">Dashboard</div>
+      <div class="nav-item" style="color: rgba(255,255,255,0.5);">Members</div>
+      <div class="nav-item" style="color: rgba(255,255,255,0.5);">Events & Classes</div>
+      <div class="nav-item" style="color: rgba(255,255,255,0.5);">Forum</div>
+      <div class="nav-item" style="color: rgba(255,255,255,0.5);">Jobs</div>
+      <div class="nav-item" style="color: rgba(255,255,255,0.5);">Polls</div>
+      <div class="nav-item" style="color: rgba(255,255,255,0.5);">Vendors</div>
+      <div class="nav-item" style="color: rgba(255,255,255,0.5);">Mentorship</div>
+    </div>
+    <div class="nav-right">
+      <div class="icon-btn" style="color: rgba(255,255,255,0.45);">#</div>
+      <div class="icon-btn" style="color: rgba(255,255,255,0.45);">✉</div>
+      <div class="divider" style="background: rgba(255,255,255,0.15);"></div>
+      <div class="avatar" style="background: #ff6b6b; color: #fff; border: 2px solid rgba(255,107,107,0.5);">B</div>
+    </div>
+  </div>
+
+  <div class="content-preview" style="background: #faf5ff;">
+    <div class="card" style="background: #ffffff; border: 1px solid #ede0f8;">
+      <div class="card-title" style="color: #1e0a2e;">Welcome back, Bill</div>
+      <div class="card-sub" style="color: #888;">Your community at a glance</div>
+      <div class="pill" style="background: #fde8e8; color: #c0392b;">❤ 142 members</div>
+    </div>
+    <div class="card" style="background: #ffffff; border: 1px solid #ede0f8;">
+      <div class="card-title" style="color: #1e0a2e;">Upcoming Event</div>
+      <div class="card-sub" style="color: #888;">TA Leaders Roundtable — May 15</div>
+      <div class="pill" style="background: #1e0a2e; color: #ff6b6b;">Register →</div>
+    </div>
+    <div class="card" style="background: #ffffff; border: 1px solid #ede0f8;">
+      <div class="card-title" style="color: #1e0a2e;">New in Forum</div>
+      <div class="card-sub" style="color: #888;">12 new posts this week</div>
+      <div class="pill" style="background: #fde8e8; color: #c0392b;">View threads</div>
+    </div>
+  </div>
+
+  <div class="swatches">
+    <div class="swatch-wrap"><div class="swatch" style="background: #1e0a2e;"></div><div class="swatch-label">#1e0a2e</div></div>
+    <div class="swatch-wrap"><div class="swatch" style="background: #2d1048;"></div><div class="swatch-label">#2d1048</div></div>
+    <div class="swatch-wrap"><div class="swatch" style="background: #ff6b6b;"></div><div class="swatch-label">#ff6b6b</div></div>
+    <div class="swatch-wrap"><div class="swatch" style="background: #ffa07a;"></div><div class="swatch-label">#ffa07a</div></div>
+    <div class="swatch-wrap"><div class="swatch" style="background: #faf5ff;"></div><div class="swatch-label">#faf5ff</div></div>
+  </div>
+</div>
+
+<hr>
+
+<!-- ═══════════════════════════════════════════════
+     OPTION 3 — SLATE & ELECTRIC BLUE
+     ═══════════════════════════════════════════════ -->
+<div class="palette">
+  <div class="palette-label">Option 3</div>
+  <div class="palette-name">Slate & Electric Blue</div>
+  <div class="palette-desc">Cool charcoal slate with electric blue. Clean, corporate-tech, LinkedIn-adjacent but sharper.</div>
+
+  <div class="nav" style="background: linear-gradient(90deg, #1c2333 0%, #242d42 100%);">
+    <div class="logo-box" style="background: #3b82f6;">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none"><rect width="34" height="34" rx="9" fill="#3b82f6"/><rect x="8" y="12" width="18" height="3" rx="1.5" fill="white"/><rect x="8" y="18.5" width="13" height="3" rx="1.5" fill="white"/></svg>
+    </div>
+    <div class="logo-word" style="color: #ffffff;">TALK</div>
+    <div class="nav-items">
+      <div class="nav-item active" style="background: #3b82f6; color: #ffffff;">Dashboard</div>
+      <div class="nav-item" style="color: rgba(255,255,255,0.5);">Members</div>
+      <div class="nav-item" style="color: rgba(255,255,255,0.5);">Events & Classes</div>
+      <div class="nav-item" style="color: rgba(255,255,255,0.5);">Forum</div>
+      <div class="nav-item" style="color: rgba(255,255,255,0.5);">Jobs</div>
+      <div class="nav-item" style="color: rgba(255,255,255,0.5);">Polls</div>
+      <div class="nav-item" style="color: rgba(255,255,255,0.5);">Vendors</div>
+      <div class="nav-item" style="color: rgba(255,255,255,0.5);">Mentorship</div>
+    </div>
+    <div class="nav-right">
+      <div class="icon-btn" style="color: rgba(255,255,255,0.45);">#</div>
+      <div class="icon-btn" style="color: rgba(255,255,255,0.45);">✉</div>
+      <div class="divider" style="background: rgba(255,255,255,0.15);"></div>
+      <div class="avatar" style="background: #3b82f6; color: #fff; border: 2px solid rgba(59,130,246,0.5);">B</div>
+    </div>
+  </div>
+
+  <div class="content-preview" style="background: #f1f5f9;">
+    <div class="card" style="background: #ffffff; border: 1px solid #e2e8f0;">
+      <div class="card-title" style="color: #1c2333;">Welcome back, Bill</div>
+      <div class="card-sub" style="color: #64748b;">Your community at a glance</div>
+      <div class="pill" style="background: #eff6ff; color: #1d4ed8;">◆ 142 members</div>
+    </div>
+    <div class="card" style="background: #ffffff; border: 1px solid #e2e8f0;">
+      <div class="card-title" style="color: #1c2333;">Upcoming Event</div>
+      <div class="card-sub" style="color: #64748b;">TA Leaders Roundtable — May 15</div>
+      <div class="pill" style="background: #3b82f6; color: #fff;">Register →</div>
+    </div>
+    <div class="card" style="background: #ffffff; border: 1px solid #e2e8f0;">
+      <div class="card-title" style="color: #1c2333;">New in Forum</div>
+      <div class="card-sub" style="color: #64748b;">12 new posts this week</div>
+      <div class="pill" style="background: #eff6ff; color: #1d4ed8;">View threads</div>
+    </div>
+  </div>
+
+  <div class="swatches">
+    <div class="swatch-wrap"><div class="swatch" style="background: #1c2333;"></div><div class="swatch-label">#1c2333</div></div>
+    <div class="swatch-wrap"><div class="swatch" style="background: #242d42;"></div><div class="swatch-label">#242d42</div></div>
+    <div class="swatch-wrap"><div class="swatch" style="background: #3b82f6;"></div><div class="swatch-label">#3b82f6</div></div>
+    <div class="swatch-wrap"><div class="swatch" style="background: #93c5fd;"></div><div class="swatch-label">#93c5fd</div></div>
+    <div class="swatch-wrap"><div class="swatch" style="background: #f1f5f9;"></div><div class="swatch-label">#f1f5f9</div></div>
+  </div>
+</div>
+
+<hr>
+
+<!-- ═══════════════════════════════════════════════
+     OPTION 4 — FOREST & AMBER
+     ═══════════════════════════════════════════════ -->
+<div class="palette">
+  <div class="palette-label">Option 4</div>
+  <div class="palette-name">Forest & Amber</div>
+  <div class="palette-desc">Deep forest green with warm amber. Earthy, warm, community-feel — like a members club.</div>
+
+  <div class="nav" style="background: linear-gradient(90deg, #0d1f12 0%, #162a1e 100%);">
+    <div class="logo-box" style="background: #f59e0b;">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none"><rect width="34" height="34" rx="9" fill="#f59e0b"/><rect x="8" y="12" width="18" height="3" rx="1.5" fill="#0d1f12"/><rect x="8" y="18.5" width="13" height="3" rx="1.5" fill="#0d1f12"/></svg>
+    </div>
+    <div class="logo-word" style="color: #ffffff;">TALK</div>
+    <div class="nav-items">
+      <div class="nav-item active" style="background: #f59e0b; color: #0d1f12;">Dashboard</div>
+      <div class="nav-item" style="color: rgba(255,255,255,0.5);">Members</div>
+      <div class="nav-item" style="color: rgba(255,255,255,0.5);">Events & Classes</div>
+      <div class="nav-item" style="color: rgba(255,255,255,0.5);">Forum</div>
+      <div class="nav-item" style="color: rgba(255,255,255,0.5);">Jobs</div>
+      <div class="nav-item" style="color: rgba(255,255,255,0.5);">Polls</div>
+      <div class="nav-item" style="color: rgba(255,255,255,0.5);">Vendors</div>
+      <div class="nav-item" style="color: rgba(255,255,255,0.5);">Mentorship</div>
+    </div>
+    <div class="nav-right">
+      <div class="icon-btn" style="color: rgba(255,255,255,0.45);">#</div>
+      <div class="icon-btn" style="color: rgba(255,255,255,0.45);">✉</div>
+      <div class="divider" style="background: rgba(255,255,255,0.15);"></div>
+      <div class="avatar" style="background: #f59e0b; color: #0d1f12; border: 2px solid rgba(245,158,11,0.5);">B</div>
+    </div>
+  </div>
+
+  <div class="content-preview" style="background: #f5f7f5;">
+    <div class="card" style="background: #ffffff; border: 1px solid #d4e6d4;">
+      <div class="card-title" style="color: #0d1f12;">Welcome back, Bill</div>
+      <div class="card-sub" style="color: #666;">Your community at a glance</div>
+      <div class="pill" style="background: #fef3c7; color: #92400e;">🌿 142 members</div>
+    </div>
+    <div class="card" style="background: #ffffff; border: 1px solid #d4e6d4;">
+      <div class="card-title" style="color: #0d1f12;">Upcoming Event</div>
+      <div class="card-sub" style="color: #666;">TA Leaders Roundtable — May 15</div>
+      <div class="pill" style="background: #0d1f12; color: #f59e0b;">Register →</div>
+    </div>
+    <div class="card" style="background: #ffffff; border: 1px solid #d4e6d4;">
+      <div class="card-title" style="color: #0d1f12;">New in Forum</div>
+      <div class="card-sub" style="color: #666;">12 new posts this week</div>
+      <div class="pill" style="background: #fef3c7; color: #92400e;">View threads</div>
+    </div>
+  </div>
+
+  <div class="swatches">
+    <div class="swatch-wrap"><div class="swatch" style="background: #0d1f12;"></div><div class="swatch-label">#0d1f12</div></div>
+    <div class="swatch-wrap"><div class="swatch" style="background: #162a1e;"></div><div class="swatch-label">#162a1e</div></div>
+    <div class="swatch-wrap"><div class="swatch" style="background: #f59e0b;"></div><div class="swatch-label">#f59e0b</div></div>
+    <div class="swatch-wrap"><div class="swatch" style="background: #fbbf24;"></div><div class="swatch-label">#fbbf24</div></div>
+    <div class="swatch-wrap"><div class="swatch" style="background: #f5f7f5;"></div><div class="swatch-label">#f5f7f5</div></div>
+  </div>
+</div>
+
+</body>
+</html>

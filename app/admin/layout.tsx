@@ -25,7 +25,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="flex flex-col min-h-full">
       <header
         className="border-b border-zinc-800 px-6 py-3 flex items-center justify-between"
-        style={{ background: 'linear-gradient(90deg, #0d0d0d 0%, #1a1a2e 100%)' }}
+        style={{ background: 'linear-gradient(105deg, #e0365d 0%, #8b2fc9 50%, #3d5af1 100%)' }}
       >
         <div className="flex items-center gap-3">
           {/* Logo mark */}
