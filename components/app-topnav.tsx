@@ -54,7 +54,7 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
 
   return (
     <header
-      className="sticky top-0 z-50 shadow-md"
+      className="sticky top-0 z-50"
       style={{ background: 'linear-gradient(90deg, #0d0d0d 0%, #1a1a2e 100%)' }}
     >
       <div className="px-5 flex items-center h-14 gap-1">
