@@ -39,6 +39,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <AppTopNav profile={profile} />
       <main className="flex-1 overflow-y-auto">
         {children}
+        <footer className="border-t border-zinc-100 py-4 px-6 mt-8">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+            <span className="text-xs text-zinc-400">© {new Date().getFullYear()} TALK Community</span>
+            <div className="flex items-center gap-5 text-xs text-zinc-400">
+              <a href="https://talktalent.com/privacy" className="hover:text-zinc-600 transition-colors">Privacy</a>
+              <a href="https://talktalent.com/terms" className="hover:text-zinc-600 transition-colors">Terms</a>
+            </div>
+          </div>
+        </footer>
       </main>
     </div>
   )

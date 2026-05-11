@@ -380,8 +380,10 @@ export default function LandingPage() {
             <span className="text-white/50 text-xs">· For TA Leaders</span>
           </div>
           <div className="flex items-center gap-6 text-xs text-white/55">
-            <Link href="/login" className="hover:text-white/60 transition-colors">Sign in</Link>
-            <Link href="/signup" className="hover:text-white/60 transition-colors">Apply</Link>
+            <Link href="/login" className="hover:text-white transition-colors">Sign in</Link>
+            <Link href="/signup" className="hover:text-white transition-colors">Apply</Link>
+            <a href="https://talktalent.com/privacy" className="hover:text-white transition-colors">Privacy</a>
+            <a href="https://talktalent.com/terms" className="hover:text-white transition-colors">Terms</a>
             <span>© {new Date().getFullYear()} TALK Community</span>
           </div>
         </div>
