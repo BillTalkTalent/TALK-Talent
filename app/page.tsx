@@ -89,7 +89,7 @@ export default function LandingPage() {
             </span>
           </h1>
 
-          <p className="text-lg sm:text-xl text-white/50 max-w-2xl mx-auto mb-10 leading-relaxed">
+          <p className="text-lg sm:text-xl text-white/75 max-w-2xl mx-auto mb-10 leading-relaxed">
             TALK is a curated, invite-only network where talent acquisition leaders connect, learn, and grow together — away from the noise.
           </p>
 
@@ -106,7 +106,7 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          <p className="mt-6 text-xs text-white/30">Membership is reviewed and approved. No spam, ever.</p>
+          <p className="mt-6 text-xs text-white/55">Membership is reviewed and approved. No spam, ever.</p>
         </div>
 
         {/* Hero mockup */}
@@ -276,10 +276,10 @@ export default function LandingPage() {
 
       {/* ── Social proof strip ── */}
       <div className="border-y border-white/5 py-5 px-6" style={{ background: 'rgba(255,255,255,0.02)' }}>
-        <p className="text-center text-xs font-semibold text-white/25 uppercase tracking-widest">Trusted by TA leaders from</p>
+        <p className="text-center text-xs font-semibold text-white/55 uppercase tracking-widest">Trusted by TA leaders from</p>
         <div className="flex flex-wrap items-center justify-center gap-8 mt-4">
           {['Salesforce', 'HubSpot', 'Stripe', 'Figma', 'Notion', 'Rippling', 'Lattice'].map(co => (
-            <span key={co} className="text-sm font-black text-white/20 tracking-tight">{co}</span>
+            <span key={co} className="text-sm font-black text-white/50 tracking-tight">{co}</span>
           ))}
         </div>
       </div>
@@ -289,7 +289,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-black tracking-tight mb-4">Everything a TA leader needs.<br />Nothing they don&apos;t.</h2>
-            <p className="text-white/40 text-lg max-w-xl mx-auto">One place to connect, learn, hire, and grow — built specifically for the talent acquisition profession.</p>
+            <p className="text-white/65 text-lg max-w-xl mx-auto">One place to connect, learn, hire, and grow — built specifically for the talent acquisition profession.</p>
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -306,7 +306,7 @@ export default function LandingPage() {
                   <Icon className="size-5" style={{ color }} />
                 </div>
                 <h3 className="font-bold text-white mb-2">{title}</h3>
-                <p className="text-sm text-white/40 leading-relaxed">{desc}</p>
+                <p className="text-sm text-white/65 leading-relaxed">{desc}</p>
               </div>
             ))}
           </div>
@@ -318,7 +318,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
           <div>
             <h2 className="text-4xl font-black tracking-tight mb-6">Built for people who do the work.</h2>
-            <p className="text-white/50 text-lg leading-relaxed mb-8">TALK is not another LinkedIn group or Slack workspace you never check. It&apos;s a curated space where membership is earned and conversations are real.</p>
+            <p className="text-white/75 text-lg leading-relaxed mb-8">TALK is not another LinkedIn group or Slack workspace you never check. It&apos;s a curated space where membership is earned and conversations are real.</p>
             <div className="space-y-4">
               {[
                 { icon: Lock, text: 'Every member is reviewed and approved — no lurkers, no spam' },
@@ -346,7 +346,7 @@ export default function LandingPage() {
               <div className="size-10 rounded-full flex items-center justify-center font-bold text-sm" style={{ background: 'linear-gradient(135deg,#00b894,#00d4aa)', color: '#0a0a0f' }}>S</div>
               <div>
                 <p className="text-sm font-bold text-white">Sarah K.</p>
-                <p className="text-xs text-white/40">Head of Talent · Series B SaaS</p>
+                <p className="text-xs text-white/65">Head of Talent · Series B SaaS</p>
               </div>
             </div>
           </div>
@@ -359,7 +359,7 @@ export default function LandingPage() {
           <div className="absolute inset-0 rounded-3xl opacity-10 blur-2xl pointer-events-none" style={{ background: 'radial-gradient(ellipse, #00d4aa, transparent)' }} />
           <div className="relative rounded-3xl border border-white/10 p-16" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.03), rgba(0,212,170,0.03))' }}>
             <h2 className="text-4xl font-black tracking-tight mb-4">Ready to join?</h2>
-            <p className="text-white/50 text-lg mb-10 max-w-lg mx-auto">Applications take 2 minutes. We review every one personally and get back to you within a few days.</p>
+            <p className="text-white/75 text-lg mb-10 max-w-lg mx-auto">Applications take 2 minutes. We review every one personally and get back to you within a few days.</p>
             <Link
               href="/signup"
               className="inline-flex items-center gap-2 px-10 py-4 rounded-2xl text-base font-black transition-all hover:scale-[1.02]"
@@ -367,7 +367,7 @@ export default function LandingPage() {
             >
               Apply for membership <ArrowRight className="size-4" />
             </Link>
-            <p className="mt-5 text-xs text-white/25">Membership is free during our launch period.</p>
+            <p className="mt-5 text-xs text-white/55">Membership is free during our launch period.</p>
           </div>
         </div>
       </section>
@@ -377,9 +377,9 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="font-black text-white/60 tracking-tight">TALK</span>
-            <span className="text-white/20 text-xs">· For TA Leaders</span>
+            <span className="text-white/50 text-xs">· For TA Leaders</span>
           </div>
-          <div className="flex items-center gap-6 text-xs text-white/30">
+          <div className="flex items-center gap-6 text-xs text-white/55">
             <Link href="/login" className="hover:text-white/60 transition-colors">Sign in</Link>
             <Link href="/signup" className="hover:text-white/60 transition-colors">Apply</Link>
             <span>© {new Date().getFullYear()} TALK Community</span>
