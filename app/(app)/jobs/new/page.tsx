@@ -61,7 +61,8 @@ export default function NewJobPage() {
       return;
     }
 
-    const { data: job, error } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: job, error } = await (supabase as any)
       .from("job_posts")
       .insert({
         poster_id: user.id,
