@@ -115,14 +115,14 @@ export default async function DashboardPage() {
       key: 'photo',
       label: 'Add a profile photo',
       desc: 'Put a face to your name so members recognise you.',
-      href: '/profile/edit',
+      href: '/profile',
       done: hasPhoto,
     },
     {
       key: 'bio',
       label: 'Write a short bio',
       desc: 'Tell the community what you do and what you care about.',
-      href: '/profile/edit',
+      href: '/profile',
       done: hasBio,
     },
     {

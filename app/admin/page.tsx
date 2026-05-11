@@ -123,8 +123,71 @@ function buildApprovalEmail(firstName: string, loginUrl: string, origin: string)
 async function rejectMember(id: string, note: string) {
   'use server'
   const supabase = await createClient()
+  const admin = createAdminClient()
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('email, full_name')
+    .eq('id', id)
+    .single()
+
   await supabase.from('profiles').update({ status: 'rejected', rejection_note: note }).eq('id', id)
+
+  if (profile?.email) {
+    try {
+      const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://talk-talent.vercel.app'
+      const firstName = profile.full_name?.split(' ')[0] ?? 'there'
+      const resend = new Resend(process.env.RESEND_API_KEY)
+      const from = process.env.FROM_EMAIL ?? 'TALK Community <onboarding@resend.dev>'
+      await resend.emails.send({
+        from,
+        to: profile.email,
+        subject: 'Your TALK membership application',
+        html: buildRejectionEmail(firstName, origin),
+      })
+    } catch (err) {
+      console.error('[rejectMember] email error:', err)
+    }
+  }
+
   revalidatePath('/admin')
+}
+
+function buildRejectionEmail(firstName: string, origin: string): string {
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
+        <tr><td style="background:linear-gradient(135deg,#0d0d0d 0%,#1a1a2e 100%);border-radius:16px 16px 0 0;padding:28px 40px;text-align:center;">
+          <span style="font-size:22px;font-weight:900;color:#ffffff;letter-spacing:-0.5px;">TALK</span>
+        </td></tr>
+        <tr><td style="background:#ffffff;padding:40px;border-radius:0 0 16px 16px;">
+          <p style="margin:0 0 8px;font-size:22px;font-weight:800;color:#0d0d0d;">Hi ${firstName},</p>
+          <p style="margin:0 0 20px;font-size:15px;color:#6b7280;line-height:1.6;">
+            Thank you for applying to join the TALK Talent community. After careful review,
+            we&rsquo;re not able to offer membership at this time.
+          </p>
+          <p style="margin:0 0 20px;font-size:15px;color:#6b7280;line-height:1.6;">
+            TALK is a curated community and we receive more applications than we have capacity for.
+            This decision is not a reflection of your experience or abilities.
+          </p>
+          <p style="margin:0;font-size:15px;color:#6b7280;line-height:1.6;">
+            We wish you well in your career. If you believe this decision was made in error,
+            feel free to reply to this email.
+          </p>
+          <hr style="border:none;border-top:1px solid #f3f4f6;margin:28px 0;">
+          <p style="margin:0;font-size:11px;color:#9ca3af;">
+            TALK Talent Community &bull; <a href="${origin}" style="color:#9ca3af;">${origin.replace('https://', '')}</a>
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
 }
 
 export default async function AdminPage() {

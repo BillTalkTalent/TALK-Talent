@@ -1,11 +1,12 @@
 import { revalidatePath } from 'next/cache'
 import { format } from 'date-fns'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import CreateEventForm from './create-event-form'
-import { ImageIcon } from 'lucide-react'
+import { ImageIcon, Pencil } from 'lucide-react'
 
 async function deleteEvent(id: string) {
   'use server'
@@ -82,9 +83,14 @@ export default async function AdminEventsPage() {
                       )}
                     </div>
                   </div>
-                  <form action={deleteEvent.bind(null, event.id)}>
-                    <Button type="submit" size="sm" variant="destructive">Delete</Button>
-                  </form>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" render={<Link href={`/admin/events/${event.id}`} />}>
+                      <Pencil className="size-3.5 mr-1" /> Edit
+                    </Button>
+                    <form action={deleteEvent.bind(null, event.id)}>
+                      <Button type="submit" size="sm" variant="destructive">Delete</Button>
+                    </form>
+                  </div>
                 </li>
               ))}
             </ul>

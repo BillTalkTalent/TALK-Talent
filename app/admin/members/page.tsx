@@ -15,6 +15,14 @@ async function toggleRole(id: string, currentRole: 'member' | 'admin') {
   revalidatePath('/admin/members')
 }
 
+async function suspendMember(id: string) {
+  'use server'
+  const supabase = await createClient()
+  // Set back to pending — removes their access, shows in pending queue so you can re-approve if needed
+  await supabase.from('profiles').update({ status: 'rejected', rejection_note: 'Removed by admin' }).eq('id', id)
+  revalidatePath('/admin/members')
+}
+
 export default async function AdminMembersPage() {
   const supabase = await createClient()
   const { data: members } = await supabase
@@ -29,7 +37,7 @@ export default async function AdminMembersPage() {
         <CardTitle>All Members</CardTitle>
       </CardHeader>
       <CardContent>
-        <MembersTable members={members ?? []} toggleRole={toggleRole} />
+        <MembersTable members={members ?? []} toggleRole={toggleRole} suspendMember={suspendMember} />
       </CardContent>
     </Card>
   )

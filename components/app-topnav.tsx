@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import {
   LayoutDashboard,
   Users,
@@ -45,6 +46,55 @@ const iconNav = [
 
 export default function AppTopNav({ profile }: AppTopNavProps) {
   const pathname = usePathname()
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  useEffect(() => {
+    const supabase = createClient()
+
+    async function fetchUnread() {
+      // Count messages in my conversations where I'm not the sender and is_read = false
+      const { data: convs } = await supabase
+        .from('dm_conversations')
+        .select('id')
+        .or(`participant_a.eq.${profile.id},participant_b.eq.${profile.id}`)
+
+      if (!convs || convs.length === 0) return
+
+      const convIds = convs.map(c => c.id)
+      const { count } = await supabase
+        .from('dm_messages')
+        .select('id', { count: 'exact', head: true })
+        .in('conversation_id', convIds)
+        .neq('sender_id', profile.id)
+        .eq('is_read', false)
+
+      setUnreadCount(count ?? 0)
+    }
+
+    fetchUnread()
+
+    // Subscribe to new messages
+    const channel = supabase
+      .channel('nav-unread')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'dm_messages',
+      }, (payload) => {
+        const msg = payload.new as { sender_id: string }
+        if (msg.sender_id !== profile.id) {
+          setUnreadCount(c => c + 1)
+        }
+      })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [profile.id])
+
+  // Reset unread when visiting messages
+  useEffect(() => {
+    if (pathname.startsWith('/messages')) setUnreadCount(0)
+  }, [pathname])
 
   async function handleSignOut() {
     const supabase = createClient()
@@ -116,19 +166,25 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
         <div className="flex items-center gap-1 ml-3 shrink-0">
           {iconNav.map(({ href, label, icon: Icon }) => {
             const active = pathname === href || pathname.startsWith(href + '/')
+            const isMessages = href === '/messages'
             return (
               <Link
                 key={href}
                 href={href}
                 title={label}
                 className={cn(
-                  'flex items-center justify-center size-9 rounded-lg transition-all',
+                  'relative flex items-center justify-center size-9 rounded-lg transition-all',
                   active
                     ? 'bg-[#00d4aa] text-[#0d0d0d]'
                     : 'text-white/60 hover:bg-white/10 hover:text-white'
                 )}
               >
                 <Icon className="size-4" />
+                {isMessages && unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-black px-1 leading-none">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
               </Link>
             )
           })}
@@ -151,26 +207,34 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
           {/* Divider */}
           <div className="w-px h-6 bg-white/25 mx-1" />
 
-          {/* Profile */}
-          <Link
-            href="/profile"
-            className="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-white/15 transition-colors group"
-          >
-            <Avatar className="size-7 ring-2 ring-[#00d4aa]/60 shrink-0">
-              {profile.avatar_url && (
-                <AvatarImage src={profile.avatar_url} alt={profile.full_name ?? ''} />
-              )}
-              <AvatarFallback
-                className="text-xs font-bold"
-                style={{ background: 'linear-gradient(135deg, #00b894, #00d4aa)', color: '#0d0d0d' }}
-              >
-                {profile.full_name?.[0]?.toUpperCase() ?? '?'}
-              </AvatarFallback>
-            </Avatar>
-            <span className="text-sm font-semibold text-white/70 hidden md:block group-hover:text-white transition-colors">
-              {profile.full_name?.split(' ')[0]}
-            </span>
-          </Link>
+          {/* Profile dropdown */}
+          <div className="relative group/profile">
+            <button className="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-white/15 transition-colors">
+              <Avatar className="size-7 ring-2 ring-[#00d4aa]/60 shrink-0">
+                {profile.avatar_url && (
+                  <AvatarImage src={profile.avatar_url} alt={profile.full_name ?? ''} />
+                )}
+                <AvatarFallback
+                  className="text-xs font-bold"
+                  style={{ background: 'linear-gradient(135deg, #00b894, #00d4aa)', color: '#0d0d0d' }}
+                >
+                  {profile.full_name?.[0]?.toUpperCase() ?? '?'}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-sm font-semibold text-white/70 hidden md:block group-hover/profile:text-white transition-colors">
+                {profile.full_name?.split(' ')[0]}
+              </span>
+            </button>
+            {/* Dropdown */}
+            <div className="absolute right-0 top-full mt-1 w-44 rounded-xl bg-white shadow-lg border border-zinc-100 py-1 opacity-0 invisible group-hover/profile:opacity-100 group-hover/profile:visible transition-all z-50">
+              <Link href="/profile" className="flex items-center gap-2.5 px-3.5 py-2 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors">
+                My Profile
+              </Link>
+              <Link href="/registrations" className="flex items-center gap-2.5 px-3.5 py-2 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors">
+                My Registrations
+              </Link>
+            </div>
+          </div>
 
           {/* Sign out */}
           <button

@@ -10,10 +10,12 @@ import type { Profile } from '@/lib/supabase/types'
 interface MembersTableProps {
   members: Profile[]
   toggleRole: (id: string, currentRole: 'member' | 'admin') => Promise<void>
+  suspendMember: (id: string) => Promise<void>
 }
 
-export default function MembersTable({ members, toggleRole }: MembersTableProps) {
+export default function MembersTable({ members, toggleRole, suspendMember }: MembersTableProps) {
   const [search, setSearch] = useState('')
+  const [confirmId, setConfirmId] = useState<string | null>(null)
 
   const filtered = members.filter((m) => {
     const q = search.toLowerCase()
@@ -42,7 +44,6 @@ export default function MembersTable({ members, toggleRole }: MembersTableProps)
               <th className="pb-3 pr-4 font-medium">Email</th>
               <th className="pb-3 pr-4 font-medium">Company</th>
               <th className="pb-3 pr-4 font-medium">Title</th>
-              <th className="pb-3 pr-4 font-medium">Status</th>
               <th className="pb-3 pr-4 font-medium">Role</th>
               <th className="pb-3 pr-4 font-medium">Joined</th>
               <th className="pb-3 font-medium">Actions</th>
@@ -51,7 +52,7 @@ export default function MembersTable({ members, toggleRole }: MembersTableProps)
           <tbody className="divide-y divide-zinc-100">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={8} className="py-6 text-center text-zinc-400">
+                <td colSpan={7} className="py-6 text-center text-zinc-400">
                   No members found.
                 </td>
               </tr>
@@ -63,11 +64,6 @@ export default function MembersTable({ members, toggleRole }: MembersTableProps)
                   <td className="py-3 pr-4 text-zinc-600">{member.company ?? '—'}</td>
                   <td className="py-3 pr-4 text-zinc-600">{member.title ?? '—'}</td>
                   <td className="py-3 pr-4">
-                    <Badge variant={member.status === 'approved' ? 'default' : 'secondary'}>
-                      {member.status}
-                    </Badge>
-                  </td>
-                  <td className="py-3 pr-4">
                     <Badge variant={member.role === 'admin' ? 'destructive' : 'outline'}>
                       {member.role}
                     </Badge>
@@ -76,11 +72,34 @@ export default function MembersTable({ members, toggleRole }: MembersTableProps)
                     {format(new Date(member.created_at), 'MMM d, yyyy')}
                   </td>
                   <td className="py-3">
-                    <form action={toggleRole.bind(null, member.id, member.role)}>
-                      <Button type="submit" size="sm" variant="outline">
-                        {member.role === 'admin' ? 'Remove Admin' : 'Make Admin'}
-                      </Button>
-                    </form>
+                    <div className="flex items-center gap-2">
+                      <form action={toggleRole.bind(null, member.id, member.role)}>
+                        <Button type="submit" size="sm" variant="outline">
+                          {member.role === 'admin' ? 'Remove Admin' : 'Make Admin'}
+                        </Button>
+                      </form>
+                      {confirmId === member.id ? (
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs text-zinc-500 whitespace-nowrap">Remove access?</span>
+                          <form action={suspendMember.bind(null, member.id)}>
+                            <Button type="submit" size="sm" variant="destructive">Yes, remove</Button>
+                          </form>
+                          <Button type="button" size="sm" variant="ghost" onClick={() => setConfirmId(null)}>
+                            Cancel
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          className="text-zinc-400 hover:text-red-500 hover:bg-red-50"
+                          onClick={() => setConfirmId(member.id)}
+                        >
+                          Remove
+                        </Button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))

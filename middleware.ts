@@ -30,7 +30,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Public routes that don't need auth
-  const publicRoutes = ["/login", "/signup", "/auth/callback", "/mockup", "/pending"];
+  const publicRoutes = ["/login", "/signup", "/auth/callback", "/auth/reset-password", "/forgot-password", "/mockup", "/pending"];
   if (publicRoutes.some((r) => pathname.startsWith(r))) {
     return supabaseResponse;
   }
