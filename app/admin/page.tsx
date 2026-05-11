@@ -1,16 +1,123 @@
 import { revalidatePath } from 'next/cache'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Users, Clock, Calendar, Building2 } from 'lucide-react'
+import { Resend } from 'resend'
 
 async function approveMember(id: string) {
   'use server'
   const supabase = await createClient()
+  const admin = createAdminClient()
+
+  // 1. Fetch the member's profile so we have email + name
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('email, full_name')
+    .eq('id', id)
+    .single()
+
+  // 2. Approve them
   await supabase.from('profiles').update({ status: 'approved' }).eq('id', id)
+
+  // 3. Send approval email with a magic link so they can log straight in
+  if (profile?.email) {
+    try {
+      const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://talktalent.com'
+
+      // Generate a magic link (one-click login)
+      const { data: linkData } = await admin.auth.admin.generateLink({
+        type: 'magiclink',
+        email: profile.email,
+        options: { redirectTo: `${origin}/dashboard` },
+      })
+      const loginUrl = linkData?.properties?.action_link ?? `${origin}/login`
+
+      const firstName = profile.full_name?.split(' ')[0] ?? 'there'
+      const resend = new Resend(process.env.RESEND_API_KEY)
+      const from = process.env.FROM_EMAIL ?? 'TALK Community <onboarding@resend.dev>'
+
+      await resend.emails.send({
+        from,
+        to: profile.email,
+        subject: "You're in — welcome to TALK! 🎉",
+        html: buildApprovalEmail(firstName, loginUrl, origin),
+      })
+    } catch (err) {
+      // Don't block the approval if email fails — log and continue
+      console.error('[approveMember] email error:', err)
+    }
+  }
+
   revalidatePath('/admin')
+}
+
+function buildApprovalEmail(firstName: string, loginUrl: string, origin: string): string {
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;background:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
+
+        <!-- Logo header -->
+        <tr><td style="background:linear-gradient(135deg,#0d0d0d 0%,#1a1a2e 100%);border-radius:16px 16px 0 0;padding:28px 40px;text-align:center;">
+          <span style="font-size:22px;font-weight:900;color:#ffffff;letter-spacing:-0.5px;">TALK</span>
+          <span style="display:inline-block;width:6px;height:6px;background:linear-gradient(135deg,#9B5CFF,#6F2CFF);border-radius:50%;vertical-align:super;margin-left:1px;"></span>
+        </td></tr>
+
+        <!-- Body -->
+        <tr><td style="background:#ffffff;padding:40px;border-radius:0 0 16px 16px;">
+          <p style="margin:0 0 8px;font-size:26px;font-weight:800;color:#0d0d0d;line-height:1.2;">
+            You&rsquo;re in, ${firstName}! 🎉
+          </p>
+          <p style="margin:0 0 24px;font-size:15px;color:#6b7280;line-height:1.6;">
+            Your application to join the TALK Talent community has been approved.
+            We&rsquo;re excited to have you — you&rsquo;re now part of a tight-knit group of
+            talent professionals who share, learn, and grow together.
+          </p>
+
+          <!-- CTA button -->
+          <table cellpadding="0" cellspacing="0" style="margin:0 0 28px;">
+            <tr><td style="background:linear-gradient(135deg,#00b894,#00d4aa);border-radius:10px;">
+              <a href="${loginUrl}"
+                style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:700;color:#0d0d0d;text-decoration:none;border-radius:10px;">
+                Get started →
+              </a>
+            </td></tr>
+          </table>
+
+          <p style="margin:0 0 8px;font-size:13px;color:#9ca3af;">
+            This link logs you straight in — no password needed. It expires in 24 hours.
+          </p>
+          <hr style="border:none;border-top:1px solid #f3f4f6;margin:28px 0;">
+          <p style="margin:0;font-size:13px;color:#9ca3af;line-height:1.6;">
+            Once you&rsquo;re in, head to your dashboard and follow the getting-started checklist to set up your profile,
+            join a chapter, and introduce yourself to the community.
+            <br><br>
+            Questions? Reply to this email — we&rsquo;re happy to help.
+          </p>
+        </td></tr>
+
+        <!-- Footer -->
+        <tr><td style="padding:20px 0;text-align:center;">
+          <p style="margin:0;font-size:11px;color:#9ca3af;">
+            TALK Talent Community &bull; <a href="${origin}" style="color:#9ca3af;">${origin.replace('https://', '')}</a>
+          </p>
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
 }
 
 async function rejectMember(id: string, note: string) {
