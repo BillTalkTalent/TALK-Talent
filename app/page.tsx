@@ -146,7 +146,7 @@ export default function LandingPage() {
               {/* Stat cards */}
               <div className="grid grid-cols-4 gap-3">
                 {[
-                  { num: '247', label: 'Total Members', grad: 'linear-gradient(135deg,#00b894,#00d4aa)' },
+                  { num: '12k', label: 'Total Members', grad: 'linear-gradient(135deg,#00b894,#00d4aa)' },
                   { num: '12',  label: 'Upcoming Events', grad: 'linear-gradient(135deg,#ea580c,#f97316)' },
                   { num: '89',  label: 'Active Discussions', grad: 'linear-gradient(135deg,#7c3aed,#8b5cf6)' },
                   { num: '34',  label: 'Jobs Posted', grad: 'linear-gradient(135deg,#1d4ed8,#3b82f6)' },
