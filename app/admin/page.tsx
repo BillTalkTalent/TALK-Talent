@@ -26,7 +26,7 @@ async function approveMember(id: string) {
   // 3. Send approval email with a magic link so they can log straight in
   if (profile?.email) {
     try {
-      const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://talktalent.com'
+      const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://talk-talent.vercel.app'
 
       // Generate a magic link (one-click login)
       const { data: linkData } = await admin.auth.admin.generateLink({
