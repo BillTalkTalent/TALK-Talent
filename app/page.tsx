@@ -111,58 +111,150 @@ export default function LandingPage() {
 
         {/* Hero mockup */}
         <div className="relative max-w-5xl mx-auto mt-20">
-          <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl" style={{ background: 'linear-gradient(135deg, #0d0d0d, #1a1a2e)' }}>
-            {/* Fake nav */}
-            <div className="flex items-center gap-3 px-5 py-3 border-b border-white/5" style={{ background: 'linear-gradient(90deg, #0d0d0d, #1a1a2e)' }}>
-              <div className="flex gap-1.5">
-                <div className="size-3 rounded-full bg-white/10" />
-                <div className="size-3 rounded-full bg-white/10" />
-                <div className="size-3 rounded-full bg-white/10" />
+          {/* Outer glow */}
+          <div className="absolute -inset-1 rounded-3xl blur-2xl opacity-40" style={{ background: 'linear-gradient(135deg, #00d4aa33, #9B5CFF22)' }} />
+          <div className="relative rounded-2xl overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.7)] border border-white/10">
+
+            {/* ── App nav bar ── */}
+            <div className="flex items-center gap-2 px-4 h-11" style={{ background: 'linear-gradient(90deg, #0d0d0d, #1a1a2e)' }}>
+              {/* Logo */}
+              <div className="flex items-center gap-1.5 mr-4">
+                <div className="size-5 rounded" style={{ background: 'linear-gradient(135deg,#00b894,#00d4aa)' }} />
+                <div className="h-3 w-8 rounded bg-white/80" />
               </div>
-              <div className="flex-1 flex items-center gap-2">
-                <div className="h-5 w-5 rounded" style={{ background: 'rgba(0,212,170,0.2)' }} />
-                <div className="h-4 w-8 rounded bg-[#00d4aa]/80" />
-                <div className="h-4 w-16 rounded bg-white/10" />
-                <div className="h-4 w-20 rounded bg-white/10" />
-                <div className="h-4 w-12 rounded bg-white/10" />
-                <div className="h-4 w-10 rounded bg-white/10" />
+              {/* Nav items */}
+              {[{ w: 'w-14', active: true }, { w: 'w-12' }, { w: 'w-20' }, { w: 'w-8' }, { w: 'w-10' }, { w: 'w-14' }, { w: 'w-12' }].map((item, i) => (
+                <div key={i} className={`h-6 ${item.w} rounded-md ${item.active ? 'bg-[#00d4aa]' : 'bg-white/10'}`} />
+              ))}
+              <div className="ml-auto flex items-center gap-2">
+                <div className="size-6 rounded-full bg-[#00d4aa]/60" />
+                <div className="h-3 w-12 rounded bg-white/20" />
               </div>
             </div>
-            {/* Fake dashboard */}
-            <div className="p-6 grid grid-cols-4 gap-4">
-              {[
-                { label: 'Members', color: '#00d4aa' },
-                { label: 'Events', color: '#f97316' },
-                { label: 'Discussions', color: '#8b5cf6' },
-                { label: 'Jobs', color: '#3b82f6' },
-              ].map(({ label, color }) => (
-                <div key={label} className="rounded-xl p-4" style={{ background: `linear-gradient(135deg, ${color}22, ${color}11)`, border: `1px solid ${color}22` }}>
-                  <div className="h-7 w-10 rounded mb-2" style={{ background: color, opacity: 0.8 }} />
-                  <div className="text-xs text-white/40">{label}</div>
+
+            {/* ── Dashboard content (light background) ── */}
+            <div className="p-5 space-y-4" style={{ background: '#f1f5f9' }}>
+
+              {/* Hero banner */}
+              <div className="rounded-xl p-5 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0d0d0d 0%, #1a1a2e 55%, #16213e 100%)' }}>
+                <div className="absolute right-4 top-4 size-24 rounded-full blur-2xl opacity-20" style={{ background: '#00d4aa' }} />
+                <div className="h-2.5 w-24 rounded bg-[#00d4aa]/60 mb-2" />
+                <div className="h-5 w-56 rounded bg-white/80 mb-1.5" />
+                <div className="h-2.5 w-40 rounded bg-white/25" />
+              </div>
+
+              {/* Stat cards */}
+              <div className="grid grid-cols-4 gap-3">
+                {[
+                  { num: '247', label: 'Total Members', grad: 'linear-gradient(135deg,#00b894,#00d4aa)' },
+                  { num: '12',  label: 'Upcoming Events', grad: 'linear-gradient(135deg,#ea580c,#f97316)' },
+                  { num: '89',  label: 'Active Discussions', grad: 'linear-gradient(135deg,#7c3aed,#8b5cf6)' },
+                  { num: '34',  label: 'Jobs Posted', grad: 'linear-gradient(135deg,#1d4ed8,#3b82f6)' },
+                ].map(({ num, label, grad }) => (
+                  <div key={label} className="rounded-xl p-4 text-white relative overflow-hidden" style={{ background: grad }}>
+                    <div className="text-2xl font-black leading-none mb-1">{num}</div>
+                    <div className="text-[10px] text-white/70 font-medium">{label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Two-column content */}
+              <div className="grid grid-cols-2 gap-3">
+
+                {/* Events card */}
+                <div className="rounded-xl bg-white border border-zinc-100 overflow-hidden shadow-sm">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100">
+                    <div className="flex items-center gap-2">
+                      <div className="size-5 rounded-md bg-[#f97316]/15 flex items-center justify-center">
+                        <div className="size-2.5 rounded-sm bg-[#f97316]" />
+                      </div>
+                      <div className="h-3 w-32 rounded bg-zinc-200" />
+                    </div>
+                    <div className="h-2.5 w-12 rounded bg-[#00d4aa]/40" />
+                  </div>
+                  {[
+                    { month: 'MAY', day: '14', title: 'AI & the Candidate Experience', tag: 'EVENT', tagColor: '#f97316' },
+                    { month: 'MAY', day: '21', title: 'TA Leadership Roundtable', tag: 'EVENT', tagColor: '#f97316' },
+                    { month: 'MAY', day: '28', title: 'Claude Code for TA Leaders', tag: 'CLASS', tagColor: '#00b894' },
+                  ].map(({ month, day, title, tag, tagColor }) => (
+                    <div key={day+title} className="flex items-center gap-3 px-4 py-2.5 border-b border-zinc-50 last:border-0">
+                      <div className="w-9 rounded-lg py-1 text-center shrink-0" style={{ background: 'linear-gradient(135deg,#eef2ff,#e0e7ff)' }}>
+                        <div className="text-[8px] font-bold text-[#f97316] uppercase">{month}</div>
+                        <div className="text-sm font-black text-zinc-800 leading-tight">{day}</div>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full text-white shrink-0" style={{ background: tagColor }}>{tag}</span>
+                          <div className="text-[10px] font-semibold text-zinc-700 truncate">{title}</div>
+                        </div>
+                        <div className="h-2 w-16 rounded bg-zinc-100" />
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-              <div className="col-span-2 rounded-xl p-4 border border-white/5" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                <div className="text-xs font-semibold text-white/40 mb-3">Upcoming Events</div>
-                {['TA Roundtable · May 20', 'Sourcing Masterclass · May 28', 'Leadership Forum · Jun 4'].map(e => (
-                  <div key={e} className="flex items-center gap-2 py-1.5">
-                    <div className="size-2 rounded-full bg-[#00d4aa]/60" />
-                    <div className="text-xs text-white/50">{e}</div>
+
+                {/* Discussions card */}
+                <div className="rounded-xl bg-white border border-zinc-100 overflow-hidden shadow-sm">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100">
+                    <div className="flex items-center gap-2">
+                      <div className="size-5 rounded-md bg-[#8b5cf6]/15 flex items-center justify-center">
+                        <div className="size-2.5 rounded-sm bg-[#8b5cf6]" />
+                      </div>
+                      <div className="h-3 w-28 rounded bg-zinc-200" />
+                    </div>
+                    <div className="h-2.5 w-12 rounded bg-[#00d4aa]/40" />
                   </div>
-                ))}
+                  {[
+                    { cat: 'Ask the Community', topic: 'How are you using AI in sourcing?', ago: '2h ago' },
+                    { cat: 'Tools & Tech', topic: 'Best ATS for a high-growth startup?', ago: '4h ago' },
+                    { cat: 'Career', topic: 'Negotiating comp bands in this market', ago: '6h ago' },
+                    { cat: 'Leadership', topic: 'Building a TA team from scratch', ago: '1d ago' },
+                  ].map(({ cat, topic, ago }) => (
+                    <div key={topic} className="px-4 py-2.5 border-b border-zinc-50 last:border-0">
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <span className="text-[8px] font-semibold text-[#8b5cf6] bg-[#8b5cf6]/10 px-1.5 py-0.5 rounded-full">{cat}</span>
+                      </div>
+                      <div className="text-[10px] font-semibold text-zinc-700 truncate">{topic}</div>
+                      <div className="text-[9px] text-zinc-400 mt-0.5">{ago}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="col-span-2 rounded-xl p-4 border border-white/5" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                <div className="text-xs font-semibold text-white/40 mb-3">Recent Discussions</div>
-                {['How are you using AI in sourcing?', 'Best ATS for a 50-person team?', 'Negotiating comp in this market'].map(t => (
-                  <div key={t} className="flex items-center gap-2 py-1.5">
-                    <div className="size-2 rounded-full bg-[#8b5cf6]/60" />
-                    <div className="text-xs text-white/50 truncate">{t}</div>
+
+              {/* Jobs row */}
+              <div className="rounded-xl bg-white border border-zinc-100 overflow-hidden shadow-sm">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100">
+                  <div className="flex items-center gap-2">
+                    <div className="size-5 rounded-md bg-[#3b82f6]/15 flex items-center justify-center">
+                      <div className="size-2.5 rounded-sm bg-[#3b82f6]" />
+                    </div>
+                    <div className="h-3 w-24 rounded bg-zinc-200" />
                   </div>
-                ))}
+                  <div className="h-2.5 w-12 rounded bg-[#00d4aa]/40" />
+                </div>
+                <div className="grid grid-cols-3 divide-x divide-zinc-50">
+                  {[
+                    { title: 'VP of Talent Acquisition', co: 'Series B Startup · Remote' },
+                    { title: 'Head of Recruiting', co: 'Fintech · New York, NY' },
+                    { title: 'Senior Technical Recruiter', co: 'Enterprise SaaS · Austin, TX' },
+                  ].map(({ title, co }) => (
+                    <div key={title} className="flex items-center gap-3 px-4 py-3">
+                      <div className="size-8 rounded-xl bg-[#3b82f6]/10 shrink-0 flex items-center justify-center">
+                        <div className="size-4 rounded bg-[#3b82f6]/40" />
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-semibold text-zinc-800">{title}</div>
+                        <div className="text-[9px] text-zinc-400 mt-0.5">{co}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
+
             </div>
           </div>
           {/* Glow under mockup */}
-          <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-3/4 h-20 blur-3xl opacity-20 rounded-full" style={{ background: '#00d4aa' }} />
+          <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-2/3 h-16 blur-3xl opacity-30 rounded-full" style={{ background: '#00d4aa' }} />
         </div>
       </section>
 
