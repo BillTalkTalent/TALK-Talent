@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   Users, CalendarDays, MessageSquare, Briefcase,
   GraduationCap, Building2, BarChart2, ArrowRight,
@@ -109,60 +110,33 @@ export default function LandingPage() {
           <p className="mt-6 text-xs text-white/30">Membership is reviewed and approved. No spam, ever.</p>
         </div>
 
-        {/* Hero mockup */}
+        {/* Hero screenshot */}
         <div className="relative max-w-5xl mx-auto mt-20">
-          <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl" style={{ background: 'linear-gradient(135deg, #0d0d0d, #1a1a2e)' }}>
-            {/* Fake nav */}
-            <div className="flex items-center gap-3 px-5 py-3 border-b border-white/5" style={{ background: 'linear-gradient(90deg, #0d0d0d, #1a1a2e)' }}>
+          {/* Browser chrome */}
+          <div className="rounded-2xl overflow-hidden border border-white/10 shadow-[0_32px_80px_rgba(0,0,0,0.6)]">
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-white/10" style={{ background: 'linear-gradient(90deg, #0d0d0d, #1a1a2e)' }}>
               <div className="flex gap-1.5">
                 <div className="size-3 rounded-full bg-white/10" />
                 <div className="size-3 rounded-full bg-white/10" />
                 <div className="size-3 rounded-full bg-white/10" />
               </div>
-              <div className="flex-1 flex items-center gap-2">
-                <div className="h-5 w-5 rounded" style={{ background: 'rgba(0,212,170,0.2)' }} />
-                <div className="h-4 w-8 rounded bg-[#00d4aa]/80" />
-                <div className="h-4 w-16 rounded bg-white/10" />
-                <div className="h-4 w-20 rounded bg-white/10" />
-                <div className="h-4 w-12 rounded bg-white/10" />
-                <div className="h-4 w-10 rounded bg-white/10" />
-              </div>
-            </div>
-            {/* Fake dashboard */}
-            <div className="p-6 grid grid-cols-4 gap-4">
-              {[
-                { label: 'Members', color: '#00d4aa' },
-                { label: 'Events', color: '#f97316' },
-                { label: 'Discussions', color: '#8b5cf6' },
-                { label: 'Jobs', color: '#3b82f6' },
-              ].map(({ label, color }) => (
-                <div key={label} className="rounded-xl p-4" style={{ background: `linear-gradient(135deg, ${color}22, ${color}11)`, border: `1px solid ${color}22` }}>
-                  <div className="h-7 w-10 rounded mb-2" style={{ background: color, opacity: 0.8 }} />
-                  <div className="text-xs text-white/40">{label}</div>
+              <div className="flex-1 mx-3">
+                <div className="max-w-xs mx-auto h-5 rounded-md bg-white/5 flex items-center justify-center">
+                  <span className="text-[10px] text-white/20 font-medium">talk-talent.vercel.app/dashboard</span>
                 </div>
-              ))}
-              <div className="col-span-2 rounded-xl p-4 border border-white/5" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                <div className="text-xs font-semibold text-white/40 mb-3">Upcoming Events</div>
-                {['TA Roundtable · May 20', 'Sourcing Masterclass · May 28', 'Leadership Forum · Jun 4'].map(e => (
-                  <div key={e} className="flex items-center gap-2 py-1.5">
-                    <div className="size-2 rounded-full bg-[#00d4aa]/60" />
-                    <div className="text-xs text-white/50">{e}</div>
-                  </div>
-                ))}
-              </div>
-              <div className="col-span-2 rounded-xl p-4 border border-white/5" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                <div className="text-xs font-semibold text-white/40 mb-3">Recent Discussions</div>
-                {['How are you using AI in sourcing?', 'Best ATS for a 50-person team?', 'Negotiating comp in this market'].map(t => (
-                  <div key={t} className="flex items-center gap-2 py-1.5">
-                    <div className="size-2 rounded-full bg-[#8b5cf6]/60" />
-                    <div className="text-xs text-white/50 truncate">{t}</div>
-                  </div>
-                ))}
               </div>
             </div>
+            <Image
+              src="/dashboard-preview.png"
+              alt="TALK community dashboard"
+              width={1280}
+              height={800}
+              className="w-full block"
+              priority
+            />
           </div>
-          {/* Glow under mockup */}
-          <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-3/4 h-20 blur-3xl opacity-20 rounded-full" style={{ background: '#00d4aa' }} />
+          {/* Glow under screenshot */}
+          <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-3/4 h-20 blur-3xl opacity-25 rounded-full" style={{ background: '#00d4aa' }} />
         </div>
       </section>
 
