@@ -26,6 +26,7 @@ export default function NewJobPage() {
   const [jobType, setJobType] = useState<JobType>("full-time");
   const [seniority, setSeniority] = useState("");
   const [description, setDescription] = useState("");
+  const [companyUrl, setCompanyUrl] = useState("");
   const [applyUrl, setApplyUrl] = useState("");
   const [applyEmail, setApplyEmail] = useState("");
   const [salaryMin, setSalaryMin] = useState("");
@@ -71,6 +72,7 @@ export default function NewJobPage() {
         job_type: jobType,
         seniority: seniority.trim() || null,
         description: description.trim(),
+        company_url: companyUrl.trim() || null,
         apply_url: applyUrl.trim() || null,
         apply_email: applyEmail.trim() || null,
         salary_min: salaryMin ? parseInt(salaryMin, 10) : null,
@@ -128,6 +130,20 @@ export default function NewJobPage() {
                 required
                 disabled={submitting}
               />
+            </div>
+
+            {/* Company Website */}
+            <div className="space-y-1.5">
+              <Label htmlFor="companyUrl">Company Website</Label>
+              <Input
+                id="companyUrl"
+                type="url"
+                placeholder="https://acme.com"
+                value={companyUrl}
+                onChange={(e) => setCompanyUrl(e.target.value)}
+                disabled={submitting}
+              />
+              <p className="text-xs text-muted-foreground">Used to display your company logo on the listing.</p>
             </div>
 
             {/* Location + Remote */}
