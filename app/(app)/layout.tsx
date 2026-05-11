@@ -28,6 +28,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     redirect('/login')
   }
 
+  // Send new members through onboarding
+  // (welcome is outside this layout group so no redirect loop possible)
+  if (!(profile as any).has_onboarded) { // eslint-disable-line @typescript-eslint/no-explicit-any
+    redirect('/welcome')
+  }
+
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-slate-50">
       <AppTopNav profile={profile} />

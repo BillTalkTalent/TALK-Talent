@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format, formatDistanceToNow } from "date-fns";
 import {
@@ -12,6 +11,7 @@ import {
   Monitor,
   ArrowRight,
 } from "lucide-react";
+import GettingStartedCard from "@/components/getting-started-card";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -33,6 +33,9 @@ export default async function DashboardPage() {
     activeTopicsCountResult,
     jobCountResult,
     rsvpResults,
+    myForumPostsResult,
+    myRsvpResult,
+    myChapterResult,
   ] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", user?.id ?? "").single(),
     supabase
@@ -74,6 +77,20 @@ export default async function DashboardPage() {
       .from("event_rsvps")
       .select("event_id")
       .eq("status", "going"),
+    // Getting-started checks for this user
+    supabase
+      .from("forum_topics")
+      .select("id", { count: "exact", head: true })
+      .eq("author_id", user?.id ?? ""),
+    supabase
+      .from("event_rsvps")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user?.id ?? ""),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any)
+      .from("chapter_memberships")
+      .select("id", { count: "exact", head: true })
+      .eq("profile_id", user?.id ?? ""),
   ]);
 
   const profile = profileResult.data;
@@ -85,6 +102,51 @@ export default async function DashboardPage() {
   const activeDiscussionsCount = activeTopicsCountResult.count ?? 0;
   const jobsPostedCount = jobCountResult.count ?? 0;
   const allRsvps = rsvpResults.data ?? [];
+
+  // Getting-started checklist
+  const hasPhoto = !!profile?.avatar_url;
+  const hasBio = !!profile?.bio;
+  const hasPosted = (myForumPostsResult.count ?? 0) > 0;
+  const hasRsvpd = (myRsvpResult.count ?? 0) > 0;
+  const hasJoinedChapter = (myChapterResult.count ?? 0) > 0;
+
+  const gettingStartedItems = [
+    {
+      key: 'photo',
+      label: 'Add a profile photo',
+      desc: 'Put a face to your name so members recognise you.',
+      href: '/profile/edit',
+      done: hasPhoto,
+    },
+    {
+      key: 'bio',
+      label: 'Write a short bio',
+      desc: 'Tell the community what you do and what you care about.',
+      href: '/profile/edit',
+      done: hasBio,
+    },
+    {
+      key: 'chapter',
+      label: 'Join a chapter',
+      desc: 'Connect with members who share your focus area.',
+      href: '/members',
+      done: hasJoinedChapter,
+    },
+    {
+      key: 'forum',
+      label: 'Introduce yourself in the forum',
+      desc: 'Start a post — say hi and share what you\'re working on.',
+      href: '/forum',
+      done: hasPosted,
+    },
+    {
+      key: 'rsvp',
+      label: 'RSVP to your first event',
+      desc: 'Browse upcoming events and reserve your spot.',
+      href: '/events',
+      done: hasRsvpd,
+    },
+  ];
 
   const rsvpCountMap: Record<string, number> = {};
   for (const rsvp of allRsvps) {
@@ -162,6 +224,9 @@ export default async function DashboardPage() {
           </p>
         </div>
       </div>
+
+      {/* Getting started checklist — shown until all items done + dismissed */}
+      <GettingStartedCard items={gettingStartedItems} />
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
