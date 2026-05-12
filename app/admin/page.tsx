@@ -120,8 +120,10 @@ function buildApprovalEmail(firstName: string, loginUrl: string, origin: string)
 </html>`
 }
 
-async function rejectMember(id: string, note: string) {
+async function rejectMember(formData: FormData) {
   'use server'
+  const id = formData.get('id') as string
+  const note = (formData.get('note') as string)?.trim() || 'Does not meet community criteria'
   const supabase = await createClient()
   const admin = createAdminClient()
 
@@ -270,13 +272,20 @@ export default async function AdminPage() {
                       </a>
                     )}
                   </div>
-                  <div className="flex gap-2 flex-shrink-0">
+                  <div className="flex flex-col gap-2 flex-shrink-0 items-end">
                     <form action={approveMember.bind(null, member.id)}>
                       <Button type="submit" size="sm" variant="default">
                         Approve
                       </Button>
                     </form>
-                    <form action={rejectMember.bind(null, member.id, 'Does not meet community criteria')}>
+                    <form action={rejectMember} className="flex flex-col gap-1.5 items-end">
+                      <input type="hidden" name="id" value={member.id} />
+                      <textarea
+                        name="note"
+                        placeholder="Rejection reason (optional)…"
+                        rows={2}
+                        className="text-xs border border-zinc-200 rounded-lg px-2 py-1.5 w-48 resize-none focus:outline-none focus:border-red-300 text-zinc-600 placeholder:text-zinc-300"
+                      />
                       <Button type="submit" size="sm" variant="destructive">
                         Reject
                       </Button>

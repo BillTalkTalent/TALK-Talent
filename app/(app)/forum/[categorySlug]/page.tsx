@@ -42,16 +42,21 @@ export default async function ForumCategoryPage({
     .order("is_pinned", { ascending: false })
     .order("updated_at", { ascending: false });
 
-  // Fetch reply counts
-  const topicsWithCounts = await Promise.all(
-    (topics ?? []).map(async (topic) => {
-      const { count } = await supabase
-        .from("forum_replies")
-        .select("*", { count: "exact", head: true })
-        .eq("topic_id", topic.id);
-      return { ...topic, replyCount: count ?? 0 };
-    })
-  );
+  // Single batch query for all reply counts — no more N+1
+  const topicIds = (topics ?? []).map(t => t.id);
+  const { data: replyRows } = topicIds.length > 0
+    ? await supabase.from("forum_replies").select("topic_id").in("topic_id", topicIds)
+    : { data: [] };
+
+  const replyCountMap: Record<string, number> = {};
+  for (const r of replyRows ?? []) {
+    replyCountMap[r.topic_id] = (replyCountMap[r.topic_id] ?? 0) + 1;
+  }
+
+  const topicsWithCounts = (topics ?? []).map(topic => ({
+    ...topic,
+    replyCount: replyCountMap[topic.id] ?? 0,
+  }));
 
   return (
     <div className="p-6 space-y-6">

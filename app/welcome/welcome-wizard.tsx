@@ -65,16 +65,16 @@ export default function WelcomeWizard({ profile, chapters }: Props) {
 
   async function saveStep2() {
     setLoading(true)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const db = supabase as any
     if (selectedChapters.length > 0) {
-      await db.from('chapter_memberships').upsert(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any).from('chapter_memberships').upsert(
         selectedChapters.map(chapterId => ({
-          profile_id: profile.id,
+          user_id: profile.id,
           chapter_id: chapterId,
         })),
-        { onConflict: 'profile_id,chapter_id' }
+        { onConflict: 'chapter_id,user_id' }
       )
+      if (error) console.error('[saveStep2] chapter membership error:', error)
     }
     setLoading(false)
     setStep(3)
@@ -184,7 +184,13 @@ export default function WelcomeWizard({ profile, chapters }: Props) {
                   </Label>
                   <Input value={bio} onChange={e => setBio(e.target.value)}
                     placeholder="Building talent teams at fast-growing startups"
+                    maxLength={160}
                     className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-[#00d4aa]/50" />
+                  {bio.length > 120 && (
+                    <p className="text-xs text-right" style={{ color: bio.length >= 160 ? '#f87171' : 'rgba(255,255,255,0.3)' }}>
+                      {160 - bio.length} characters left
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -241,6 +247,12 @@ export default function WelcomeWizard({ profile, chapters }: Props) {
               </div>
 
               <div className="flex gap-3">
+                <button
+                  onClick={() => setStep(1)}
+                  className="px-4 py-3 rounded-2xl font-semibold text-white/40 border border-white/10 hover:border-white/20 transition-all text-sm"
+                >
+                  ← Back
+                </button>
                 <button
                   onClick={() => setStep(3)}
                   className="flex-1 py-3 rounded-2xl font-semibold text-white/40 border border-white/10 hover:border-white/20 transition-all text-sm"

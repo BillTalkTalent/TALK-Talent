@@ -101,8 +101,18 @@ export default function MessagesPage() {
         .limit(100);
 
       setMessages((data as MessageWithSender[]) ?? []);
+
+      // Mark all unread messages in this conversation as read
+      if (currentUser) {
+        await supabase
+          .from("dm_messages")
+          .update({ is_read: true })
+          .eq("conversation_id", convId)
+          .neq("sender_id", currentUser.id)
+          .eq("is_read", false);
+      }
     },
-    [supabase]
+    [supabase, currentUser]
   );
 
   const getOrCreateConversation = useCallback(
