@@ -5,7 +5,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { ExternalLink, Mail, Building2, Briefcase, Star, Shield } from "lucide-react";
+import { ExternalLink, Mail, Building2, Briefcase, Star, Shield, MessageSquare } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 
 function getInitials(name: string | null): string {
   if (!name) return "?";
@@ -34,11 +35,17 @@ export default async function MemberProfilePage({
 
   if (!member) notFound();
 
-  const [{ data: memberships }, { data: chapters }, { data: leaderships }] = await Promise.all([
+  const [{ data: memberships }, { data: chapters }, { data: leaderships }, { data: recentTopics }] = await Promise.all([
     supabase.from("chapter_memberships").select("chapter_id").eq("user_id", id),
     supabase.from("chapters").select("*").order("sort_order"),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase as any).from("chapter_leads").select("chapter_id").eq("user_id", id),
+    supabase
+      .from("forum_topics")
+      .select("id, title, created_at, forum_categories(name, slug)")
+      .eq("author_id", id)
+      .order("created_at", { ascending: false })
+      .limit(5),
   ]);
 
   const memberChapterIds = new Set((memberships ?? []).map((m) => m.chapter_id));
@@ -145,6 +152,43 @@ export default async function MemberProfilePage({
           </div>
         </CardContent>
       </Card>
+
+      {/* Recent forum activity */}
+      {(recentTopics ?? []).length > 0 && (
+        <Card>
+          <CardContent className="pt-5 pb-5">
+            <div className="flex items-center gap-2 mb-4">
+              <MessageSquare className="size-4 text-[#8b5cf6]" />
+              <h2 className="text-sm font-semibold text-zinc-900">Recent Forum Posts</h2>
+            </div>
+            <ul className="space-y-2">
+              {(recentTopics ?? []).map((topic) => {
+                const cat = topic.forum_categories as { name: string; slug: string } | null;
+                return (
+                  <li key={topic.id}>
+                    <Link
+                      href={`/forum/${cat?.slug ?? ""}/${topic.id}`}
+                      className="flex items-start justify-between gap-3 rounded-xl p-3 hover:bg-zinc-50 transition-colors group"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-zinc-800 group-hover:text-[#8b5cf6] transition-colors truncate">
+                          {topic.title}
+                        </p>
+                        {cat && (
+                          <span className="text-[11px] text-zinc-400">{cat.name}</span>
+                        )}
+                      </div>
+                      <span className="text-xs text-zinc-400 shrink-0 mt-0.5">
+                        {formatDistanceToNow(new Date(topic.created_at), { addSuffix: true })}
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
