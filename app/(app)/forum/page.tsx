@@ -11,28 +11,29 @@ export default async function ForumPage() {
     .select("*")
     .order("sort_order", { ascending: true });
 
-  const categoriesWithStats = await Promise.all(
-    (categories ?? []).map(async (cat) => {
-      const [countResult, latestResult] = await Promise.all([
-        supabase
-          .from("forum_topics")
-          .select("*", { count: "exact", head: true })
-          .eq("category_id", cat.id),
-        supabase
-          .from("forum_topics")
-          .select("updated_at")
-          .eq("category_id", cat.id)
-          .order("updated_at", { ascending: false })
-          .limit(1)
-          .single(),
-      ]);
-      return {
-        ...cat,
-        topicCount: countResult.count ?? 0,
-        latestActivity: latestResult.data?.updated_at ?? null,
-      };
-    })
-  );
+  // Single batch: fetch all topics (category_id + updated_at only) and aggregate in JS
+  const categoryIds = (categories ?? []).map(c => c.id);
+  const { data: allTopics } = categoryIds.length > 0
+    ? await supabase
+        .from("forum_topics")
+        .select("category_id, updated_at")
+        .in("category_id", categoryIds)
+    : { data: [] };
+
+  const topicCountMap: Record<string, number> = {};
+  const latestActivityMap: Record<string, string> = {};
+  for (const t of allTopics ?? []) {
+    topicCountMap[t.category_id] = (topicCountMap[t.category_id] ?? 0) + 1;
+    if (!latestActivityMap[t.category_id] || t.updated_at > latestActivityMap[t.category_id]) {
+      latestActivityMap[t.category_id] = t.updated_at;
+    }
+  }
+
+  const categoriesWithStats = (categories ?? []).map(cat => ({
+    ...cat,
+    topicCount: topicCountMap[cat.id] ?? 0,
+    latestActivity: latestActivityMap[cat.id] ?? null,
+  }));
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
