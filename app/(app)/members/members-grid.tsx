@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
-import { ExternalLink, Search } from "lucide-react";
+import { ExternalLink, Search, MapPin, ChevronDown, X } from "lucide-react";
 import type { Chapter, ChapterMembership, Profile } from "@/lib/supabase/types";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +22,34 @@ interface MembersGridProps {
 export default function MembersGrid({ members, chapters, memberships }: MembersGridProps) {
   const [query, setQuery] = useState("");
   const [activeChapterId, setActiveChapterId] = useState<string | null>(null);
+  const [geoOpen, setGeoOpen] = useState(false);
+  const [geoSearch, setGeoSearch] = useState("");
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Split chapters by type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const topicChapters = chapters.filter((c) => (c as any).type !== "geographic");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const geoChapters = chapters.filter((c) => (c as any).type === "geographic");
+
+  const filteredGeo = geoSearch.trim()
+    ? geoChapters.filter((c) => c.name.toLowerCase().includes(geoSearch.toLowerCase()))
+    : geoChapters;
+
+  const activeChapter = activeChapterId ? chapters.find((c) => c.id === activeChapterId) : null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const activeIsGeo = activeChapter ? (activeChapter as any).type === "geographic" : false;
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handle(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setGeoOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, []);
 
   const memberChapterIds: Record<string, string[]> = {};
   for (const m of memberships) {
@@ -45,12 +73,19 @@ export default function MembersGrid({ members, chapters, memberships }: MembersG
     return matchesSearch && matchesChapter;
   });
 
+  function selectChapter(id: string | null) {
+    setActiveChapterId(id);
+    setGeoOpen(false);
+    setGeoSearch("");
+  }
+
   return (
-    <div className="space-y-5">
-      {/* Chapter filter pills */}
-      <div className="flex flex-wrap gap-2">
+    <div className="space-y-4">
+      {/* Filter bar */}
+      <div className="flex flex-wrap items-center gap-2">
+        {/* All */}
         <button
-          onClick={() => setActiveChapterId(null)}
+          onClick={() => selectChapter(null)}
           className={cn(
             "px-3 py-1.5 rounded-xl text-sm font-semibold transition-all",
             activeChapterId === null
@@ -60,10 +95,12 @@ export default function MembersGrid({ members, chapters, memberships }: MembersG
         >
           All
         </button>
-        {chapters.map((c) => (
+
+        {/* Topical chapter pills */}
+        {topicChapters.map((c) => (
           <button
             key={c.id}
-            onClick={() => setActiveChapterId(activeChapterId === c.id ? null : c.id)}
+            onClick={() => selectChapter(activeChapterId === c.id ? null : c.id)}
             className={cn(
               "px-3 py-1.5 rounded-xl text-sm font-semibold transition-all",
               activeChapterId === c.id
@@ -72,21 +109,104 @@ export default function MembersGrid({ members, chapters, memberships }: MembersG
             )}
           >
             {c.icon && <span className="mr-1">{c.icon}</span>}
-            <span className="max-w-[120px] truncate">{c.name}</span>
+            <span>{c.name}</span>
           </button>
         ))}
+
+        {/* Geographic dropdown */}
+        {geoChapters.length > 0 && (
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setGeoOpen((v) => !v)}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold transition-all border",
+                activeIsGeo
+                  ? "bg-[#00d4aa] text-[#0d0d0d] border-[#00d4aa] shadow-sm"
+                  : "bg-white border-zinc-200 text-zinc-600 hover:border-[#00d4aa] hover:text-[#3F7A6E]"
+              )}
+            >
+              <MapPin className="size-3.5" />
+              {activeIsGeo && activeChapter ? (
+                <span className="max-w-[120px] truncate">{activeChapter.name}</span>
+              ) : (
+                "Location"
+              )}
+              {activeIsGeo ? (
+                <X
+                  className="size-3.5 ml-0.5 opacity-60 hover:opacity-100"
+                  onClick={(e) => { e.stopPropagation(); selectChapter(null); }}
+                />
+              ) : (
+                <ChevronDown className={cn("size-3.5 transition-transform", geoOpen && "rotate-180")} />
+              )}
+            </button>
+
+            {geoOpen && (
+              <div className="absolute left-0 top-full mt-1.5 w-64 bg-white rounded-2xl border border-zinc-100 shadow-xl z-50 overflow-hidden">
+                {/* Search inside dropdown */}
+                <div className="p-2 border-b border-zinc-100">
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-zinc-400" />
+                    <input
+                      autoFocus
+                      type="text"
+                      placeholder="Search city or state…"
+                      value={geoSearch}
+                      onChange={(e) => setGeoSearch(e.target.value)}
+                      className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-zinc-200 focus:outline-none focus:border-[#00d4aa] transition-colors"
+                    />
+                  </div>
+                </div>
+                {/* Chapter list */}
+                <div className="max-h-64 overflow-y-auto py-1">
+                  {filteredGeo.length === 0 ? (
+                    <p className="text-xs text-zinc-400 text-center py-4">No locations found</p>
+                  ) : (
+                    filteredGeo.map((c) => (
+                      <button
+                        key={c.id}
+                        onClick={() => selectChapter(activeChapterId === c.id ? null : c.id)}
+                        className={cn(
+                          "w-full text-left px-3 py-2 text-sm flex items-center gap-2 transition-colors",
+                          activeChapterId === c.id
+                            ? "bg-[#00d4aa]/10 text-[#00b894] font-semibold"
+                            : "text-zinc-700 hover:bg-zinc-50"
+                        )}
+                      >
+                        <span className="text-xs">{c.icon}</span>
+                        <span className="truncate">{c.name}</span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Search — pushed to the right */}
+        <div className="relative ml-auto">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-zinc-400" />
+          <Input
+            placeholder="Search members…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="pl-9 rounded-xl border-zinc-200 bg-white w-48"
+          />
+        </div>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-400" />
-        <Input
-          placeholder="Search members..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="pl-9 rounded-xl border-zinc-200 bg-white"
-        />
-      </div>
+      {/* Active filter label */}
+      {activeChapter && (
+        <div className="flex items-center gap-2 text-xs text-zinc-500">
+          <span>Filtering by <span className="font-semibold text-zinc-700">{activeChapter.icon} {activeChapter.name}</span></span>
+          <button onClick={() => selectChapter(null)} className="text-zinc-400 hover:text-red-400 transition-colors">
+            <X className="size-3" />
+          </button>
+          <span className="text-zinc-300">·</span>
+          <span>{filtered.length} member{filtered.length !== 1 ? "s" : ""}</span>
+        </div>
+      )}
 
       {/* Grid */}
       {filtered.length === 0 ? (
