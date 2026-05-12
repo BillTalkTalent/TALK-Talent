@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
+import { Eye } from "lucide-react";
 import EditTopic from "./edit-topic";
 import EditReply from "./edit-reply";
 
@@ -30,6 +31,7 @@ interface TopicViewProps {
   initialTitle: string;
   initialBody: string;
   createdAt: string;
+  views: number;
   topicAuthor: Author | null;
   replies: Reply[];
   currentUserId: string;
@@ -40,6 +42,7 @@ export default function TopicView({
   initialTitle,
   initialBody,
   createdAt,
+  views,
   topicAuthor,
   replies: initialReplies,
   currentUserId,
@@ -66,6 +69,10 @@ export default function TopicView({
             <span className="text-zinc-400">·</span>
             <span className="text-zinc-400 text-xs">
               {format(new Date(createdAt), "MMM d, yyyy 'at' h:mm a")}
+            </span>
+            <span className="text-zinc-300">·</span>
+            <span className="flex items-center gap-1 text-zinc-400 text-xs">
+              <Eye className="size-3" /> {views.toLocaleString()} view{views !== 1 ? "s" : ""}
             </span>
             {isTopicAuthor && (
               <>

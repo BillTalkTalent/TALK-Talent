@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Pin, Lock } from "lucide-react";
@@ -30,6 +31,13 @@ export default async function TopicPage({
   if (!topicResult.data) notFound();
 
   const topic = topicResult.data;
+
+  // Increment view count (fire-and-forget, use admin client to bypass RLS)
+  createAdminClient()
+    .from("forum_topics")
+    .update({ views: (topic.views ?? 0) + 1 })
+    .eq("id", topicId)
+    .then(() => {/* intentionally ignored */});
   const replies = repliesResult.data ?? [];
   const category = categoryResult.data;
   const topicAuthor = topic.profiles as Profile | null;
@@ -69,6 +77,7 @@ export default async function TopicPage({
         initialTitle={topic.title}
         initialBody={topic.body}
         createdAt={topic.created_at}
+        views={(topic.views ?? 0) + 1}
         topicAuthor={topicAuthor ? {
           id: topicAuthor.id,
           full_name: topicAuthor.full_name,
