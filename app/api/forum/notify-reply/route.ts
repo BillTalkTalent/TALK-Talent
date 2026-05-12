@@ -163,7 +163,7 @@ function buildReplyNotificationEmail(
           <hr style="border:none;border-top:1px solid #f3f4f6;margin:28px 0;">
           <p style="margin:0;font-size:12px;color:#9ca3af;">
             You received this because you started a topic on the TALK community forum.<br>
-            <a href="${origin}" style="color:#9ca3af;">Manage your notification preferences</a>
+            <a href="${origin}/profile" style="color:#9ca3af;">Manage your account</a>
           </p>
         </td></tr>
 
