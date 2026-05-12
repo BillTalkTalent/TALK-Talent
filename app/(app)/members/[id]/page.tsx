@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { ExternalLink, Mail, Building2, Briefcase } from "lucide-react";
+import { ExternalLink, Mail, Building2, Briefcase, Star, Shield } from "lucide-react";
 
 function getInitials(name: string | null): string {
   if (!name) return "?";
@@ -34,13 +34,17 @@ export default async function MemberProfilePage({
 
   if (!member) notFound();
 
-  const [{ data: memberships }, { data: chapters }] = await Promise.all([
+  const [{ data: memberships }, { data: chapters }, { data: leaderships }] = await Promise.all([
     supabase.from("chapter_memberships").select("chapter_id").eq("user_id", id),
     supabase.from("chapters").select("*").order("sort_order"),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any).from("chapter_leads").select("chapter_id").eq("user_id", id),
   ]);
 
   const memberChapterIds = new Set((memberships ?? []).map((m) => m.chapter_id));
   const memberChapters = (chapters ?? []).filter((c) => memberChapterIds.has(c.id));
+  const leadChapterIds = new Set(((leaderships ?? []) as { chapter_id: string }[]).map((l) => l.chapter_id));
+  const ledChapters = (chapters ?? []).filter((c) => leadChapterIds.has(c.id));
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
@@ -93,8 +97,37 @@ export default async function MemberProfilePage({
               )}
             </div>
 
-            {member.role === "admin" && (
-              <Badge variant="secondary">Admin</Badge>
+            <div className="flex items-center gap-2 flex-wrap justify-center">
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              {(member as any).role === "board_member" && (
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
+                  <Star className="size-3 fill-amber-500 text-amber-500" />
+                  Board Member
+                </span>
+              )}
+              {member.role === "admin" && (
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-full">
+                  <Shield className="size-3" />
+                  Admin
+                </span>
+              )}
+            </div>
+
+            {/* Chapter leadership */}
+            {ledChapters.length > 0 && (
+              <div className="w-full pt-4 border-t">
+                <h2 className="text-sm font-semibold mb-2 text-center text-amber-700">Chapter Lead</h2>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {ledChapters.map((c) => (
+                    <Link key={c.id} href={`/chapters/${c.slug}`}>
+                      <Badge variant="outline" className="text-sm border-amber-200 text-amber-700 hover:bg-amber-50 cursor-pointer">
+                        <Star className="size-3 fill-amber-400 text-amber-400 mr-1" />
+                        {c.icon} {c.name}
+                      </Badge>
+                    </Link>
+                  ))}
+                </div>
+              </div>
             )}
 
             {memberChapters.length > 0 && (

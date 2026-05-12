@@ -50,9 +50,17 @@ export default function ReplyForm({
     }
 
     toast.success("Reply posted!");
+    const postedBody = body.trim();
     setBody("");
     setSubmitting(false);
     router.refresh();
+
+    // Fire-and-forget: notify the topic author (won't block UX)
+    fetch("/api/forum/notify-reply", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ topicId, replyBody: postedBody, categorySlug }),
+    }).catch(() => {/* silently ignore notification failures */});
   };
 
   return (
