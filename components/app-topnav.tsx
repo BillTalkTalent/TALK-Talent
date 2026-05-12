@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
+import { useEffect, useRef, useState } from 'react'
 import {
   LayoutDashboard,
   Users,
@@ -17,11 +17,23 @@ import {
   BarChart2,
   BookOpen,
   GraduationCap,
+  Bell,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import type { Profile } from '@/lib/supabase/types'
 import { cn } from '@/lib/utils'
+import { formatDistanceToNow } from 'date-fns'
+
+type Notification = {
+  id: string
+  type: string
+  title: string
+  body: string | null
+  link: string | null
+  is_read: boolean
+  created_at: string
+}
 
 interface AppTopNavProps {
   profile: Profile
@@ -46,7 +58,12 @@ const iconNav = [
 
 export default function AppTopNav({ profile }: AppTopNavProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const [unreadCount, setUnreadCount] = useState(0)
+  const [notifCount, setNotifCount] = useState(0)
+  const [notifOpen, setNotifOpen] = useState(false)
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const notifRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const supabase = createClient()
@@ -95,6 +112,73 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
   useEffect(() => {
     if (pathname.startsWith('/messages')) setUnreadCount(0)
   }, [pathname])
+
+  // Notifications: load unread count + subscribe to new ones
+  useEffect(() => {
+    const supabase = createClient()
+
+    supabase
+      .from('notifications')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', profile.id)
+      .eq('is_read', false)
+      .then(({ count }) => setNotifCount(count ?? 0))
+
+    const channel = supabase
+      .channel('nav-notifications')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'notifications',
+        filter: `user_id=eq.${profile.id}`,
+      }, () => setNotifCount(c => c + 1))
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [profile.id])
+
+  // Close notification dropdown on outside click
+  useEffect(() => {
+    function handle(e: MouseEvent) {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setNotifOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handle)
+    return () => document.removeEventListener('mousedown', handle)
+  }, [])
+
+  async function openNotifications() {
+    const opening = !notifOpen
+    setNotifOpen(opening)
+    if (!opening) return
+
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', profile.id)
+      .order('created_at', { ascending: false })
+      .limit(15)
+
+    setNotifications(data ?? [])
+
+    // Mark all as read
+    if (notifCount > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase as any)
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', profile.id)
+        .eq('is_read', false)
+      setNotifCount(0)
+    }
+  }
+
+  function handleNotifClick(link: string | null) {
+    setNotifOpen(false)
+    if (link) router.push(link)
+  }
 
   async function handleSignOut() {
     const supabase = createClient()
@@ -188,6 +272,72 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
               </Link>
             )
           })}
+
+          {/* Notification bell */}
+          <div className="relative" ref={notifRef}>
+            <button
+              onClick={openNotifications}
+              title="Notifications"
+              className={cn(
+                'relative flex items-center justify-center size-9 rounded-lg transition-all',
+                notifOpen
+                  ? 'bg-[#00d4aa] text-[#0d0d0d]'
+                  : 'text-white/60 hover:bg-white/10 hover:text-white'
+              )}
+            >
+              <Bell className="size-4" />
+              {notifCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-black px-1 leading-none">
+                  {notifCount > 9 ? '9+' : notifCount}
+                </span>
+              )}
+            </button>
+
+            {notifOpen && (
+              <div className="absolute right-0 top-full mt-1.5 w-80 bg-white rounded-2xl border border-zinc-100 shadow-xl z-50 overflow-hidden">
+                <div className="px-4 py-3 border-b border-zinc-100 flex items-center justify-between">
+                  <span className="text-sm font-bold text-zinc-900">Notifications</span>
+                  {notifications.some(n => !n.is_read) && (
+                    <span className="text-xs text-[#00b894] font-semibold">Marked as read</span>
+                  )}
+                </div>
+                <div className="max-h-80 overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <div className="py-10 text-center">
+                      <Bell className="size-8 text-zinc-200 mx-auto mb-2" />
+                      <p className="text-sm text-zinc-400">No notifications yet</p>
+                    </div>
+                  ) : (
+                    notifications.map(n => (
+                      <button
+                        key={n.id}
+                        onClick={() => handleNotifClick(n.link)}
+                        className={cn(
+                          'w-full text-left px-4 py-3 border-b border-zinc-50 last:border-0 hover:bg-zinc-50 transition-colors',
+                          !n.is_read && 'bg-[#00d4aa]/5'
+                        )}
+                      >
+                        <div className="flex items-start gap-2.5">
+                          {!n.is_read && (
+                            <span className="mt-1.5 size-1.5 rounded-full bg-[#00d4aa] shrink-0" />
+                          )}
+                          <div className={cn('flex-1 min-w-0', n.is_read && 'ml-4')}>
+                            <p className="text-sm font-semibold text-zinc-900 truncate">{n.title}</p>
+                            {n.body && (
+                              <p className="text-xs text-zinc-500 mt-0.5">New post in {n.body}</p>
+                            )}
+                            <p className="text-[10px] text-zinc-400 mt-1">
+                              {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
+                            </p>
+                          </div>
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
 
           {profile.role === 'admin' && (
             <Link
