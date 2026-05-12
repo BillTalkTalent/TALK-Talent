@@ -8,16 +8,21 @@ import { formatPrice } from "@/lib/format-price";
 
 type PaidEvent = Event & { is_paid: boolean; price: number | null; currency: string };
 
-async function getEventAttendeeCount(
+async function getAttendeeCountMap(
   supabase: Awaited<ReturnType<typeof createClient>>,
-  eventId: string
-): Promise<number> {
-  const { count } = await supabase
+  eventIds: string[]
+): Promise<Record<string, number>> {
+  if (eventIds.length === 0) return {};
+  const { data } = await supabase
     .from("event_rsvps")
-    .select("*", { count: "exact", head: true })
-    .eq("event_id", eventId)
+    .select("event_id")
+    .in("event_id", eventIds)
     .eq("status", "going");
-  return count ?? 0;
+  const map: Record<string, number> = {};
+  for (const row of data ?? []) {
+    map[row.event_id] = (map[row.event_id] ?? 0) + 1;
+  }
+  return map;
 }
 
 function EventCard({ event, attendeeCount }: { event: PaidEvent; attendeeCount: number }) {
@@ -136,13 +141,10 @@ export default async function EventsPage({
   const upcomingEvents = (upcomingResult.data ?? []) as PaidEvent[];
   const pastEvents = (pastResult.data ?? []) as PaidEvent[];
 
-  const [upcomingCounts, pastCounts] = await Promise.all([
-    Promise.all(upcomingEvents.map((e) => getEventAttendeeCount(supabase, e.id))),
-    Promise.all(pastEvents.map((e) => getEventAttendeeCount(supabase, e.id))),
-  ]);
+  const allEventIds = [...upcomingEvents, ...pastEvents].map((e) => e.id);
+  const attendeeCountMap = await getAttendeeCountMap(supabase, allEventIds);
 
   const events = activeTab === "upcoming" ? upcomingEvents : pastEvents;
-  const counts = activeTab === "upcoming" ? upcomingCounts : pastCounts;
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
@@ -175,8 +177,8 @@ export default async function EventsPage({
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {events.map((event, i) => (
-            <EventCard key={event.id} event={event} attendeeCount={counts[i]} />
+          {events.map((event) => (
+            <EventCard key={event.id} event={event} attendeeCount={attendeeCountMap[event.id] ?? 0} />
           ))}
         </div>
       )}
