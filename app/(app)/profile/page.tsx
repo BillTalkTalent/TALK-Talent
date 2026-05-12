@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Camera, Save, Loader2 } from "lucide-react";
+import { Camera, Save, Loader2, Lock, Eye, EyeOff } from "lucide-react";
 import type { Chapter, ChapterMembership, Profile } from "@/lib/supabase/types";
 import { cn } from "@/lib/utils";
 
@@ -39,6 +39,9 @@ export default function ProfilePage() {
     linkedin_url: "",
     avatar_url: "",
   });
+  const [pwForm, setPwForm] = useState({ current: "", next: "", confirm: "" });
+  const [showPw, setShowPw] = useState(false);
+  const [savingPw, setSavingPw] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -151,6 +154,39 @@ export default function ProfilePage() {
       toast.error("Failed to save profile.");
     } else {
       toast.success("Profile saved!");
+    }
+  };
+
+  // ── Change password ──────────────────────────────────────────────────────
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pwForm.next !== pwForm.confirm) {
+      toast.error("New passwords do not match");
+      return;
+    }
+    if (pwForm.next.length < 8) {
+      toast.error("Password must be at least 8 characters");
+      return;
+    }
+    setSavingPw(true);
+    // Supabase doesn't have a "change password with current password" API at the client level,
+    // so we re-authenticate first then update
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: profile?.email ?? "",
+      password: pwForm.current,
+    });
+    if (signInError) {
+      toast.error("Current password is incorrect");
+      setSavingPw(false);
+      return;
+    }
+    const { error } = await supabase.auth.updateUser({ password: pwForm.next });
+    setSavingPw(false);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Password updated!");
+      setPwForm({ current: "", next: "", confirm: "" });
     }
   };
 
@@ -276,6 +312,78 @@ export default function ProfilePage() {
               <Button type="submit" disabled={saving}>
                 {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
                 {saving ? "Saving..." : "Save Profile"}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* ── Security / password ── */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Lock className="size-4 text-zinc-400" />
+            Security
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Change your password. Leave blank if you signed in with a magic link.
+          </p>
+        </CardHeader>
+        <Separator />
+        <CardContent className="pt-5">
+          <form onSubmit={handleChangePassword} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="current_pw">Current password</Label>
+              <div className="relative">
+                <Input
+                  id="current_pw"
+                  type={showPw ? "text" : "password"}
+                  value={pwForm.current}
+                  onChange={e => setPwForm(f => ({ ...f, current: e.target.value }))}
+                  placeholder="Current password"
+                  disabled={savingPw}
+                  className="pr-10"
+                />
+                <button type="button" onClick={() => setShowPw(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600">
+                  {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="new_pw">New password</Label>
+                <Input
+                  id="new_pw"
+                  type={showPw ? "text" : "password"}
+                  value={pwForm.next}
+                  onChange={e => setPwForm(f => ({ ...f, next: e.target.value }))}
+                  placeholder="Min. 8 characters"
+                  minLength={8}
+                  disabled={savingPw}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="confirm_pw">Confirm new password</Label>
+                <Input
+                  id="confirm_pw"
+                  type={showPw ? "text" : "password"}
+                  value={pwForm.confirm}
+                  onChange={e => setPwForm(f => ({ ...f, confirm: e.target.value }))}
+                  placeholder="Repeat new password"
+                  disabled={savingPw}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <Button
+                type="submit"
+                variant="outline"
+                size="sm"
+                disabled={savingPw || !pwForm.current || !pwForm.next}
+              >
+                {savingPw ? <Loader2 className="size-4 animate-spin mr-1.5" /> : <Lock className="size-4 mr-1.5" />}
+                {savingPw ? "Updating…" : "Update password"}
               </Button>
             </div>
           </form>
