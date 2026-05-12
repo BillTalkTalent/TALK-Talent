@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Clock, LogOut, ExternalLink } from 'lucide-react'
 import type { Profile } from '@/lib/supabase/types'
 
 export default function PendingPage() {
@@ -21,6 +21,13 @@ export default function PendingPage() {
         return
       }
       const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+
+      // If they've been approved, send them in
+      if (data?.status === 'approved') {
+        router.replace('/dashboard')
+        return
+      }
+
       setProfile(data)
       setLoading(false)
     }
@@ -35,43 +42,128 @@ export default function PendingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-50">
-        <p className="text-zinc-500">Loading…</p>
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: 'linear-gradient(135deg, #0d0d0d 0%, #1a1a2e 100%)' }}
+      >
+        <div className="flex flex-col items-center gap-3">
+          <div className="size-8 rounded-full border-2 border-[#00d4aa]/30 border-t-[#00d4aa] animate-spin" />
+          <p className="text-white/40 text-sm">Loading…</p>
+        </div>
       </div>
     )
   }
 
+  const isRejected = profile?.status === 'rejected'
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-zinc-50 p-4">
-      <Card className="w-full max-w-md text-center">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">Account Pending Review</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-zinc-600">
-            Your account is currently under review. Our team will verify your LinkedIn profile and
-            notify you by email once approved.
-          </p>
-          {profile?.linkedin_url && (
-            <div className="rounded-md bg-zinc-100 px-4 py-3 text-sm text-zinc-700 break-all">
-              <span className="font-medium">LinkedIn: </span>
+    <div
+      className="min-h-screen flex flex-col items-center justify-center p-6"
+      style={{ background: 'linear-gradient(135deg, #0d0d0d 0%, #1a1a2e 50%, #16213e 100%)' }}
+    >
+      {/* Logo */}
+      <div className="flex items-center gap-3 mb-12">
+        <svg width="40" height="40" viewBox="0 0 34 34" fill="none">
+          <rect width="34" height="34" rx="9" fill="#00d4aa" />
+          <rect x="8" y="12" width="18" height="3" rx="1.5" fill="white" />
+          <rect x="8" y="18.5" width="13" height="3" rx="1.5" fill="white" />
+        </svg>
+        <span className="text-3xl font-black tracking-tight text-white">TALK</span>
+      </div>
+
+      <div className="w-full max-w-md">
+        {isRejected ? (
+          /* Rejected state */
+          <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-8 text-center space-y-5">
+            <div className="size-14 rounded-2xl bg-red-500/15 flex items-center justify-center mx-auto">
+              <span className="text-2xl">✕</span>
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-xl font-bold text-white">Application not approved</h2>
+              <p className="text-white/50 text-sm leading-relaxed">
+                Unfortunately we weren&apos;t able to offer you membership at this time.
+                TALK is a curated community — this decision isn&apos;t a reflection of your
+                experience or abilities.
+              </p>
+              {profile?.rejection_note && profile.rejection_note !== 'Does not meet community criteria' && (
+                <p className="text-white/40 text-xs italic mt-2">
+                  Note: {profile.rejection_note}
+                </p>
+              )}
+            </div>
+            <p className="text-white/40 text-xs">
+              If you believe this was an error, reply to the email we sent you.
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSignOut}
+              className="gap-2 text-white/60 border-white/20 hover:bg-white/10 hover:text-white"
+            >
+              <LogOut className="size-3.5" />
+              Sign out
+            </Button>
+          </div>
+        ) : (
+          /* Pending state */
+          <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8 text-center space-y-6">
+            {/* Animated clock icon */}
+            <div className="size-16 rounded-2xl bg-[#00d4aa]/10 border border-[#00d4aa]/20 flex items-center justify-center mx-auto">
+              <Clock className="size-8 text-[#00d4aa]" />
+            </div>
+
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold text-white">
+                {profile?.full_name ? `Hi ${profile.full_name.split(' ')[0]}!` : 'Almost there!'}
+              </h2>
+              <p className="text-white/60 text-sm leading-relaxed">
+                Your application is under review. Our team will verify your LinkedIn profile
+                and send you an email once you&apos;re approved — usually within 24–48 hours.
+              </p>
+            </div>
+
+            {/* LinkedIn URL */}
+            {profile?.linkedin_url && (
               <a
                 href={profile.linkedin_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:underline"
+                className="flex items-center justify-center gap-2.5 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70 hover:bg-white/10 hover:text-white transition-all group"
               >
-                {profile.linkedin_url}
+                <ExternalLink className="size-4 text-[#0077B5] shrink-0" />
+                <span className="truncate">{profile.linkedin_url.replace('https://www.linkedin.com/in/', '')}</span>
               </a>
+            )}
+
+            {/* What to expect */}
+            <div className="rounded-xl border border-white/5 bg-white/3 p-4 space-y-2.5 text-left">
+              <p className="text-xs font-semibold uppercase tracking-widest text-white/30">What happens next</p>
+              {[
+                'We review your LinkedIn profile and work history',
+                'You get an email with a one-click login link when approved',
+                'Access to the full TALK community immediately',
+              ].map((step, i) => (
+                <div key={i} className="flex items-start gap-2.5">
+                  <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-[#00d4aa]/20 text-[9px] font-black text-[#00d4aa]">
+                    {i + 1}
+                  </span>
+                  <p className="text-xs text-white/50 leading-relaxed">{step}</p>
+                </div>
+              ))}
             </div>
-          )}
-        </CardContent>
-        <CardFooter className="justify-center">
-          <Button variant="outline" onClick={handleSignOut}>
-            Sign Out
-          </Button>
-        </CardFooter>
-      </Card>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSignOut}
+              className="gap-2 text-white/40 hover:text-white/70 hover:bg-white/10"
+            >
+              <LogOut className="size-3.5" />
+              Sign out
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
