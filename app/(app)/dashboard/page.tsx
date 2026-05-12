@@ -193,7 +193,7 @@ export default async function DashboardPage() {
       key: 'chapter',
       label: 'Join a chapter',
       desc: 'Connect with members who share your focus area.',
-      href: '/members',
+      href: '/chapters',
       done: hasJoinedChapter,
     },
     {
