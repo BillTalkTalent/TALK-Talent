@@ -12,6 +12,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import GettingStartedCard from "@/components/getting-started-card";
+import ForumFeed, { type FeedTopic } from "@/components/forum-feed";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -23,10 +24,12 @@ export default async function DashboardPage() {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
+  const twoWeeksAgo = new Date();
+  twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+
   const [
     profileResult,
     eventsResult,
-    topicsResult,
     jobsResult,
     memberCountResult,
     eventCountResult,
@@ -35,7 +38,9 @@ export default async function DashboardPage() {
     rsvpResults,
     myForumPostsResult,
     myRsvpResult,
-    myChapterResult,
+    myChapterMembershipsResult,
+    trendingTopicsResult,
+    recentRepliesResult,
   ] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", user?.id ?? "").single(),
     supabase
@@ -44,12 +49,7 @@ export default async function DashboardPage() {
       .eq("status", "published")
       .gte("event_date", new Date().toISOString())
       .order("event_date", { ascending: true })
-      .limit(3),
-    supabase
-      .from("forum_topics")
-      .select("*, profiles(full_name), forum_categories(name, slug)")
-      .order("created_at", { ascending: false })
-      .limit(5),
+      .limit(4),
     supabase
       .from("job_posts")
       .select("*")
@@ -77,7 +77,6 @@ export default async function DashboardPage() {
       .from("event_rsvps")
       .select("event_id")
       .eq("status", "going"),
-    // Getting-started checks for this user
     supabase
       .from("forum_topics")
       .select("id", { count: "exact", head: true })
@@ -86,16 +85,81 @@ export default async function DashboardPage() {
       .from("event_rsvps")
       .select("id", { count: "exact", head: true })
       .eq("user_id", user?.id ?? ""),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase as any)
+    // User's chapter memberships
+    supabase
       .from("chapter_memberships")
-      .select("id", { count: "exact", head: true })
-      .eq("profile_id", user?.id ?? ""),
+      .select("chapter_id")
+      .eq("user_id", user?.id ?? ""),
+    // Trending topics: most viewed in last 14 days
+    supabase
+      .from("forum_topics")
+      .select("id, title, created_at, views, author_id, profiles(full_name), forum_categories(name, slug)")
+      .gte("created_at", twoWeeksAgo.toISOString())
+      .order("views", { ascending: false })
+      .limit(8),
+    // Recent replies to compute reply counts
+    supabase
+      .from("forum_replies")
+      .select("topic_id")
+      .gte("created_at", twoWeeksAgo.toISOString()),
   ]);
+
+  // Build reply count map
+  const replyCounts: Record<string, number> = {};
+  for (const r of recentRepliesResult.data ?? []) {
+    replyCounts[r.topic_id] = (replyCounts[r.topic_id] ?? 0) + 1;
+  }
+
+  // "My Chapters" feed: get chapter-mates then their recent posts
+  const myChapterIds = (myChapterMembershipsResult.data ?? []).map(m => m.chapter_id);
+  const hasChapters = myChapterIds.length > 0;
+  let chapterTopics: FeedTopic[] = [];
+
+  if (hasChapters) {
+    const { data: chapterMates } = await supabase
+      .from("chapter_memberships")
+      .select("user_id")
+      .in("chapter_id", myChapterIds)
+      .neq("user_id", user?.id ?? "");
+
+    const chapterMateIds = [...new Set((chapterMates ?? []).map(m => m.user_id))];
+
+    if (chapterMateIds.length > 0) {
+      const { data: feed } = await supabase
+        .from("forum_topics")
+        .select("id, title, created_at, views, author_id, profiles(full_name), forum_categories(name, slug)")
+        .in("author_id", chapterMateIds)
+        .order("created_at", { ascending: false })
+        .limit(8);
+
+      chapterTopics = (feed ?? []).map(t => ({
+        id: t.id,
+        title: t.title,
+        category: t.forum_categories as { name: string; slug: string } | null,
+        author: t.profiles as { full_name: string | null } | null,
+        created_at: t.created_at,
+        views: t.views ?? 0,
+        replyCount: replyCounts[t.id] ?? 0,
+      }));
+    }
+  }
+
+  // Trending topics: re-sort by replies + views combined
+  const trendingTopics: FeedTopic[] = (trendingTopicsResult.data ?? [])
+    .map(t => ({
+      id: t.id,
+      title: t.title,
+      category: t.forum_categories as { name: string; slug: string } | null,
+      author: t.profiles as { full_name: string | null } | null,
+      created_at: t.created_at,
+      views: t.views ?? 0,
+      replyCount: replyCounts[t.id] ?? 0,
+    }))
+    .sort((a, b) => (b.replyCount * 3 + b.views) - (a.replyCount * 3 + a.views))
+    .slice(0, 6);
 
   const profile = profileResult.data;
   const upcomingEvents = eventsResult.data ?? [];
-  const recentTopics = topicsResult.data ?? [];
   const recentJobs = jobsResult.data ?? [];
   const memberCount = memberCountResult.count ?? 0;
   const upcomingEventCount = eventCountResult.count ?? 0;
@@ -108,7 +172,7 @@ export default async function DashboardPage() {
   const hasBio = !!profile?.bio;
   const hasPosted = (myForumPostsResult.count ?? 0) > 0;
   const hasRsvpd = (myRsvpResult.count ?? 0) > 0;
-  const hasJoinedChapter = (myChapterResult.count ?? 0) > 0;
+  const hasJoinedChapter = hasChapters;
 
   const gettingStartedItems = [
     {
@@ -244,6 +308,13 @@ export default async function DashboardPage() {
       {/* Two-column content grid */}
       <div className="grid gap-5 lg:grid-cols-2">
 
+        {/* Community Activity Feed */}
+        <ForumFeed
+          chapterTopics={chapterTopics}
+          trendingTopics={trendingTopics}
+          hasChapters={hasChapters}
+        />
+
         {/* Upcoming Events */}
         <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100">
@@ -308,56 +379,6 @@ export default async function DashboardPage() {
                         {rsvpCount} going
                       </span>
                     )}
-                  </Link>
-                );
-              })
-            )}
-          </div>
-        </div>
-
-        {/* Recent Discussions */}
-        <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100">
-            <div className="flex items-center gap-2.5">
-              <div className="size-7 rounded-lg bg-[#8b5cf6]/15 flex items-center justify-center">
-                <MessageSquare className="size-3.5 text-[#8b5cf6]" />
-              </div>
-              <span className="text-sm font-semibold text-zinc-900">Recent Discussions</span>
-            </div>
-            <Button variant="ghost" size="sm" className="text-xs text-[#00b894] hover:text-[#00d4aa] hover:bg-[#00d4aa]/10 -mr-1" render={<Link href="/forum" />}>
-              View all <ArrowRight className="size-3 ml-1" />
-            </Button>
-          </div>
-          <div className="divide-y divide-zinc-50">
-            {recentTopics.length === 0 ? (
-              <div className="px-5 py-10 text-center">
-                <MessageSquare className="size-8 text-zinc-200 mx-auto mb-2" />
-                <p className="text-sm text-zinc-400">No topics yet.</p>
-              </div>
-            ) : (
-              recentTopics.map((topic) => {
-                const cat = topic.forum_categories as { name: string; slug: string } | null;
-                const author = topic.profiles as { full_name: string | null } | null;
-                return (
-                  <Link
-                    key={topic.id}
-                    href={`/forum/${cat?.slug}/${topic.id}`}
-                    className="flex items-start gap-3 px-5 py-3.5 hover:bg-zinc-50 transition-colors group"
-                  >
-                    <div className="min-w-0 flex-1 space-y-1">
-                      {cat && (
-                        <span className="inline-block text-[10px] font-semibold text-[#8b5cf6] bg-[#8b5cf6]/10 px-2 py-0.5 rounded-full border border-[#8b5cf6]/20">
-                          {cat.name}
-                        </span>
-                      )}
-                      <p className="font-medium text-sm text-zinc-900 truncate group-hover:text-[#00d4aa] transition-colors">
-                        {topic.title}
-                      </p>
-                      <p className="text-xs text-zinc-400">
-                        {author?.full_name ?? "Unknown"} ·{" "}
-                        {formatDistanceToNow(new Date(topic.created_at), { addSuffix: true })}
-                      </p>
-                    </div>
                   </Link>
                 );
               })
