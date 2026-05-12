@@ -10,6 +10,8 @@ import {
   MapPin,
   Monitor,
   ArrowRight,
+  BarChart2,
+  Clock,
 } from "lucide-react";
 import GettingStartedCard from "@/components/getting-started-card";
 import ForumFeed, { type FeedTopic } from "@/components/forum-feed";
@@ -41,6 +43,9 @@ export default async function DashboardPage() {
     myChapterMembershipsResult,
     trendingTopicsResult,
     recentRepliesResult,
+    activePollsResult,
+    allPollVotesResult,
+    myPollVotesResult,
   ] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", user?.id ?? "").single(),
     supabase
@@ -102,6 +107,22 @@ export default async function DashboardPage() {
       .from("forum_replies")
       .select("topic_id")
       .gte("created_at", twoWeeksAgo.toISOString()),
+    // Active polls
+    supabase
+      .from("polls")
+      .select("id, question, closes_at, status")
+      .neq("status", "closed")
+      .order("created_at", { ascending: false })
+      .limit(5),
+    // Total vote counts per poll (all users)
+    supabase
+      .from("poll_votes")
+      .select("poll_id"),
+    // Which polls the current user has voted on
+    supabase
+      .from("poll_votes")
+      .select("poll_id")
+      .eq("user_id", user?.id ?? ""),
   ]);
 
   // Build reply count map
@@ -166,6 +187,24 @@ export default async function DashboardPage() {
   const activeDiscussionsCount = activeTopicsCountResult.count ?? 0;
   const jobsPostedCount = jobCountResult.count ?? 0;
   const allRsvps = rsvpResults.data ?? [];
+
+  // DEBUG — remove after confirming polls appear
+  console.log('[dashboard] polls data:', JSON.stringify(activePollsResult.data));
+  console.log('[dashboard] polls error:', JSON.stringify(activePollsResult.error));
+
+  // Active polls — exclude any past closes_at even if status is still "open"
+  type PollEntry = { id: string; question: string; closes_at: string | null; status: string };
+  const activePolls = ((activePollsResult.data ?? []) as PollEntry[]).filter(
+    (p) => !p.closes_at || new Date(p.closes_at) > new Date()
+  );
+  // Vote counts per poll (all users)
+  const pollVoteCountMap: Record<string, number> = {};
+  for (const v of allPollVotesResult.data ?? []) {
+    pollVoteCountMap[v.poll_id] = (pollVoteCountMap[v.poll_id] ?? 0) + 1;
+  }
+  // Which polls the current user has voted on
+  const myVotedPollIds = new Set((myPollVotesResult.data ?? []).map((v) => v.poll_id));
+  const unvotedCount = activePolls.filter((p) => !myVotedPollIds.has(p.id)).length;
 
   // Getting-started checklist
   const hasPhoto = !!profile?.avatar_url;
@@ -304,6 +343,75 @@ export default async function DashboardPage() {
           </Link>
         )})}
       </div>
+
+      {/* Active Polls — only shown when polls exist */}
+      {activePolls.length > 0 && (
+        <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100">
+            <div className="flex items-center gap-2.5">
+              <div className="size-7 rounded-lg bg-[#8b5cf6]/15 flex items-center justify-center">
+                <BarChart2 className="size-3.5 text-[#8b5cf6]" />
+              </div>
+              <span className="text-sm font-semibold text-zinc-900">Active Polls</span>
+              {unvotedCount > 0 && (
+                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">
+                  {unvotedCount} need{unvotedCount === 1 ? "s" : ""} your vote
+                </span>
+              )}
+            </div>
+            <Button variant="ghost" size="sm" className="text-xs text-[#00b894] hover:text-[#00d4aa] hover:bg-[#00d4aa]/10 -mr-1" render={<Link href="/polls" />}>
+              View all <ArrowRight className="size-3 ml-1" />
+            </Button>
+          </div>
+          <div className="divide-y divide-zinc-50">
+            {activePolls.map((poll) => {
+              const hasVoted = myVotedPollIds.has(poll.id);
+              const totalVotes = pollVoteCountMap[poll.id] ?? 0;
+              return (
+                <Link
+                  key={poll.id}
+                  href={`/polls/${poll.id}`}
+                  className="flex items-center gap-4 px-5 py-3.5 hover:bg-zinc-50 transition-colors group"
+                >
+                  {/* Purple dot indicator */}
+                  <div className={`size-2 rounded-full shrink-0 ${hasVoted ? "bg-zinc-200" : "bg-[#8b5cf6]"}`} />
+
+                  <div className="min-w-0 flex-1">
+                    <p className={`font-medium text-sm truncate transition-colors ${hasVoted ? "text-zinc-500 group-hover:text-zinc-700" : "text-zinc-900 group-hover:text-[#8b5cf6]"}`}>
+                      {poll.question}
+                    </p>
+                    <p className="text-xs text-zinc-400 mt-0.5 flex items-center gap-2">
+                      <span className="flex items-center gap-1">
+                        <Users className="size-3" />
+                        {totalVotes} vote{totalVotes !== 1 ? "s" : ""}
+                      </span>
+                      {poll.closes_at && (
+                        <>
+                          <span>·</span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="size-3" />
+                            Closes {format(new Date(poll.closes_at), "MMM d")}
+                          </span>
+                        </>
+                      )}
+                    </p>
+                  </div>
+
+                  {hasVoted ? (
+                    <span className="shrink-0 text-xs font-semibold text-zinc-400 bg-zinc-50 border border-zinc-200 px-2.5 py-1 rounded-full">
+                      Voted ✓
+                    </span>
+                  ) : (
+                    <span className="shrink-0 text-xs font-bold text-white bg-[#8b5cf6] hover:bg-[#7c3aed] px-3 py-1.5 rounded-full transition-colors">
+                      Vote →
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Two-column content grid */}
       <div className="grid gap-5 lg:grid-cols-2">
