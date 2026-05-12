@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
-import { ExternalLink, Search, MapPin, ChevronDown, X } from "lucide-react";
+import { ExternalLink, Search, MapPin, ChevronDown, X, Star } from "lucide-react";
 import type { Chapter, ChapterMembership, Profile } from "@/lib/supabase/types";
 import { cn } from "@/lib/utils";
 
@@ -247,6 +247,12 @@ export default function MembersGrid({ members, chapters, memberships }: MembersG
                     </p>
                     {member.title && (
                       <p className="text-xs text-zinc-500 truncate">{member.title}</p>
+                    )}
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                    {(member as any).role === 'board_member' && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full mt-1">
+                        <Star className="size-2.5 fill-amber-500 text-amber-500" /> Board Member
+                      </span>
                     )}
                     {member.company && (
                       <span className="inline-block text-xs font-semibold text-[#00b894] bg-[#00d4aa]/10 px-2 py-0.5 rounded-full mt-1">

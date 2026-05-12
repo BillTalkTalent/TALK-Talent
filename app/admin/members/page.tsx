@@ -7,11 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import MembersTable from './members-table'
 import type { Profile } from '@/lib/supabase/types'
 
-async function toggleRole(id: string, currentRole: 'member' | 'admin') {
+async function setRole(id: string, role: 'member' | 'board_member' | 'admin') {
   'use server'
-  const newRole = currentRole === 'admin' ? 'member' : 'admin'
   const supabase = await createClient()
-  await supabase.from('profiles').update({ role: newRole }).eq('id', id)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase as any).from('profiles').update({ role }).eq('id', id)
   revalidatePath('/admin/members')
 }
 
@@ -37,7 +37,7 @@ export default async function AdminMembersPage() {
         <CardTitle>All Members</CardTitle>
       </CardHeader>
       <CardContent>
-        <MembersTable members={members ?? []} toggleRole={toggleRole} suspendMember={suspendMember} />
+        <MembersTable members={members ?? []} setRole={setRole} suspendMember={suspendMember} />
       </CardContent>
     </Card>
   )

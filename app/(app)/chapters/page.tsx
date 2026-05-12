@@ -154,13 +154,18 @@ export default function ChaptersPage() {
               <div
                 key={chapter.id}
                 className={cn(
-                  "group rounded-2xl p-5 border-2 transition-all cursor-pointer flex flex-col",
+                  "relative group rounded-2xl p-5 border-2 transition-all cursor-pointer flex flex-col",
                   joined
                     ? "border-[#8b5cf6] bg-[#8b5cf6]/10"
                     : "border-zinc-100 bg-white hover:border-[#8b5cf6] hover:shadow-sm"
                 )}
                 onClick={() => toggleChapter(chapter.id)}
               >
+                {/* Chapter page link */}
+                <a href={`/chapters/${chapter.slug}`} onClick={e => e.stopPropagation()}
+                  className="absolute top-3 right-3 text-[10px] text-zinc-300 hover:text-[#8b5cf6] transition-colors hidden group-hover:block font-semibold">
+                  View page →
+                </a>
                 <div className="flex items-start justify-between mb-3">
                   <span className="text-4xl leading-none">{chapter.icon}</span>
                   {joined && (
