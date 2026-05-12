@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { CheckCircle2, Circle, X, ChevronDown, ChevronUp } from 'lucide-react'
+
+const STORAGE_KEY = 'talk_getting_started_dismissed'
 
 interface ChecklistItem {
   key: string
@@ -17,12 +19,31 @@ interface Props {
 }
 
 export default function GettingStartedCard({ items }: Props) {
-  const [dismissed, setDismissed] = useState(false)
+  const [dismissed, setDismissed] = useState(true) // start hidden to avoid flash
   const [collapsed, setCollapsed] = useState(false)
 
   const doneCount = items.filter(i => i.done).length
   const allDone = doneCount === items.length
   const pct = Math.round((doneCount / items.length) * 100)
+
+  // Read persisted dismissal on mount
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (stored === 'true') {
+      setDismissed(true)
+    } else if (allDone) {
+      // Auto-dismiss and persist once everything is complete
+      localStorage.setItem(STORAGE_KEY, 'true')
+      setDismissed(true)
+    } else {
+      setDismissed(false)
+    }
+  }, [allDone])
+
+  function dismiss() {
+    localStorage.setItem(STORAGE_KEY, 'true')
+    setDismissed(true)
+  }
 
   if (dismissed) return null
 
@@ -61,7 +82,7 @@ export default function GettingStartedCard({ items }: Props) {
             {collapsed ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />}
           </button>
           <button
-            onClick={() => setDismissed(true)}
+            onClick={dismiss}
             className="size-7 flex items-center justify-center rounded-lg text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-all"
           >
             <X className="size-4" />
