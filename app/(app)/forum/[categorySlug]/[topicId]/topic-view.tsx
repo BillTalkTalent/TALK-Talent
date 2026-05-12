@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
 import { Eye } from "lucide-react";
@@ -65,7 +66,13 @@ export default function TopicView({
         </Avatar>
         <div className="flex-1">
           <div className="flex items-center gap-2 text-sm">
-            <span className="font-medium">{topicAuthor?.full_name ?? "Unknown"}</span>
+            {topicAuthor?.id ? (
+              <Link href={`/members/${topicAuthor.id}`} className="font-medium hover:underline hover:text-[#8b5cf6] transition-colors">
+                {topicAuthor.full_name ?? "Unknown"}
+              </Link>
+            ) : (
+              <span className="font-medium">{topicAuthor?.full_name ?? "Unknown"}</span>
+            )}
             <span className="text-zinc-400">·</span>
             <span className="text-zinc-400 text-xs">
               {format(new Date(createdAt), "MMM d, yyyy 'at' h:mm a")}
@@ -115,7 +122,13 @@ export default function TopicView({
                 </Avatar>
                 <div className="flex-1 rounded-lg border bg-muted/30 p-3">
                   <div className="flex items-center gap-2 text-sm mb-2">
-                    <span className="font-medium">{author?.full_name ?? "Unknown"}</span>
+                    {author?.id ? (
+                      <Link href={`/members/${author.id}`} className="font-medium hover:underline hover:text-[#8b5cf6] transition-colors">
+                        {author.full_name ?? "Unknown"}
+                      </Link>
+                    ) : (
+                      <span className="font-medium">{author?.full_name ?? "Unknown"}</span>
+                    )}
                     <span className="text-zinc-400">·</span>
                     <span className="text-zinc-400 text-xs">
                       {format(new Date(reply.created_at), "MMM d, yyyy 'at' h:mm a")}
