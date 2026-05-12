@@ -2,19 +2,36 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Pencil, X, Check, Loader2 } from "lucide-react";
+import { Pencil, X, Check, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface EditReplyProps {
   replyId: string;
   initialBody: string;
   onSaved: (body: string) => void;
+  onDeleted?: () => void;
 }
 
-export default function EditReply({ replyId, initialBody, onSaved }: EditReplyProps) {
+export default function EditReply({ replyId, initialBody, onSaved, onDeleted }: EditReplyProps) {
   const [editing, setEditing] = useState(false);
   const [body, setBody] = useState(initialBody);
   const [saving, setSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  async function deleteReply() {
+    setDeleting(true);
+    const supabase = createClient();
+    const { error } = await supabase.from("forum_replies").delete().eq("id", replyId);
+    if (error) {
+      toast.error("Failed to delete reply.");
+    } else {
+      toast.success("Reply deleted.");
+      onDeleted?.();
+    }
+    setDeleting(false);
+    setConfirmDelete(false);
+  }
 
   async function save() {
     if (!body.trim()) return;
@@ -36,14 +53,44 @@ export default function EditReply({ replyId, initialBody, onSaved }: EditReplyPr
   }
 
   if (!editing) {
+    if (confirmDelete) {
+      return (
+        <span className="inline-flex items-center gap-1.5">
+          <span className="text-xs text-zinc-500">Delete this reply?</span>
+          <button
+            onClick={deleteReply}
+            disabled={deleting}
+            className="text-xs font-semibold text-red-500 hover:text-red-700 transition-colors disabled:opacity-50"
+          >
+            {deleting ? <Loader2 className="size-3 animate-spin inline" /> : "Yes, delete"}
+          </button>
+          <button
+            onClick={() => setConfirmDelete(false)}
+            className="text-xs text-zinc-400 hover:text-zinc-600 transition-colors"
+          >
+            Cancel
+          </button>
+        </span>
+      );
+    }
+
     return (
-      <button
-        onClick={() => setEditing(true)}
-        className="inline-flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-600 transition-colors"
-        title="Edit reply"
-      >
-        <Pencil className="size-3" /> Edit
-      </button>
+      <span className="inline-flex items-center gap-2">
+        <button
+          onClick={() => setEditing(true)}
+          className="inline-flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-600 transition-colors"
+          title="Edit reply"
+        >
+          <Pencil className="size-3" /> Edit
+        </button>
+        <button
+          onClick={() => setConfirmDelete(true)}
+          className="inline-flex items-center gap-1 text-xs text-zinc-300 hover:text-red-400 transition-colors"
+          title="Delete reply"
+        >
+          <Trash2 className="size-3" /> Delete
+        </button>
+      </span>
     );
   }
 

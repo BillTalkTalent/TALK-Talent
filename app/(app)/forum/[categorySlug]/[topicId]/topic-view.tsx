@@ -131,6 +131,9 @@ export default function TopicView({
                               prev.map(r => r.id === reply.id ? { ...r, body: b } : r)
                             )
                           }
+                          onDeleted={() =>
+                            setReplies(prev => prev.filter(r => r.id !== reply.id))
+                          }
                         />
                       </>
                     )}
