@@ -24,17 +24,39 @@ export async function POST(req: NextRequest) {
 
     if (!topic) return NextResponse.json({ error: "Topic not found" }, { status: 404 });
 
-    // Don't notify if replier is the topic author
-    if (topic.author_id === user.id) {
-      return NextResponse.json({ ok: true, skipped: "self-reply" });
+    // Build the set of people to notify: topic author + all previous repliers
+    // excluding the current user (who just posted)
+    const topicAuthor = topic.profiles as { id: string; full_name: string | null; email: string | null } | null;
+
+    // Fetch all previous replies to get unique replier IDs
+    const { data: prevReplies } = await supabase
+      .from("forum_replies")
+      .select("author_id")
+      .eq("topic_id", topicId);
+
+    const prevReplierIds = [...new Set(
+      (prevReplies ?? [])
+        .map(r => r.author_id)
+        .filter((id): id is string => !!id && id !== user.id)
+    )];
+
+    // Collect unique user IDs to notify (topic author + prior repliers, not the current replier)
+    const notifyIds = [...new Set([
+      ...(topicAuthor && topicAuthor.id !== user.id ? [topicAuthor.id] : []),
+      ...prevReplierIds,
+    ])];
+
+    if (notifyIds.length === 0) {
+      return NextResponse.json({ ok: true, skipped: "no-recipients" });
     }
 
-    const author = topic.profiles as { id: string; full_name: string | null; email: string | null } | null;
-    if (!author?.email) {
-      return NextResponse.json({ ok: true, skipped: "no-email" });
-    }
+    // Fetch profiles of people to notify
+    const { data: recipientProfiles } = await supabase
+      .from("profiles")
+      .select("id, full_name, email")
+      .in("id", notifyIds);
 
-    // Get replier's name for the email
+    // Get replier's name
     const { data: replierProfile } = await supabase
       .from("profiles")
       .select("full_name")
@@ -42,35 +64,44 @@ export async function POST(req: NextRequest) {
       .single();
 
     const replierName = replierProfile?.full_name ?? "A community member";
-    const authorFirstName = author.full_name?.split(" ")[0] ?? "there";
     const origin = process.env.NEXT_PUBLIC_SITE_URL ?? "https://talk-talent.vercel.app";
     const topicUrl = `${origin}/forum/${categorySlug ?? ""}/${topicId}`;
     const relativeLink = `/forum/${categorySlug ?? ""}/${topicId}`;
-
-    // Insert in-app notification (don't let this block the response)
     const truncatedPreview = replyBody.length > 100 ? replyBody.slice(0, 97) + "…" : replyBody;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase as any).from("notifications").insert({
-      user_id: author.id,
-      type: "forum_reply",
-      title: `${replierName} replied to "${topic.title}"`,
-      body: truncatedPreview,
-      link: relativeLink,
-      is_read: false,
-    });
+    const notifTitle = `${replierName} replied to "${topic.title}"`;
 
-    // Send email notification
     const resend = new Resend(process.env.RESEND_API_KEY);
     const from = process.env.FROM_EMAIL ?? "TALK Community <onboarding@resend.dev>";
 
-    await resend.emails.send({
-      from,
-      to: author.email,
-      subject: `${replierName} replied to your post on TALK`,
-      html: buildReplyNotificationEmail(authorFirstName, replierName, topic.title, replyBody, topicUrl, origin),
-    });
+    // Insert in-app notifications + send emails to all recipients
+    await Promise.allSettled(
+      (recipientProfiles ?? []).map(async (recipient) => {
+        const firstName = recipient.full_name?.split(" ")[0] ?? "there";
 
-    return NextResponse.json({ ok: true });
+        // In-app notification
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (supabase as any).from("notifications").insert({
+          user_id: recipient.id,
+          type: "forum_reply",
+          title: notifTitle,
+          body: truncatedPreview,
+          link: relativeLink,
+          is_read: false,
+        });
+
+        // Email (only if they have an email)
+        if (recipient.email) {
+          await resend.emails.send({
+            from,
+            to: recipient.email,
+            subject: `${replierName} replied to a discussion on TALK`,
+            html: buildReplyNotificationEmail(firstName, replierName, topic.title, replyBody, topicUrl, origin),
+          });
+        }
+      })
+    );
+
+    return NextResponse.json({ ok: true, notified: notifyIds.length });
   } catch (err) {
     console.error("[notify-reply]", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
