@@ -11,7 +11,7 @@ async function setRole(id: string, role: 'member' | 'board_member' | 'admin') {
   'use server'
   const supabase = await createClient()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (supabase as any).from('profiles').update({ role }).eq('id', id)
+  await supabase.from('profiles').update({ role }).eq('id', id)
   revalidatePath('/admin/members')
 }
 

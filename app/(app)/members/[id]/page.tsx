@@ -106,7 +106,7 @@ export default async function MemberProfilePage({
 
             <div className="flex items-center gap-2 flex-wrap justify-center">
               {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              {(member as any).role === "board_member" && (
+              {member.role === "board_member" && (
                 <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
                   <Star className="size-3 fill-amber-500 text-amber-500" />
                   Board Member

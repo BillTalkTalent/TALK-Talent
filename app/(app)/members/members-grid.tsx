@@ -249,7 +249,7 @@ export default function MembersGrid({ members, chapters, memberships }: MembersG
                       <p className="text-xs text-zinc-500 truncate">{member.title}</p>
                     )}
                     {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                    {(member as any).role === 'board_member' && (
+                    {member.role === 'board_member' && (
                       <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full mt-1">
                         <Star className="size-2.5 fill-amber-500 text-amber-500" /> Board Member
                       </span>

@@ -20,8 +20,9 @@ export type Database = {
           bio: string | null;
           linkedin_url: string | null;
           status: "pending" | "approved" | "rejected";
-          role: "member" | "admin";
+          role: "member" | "board_member" | "admin";
           rejection_note: string | null;
+          has_onboarded: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -35,8 +36,9 @@ export type Database = {
           bio?: string | null;
           linkedin_url?: string | null;
           status?: "pending" | "approved" | "rejected";
-          role?: "member" | "admin";
+          role?: "member" | "board_member" | "admin";
           rejection_note?: string | null;
+          has_onboarded?: boolean;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
         Relationships: [];
@@ -584,4 +586,42 @@ export type MentorshipConnection = {
   area_id: string;
   is_active: boolean;
   connected_at: string;
+};
+
+// ── Tables added via later migrations (not in auto-generated core) ───────────
+
+export type Notification = {
+  id: string;
+  user_id: string;
+  type: "forum_topic" | "forum_reply" | "new_member" | "event" | string;
+  title: string;
+  body: string | null;
+  link: string | null;
+  is_read: boolean;
+  created_at: string;
+};
+
+export type ChapterLead = {
+  id: string;
+  chapter_id: string;
+  user_id: string;
+  created_at: string;
+};
+
+export type ChapterPost = {
+  id: string;
+  chapter_id: string;
+  author_id: string | null;
+  body: string;
+  is_pinned: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ChapterPostReply = {
+  id: string;
+  post_id: string;
+  author_id: string | null;
+  body: string;
+  created_at: string;
 };
