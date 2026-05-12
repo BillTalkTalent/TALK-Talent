@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { Resend } from "resend";
 
 export async function POST(req: NextRequest) {
@@ -72,15 +73,17 @@ export async function POST(req: NextRequest) {
 
     const resend = new Resend(process.env.RESEND_API_KEY);
     const from = process.env.FROM_EMAIL ?? "TALK Community <onboarding@resend.dev>";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const adminDb = createAdminClient() as any;
 
     // Insert in-app notifications + send emails to all recipients
     await Promise.allSettled(
       (recipientProfiles ?? []).map(async (recipient) => {
         const firstName = recipient.full_name?.split(" ")[0] ?? "there";
 
-        // In-app notification
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (supabase as any).from("notifications").insert({
+        // In-app notification — use admin client (service role) since RLS
+        // restricts who can insert into notifications
+        await adminDb.from("notifications").insert({
           user_id: recipient.id,
           type: "forum_reply",
           title: notifTitle,
