@@ -54,7 +54,7 @@ export async function middleware(request: NextRequest) {
       .single();
 
     if (profile?.role !== "admin") {
-      return NextResponse.redirect(new URL("/pending", request.url));
+      return NextResponse.redirect(new URL("/dashboard", request.url));
     }
   }
 
