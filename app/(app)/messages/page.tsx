@@ -23,7 +23,7 @@ function getInitials(name: string | null): string {
     .toUpperCase();
 }
 
-type ConversationWithOther = DmConversation & { otherUser: Profile | null; lastMessage: string | null; lastAt: string | null };
+type ConversationWithOther = DmConversation & { otherUser: Profile | null; lastMessage: string | null; lastAt: string | null; unreadCount: number };
 type MessageWithSender = DmMessage & { profiles: Profile | null };
 
 export default function MessagesPage() {
@@ -60,30 +60,60 @@ export default function MessagesPage() {
 
       if (!convs) return [];
 
-      const enriched = await Promise.all(
-        convs.map(async (conv) => {
-          const otherId =
-            conv.participant_a === userId ? conv.participant_b : conv.participant_a;
-          const [profileResult, lastMsgResult] = await Promise.all([
-            supabase.from("profiles").select("*").eq("id", otherId).single(),
-            supabase
-              .from("dm_messages")
-              .select("content, created_at")
-              .eq("conversation_id", conv.id)
-              .order("created_at", { ascending: false })
-              .limit(1)
-              .single(),
-          ]);
-          return {
-            ...conv,
-            otherUser: profileResult.data ?? null,
-            lastMessage: lastMsgResult.data?.content ?? null,
-            lastAt: lastMsgResult.data?.created_at ?? null,
-          };
-        })
-      );
+      const convIds = convs.map((c) => c.id);
 
-      return enriched;
+      // Batch fetch: last messages and unread counts for all conversations
+      const [allLastMsgs, unreadMsgs] = await Promise.all([
+        supabase
+          .from("dm_messages")
+          .select("conversation_id, content, created_at, sender_id, is_read")
+          .in("conversation_id", convIds)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("dm_messages")
+          .select("conversation_id")
+          .in("conversation_id", convIds)
+          .neq("sender_id", userId)
+          .eq("is_read", false),
+      ]);
+
+      // Build maps
+      const lastMsgMap: Record<string, { content: string; created_at: string }> = {};
+      for (const msg of allLastMsgs.data ?? []) {
+        if (!lastMsgMap[msg.conversation_id]) {
+          lastMsgMap[msg.conversation_id] = { content: msg.content, created_at: msg.created_at };
+        }
+      }
+
+      const unreadCountMap: Record<string, number> = {};
+      for (const msg of unreadMsgs.data ?? []) {
+        unreadCountMap[msg.conversation_id] = (unreadCountMap[msg.conversation_id] ?? 0) + 1;
+      }
+
+      // Batch fetch other user profiles
+      const otherIds = convs.map((conv) =>
+        conv.participant_a === userId ? conv.participant_b : conv.participant_a
+      );
+      const { data: otherProfiles } = await supabase
+        .from("profiles")
+        .select("*")
+        .in("id", otherIds);
+
+      const profileMap: Record<string, Profile> = {};
+      for (const p of otherProfiles ?? []) {
+        profileMap[p.id] = p;
+      }
+
+      return convs.map((conv) => {
+        const otherId = conv.participant_a === userId ? conv.participant_b : conv.participant_a;
+        return {
+          ...conv,
+          otherUser: profileMap[otherId] ?? null,
+          lastMessage: lastMsgMap[conv.id]?.content ?? null,
+          lastAt: lastMsgMap[conv.id]?.created_at ?? null,
+          unreadCount: unreadCountMap[conv.id] ?? 0,
+        };
+      });
     },
     [supabase]
   );
@@ -110,6 +140,11 @@ export default function MessagesPage() {
           .eq("conversation_id", convId)
           .neq("sender_id", currentUser.id)
           .eq("is_read", false);
+
+        // Clear unread count badge in sidebar immediately (optimistic)
+        setConversations((prev) =>
+          prev.map((c) => c.id === convId ? { ...c, unreadCount: 0 } : c)
+        );
       }
     },
     [supabase, currentUser]
@@ -281,18 +316,27 @@ export default function MessagesPage() {
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium truncate">
+                    <p className={cn("text-sm truncate", conv.unreadCount > 0 && conv.id !== activeConvId ? "font-bold" : "font-medium")}>
                       {conv.otherUser?.full_name ?? "Unknown"}
                     </p>
                     {conv.lastMessage && (
-                      <p className="text-xs text-muted-foreground truncate">{conv.lastMessage}</p>
+                      <p className={cn("text-xs truncate", conv.unreadCount > 0 && conv.id !== activeConvId ? "text-foreground font-medium" : "text-muted-foreground")}>
+                        {conv.lastMessage}
+                      </p>
                     )}
                   </div>
-                  {conv.lastAt && (
-                    <span className="text-xs text-muted-foreground shrink-0">
-                      {formatDistanceToNow(new Date(conv.lastAt), { addSuffix: false })}
-                    </span>
-                  )}
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    {conv.lastAt && (
+                      <span className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(new Date(conv.lastAt), { addSuffix: false })}
+                      </span>
+                    )}
+                    {conv.unreadCount > 0 && conv.id !== activeConvId && (
+                      <span className="min-w-[18px] h-4.5 px-1 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-[9px] font-black">
+                        {conv.unreadCount > 9 ? "9+" : conv.unreadCount}
+                      </span>
+                    )}
+                  </div>
                 </button>
               ))}
             </nav>
