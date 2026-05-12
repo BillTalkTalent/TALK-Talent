@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
-import { MapPin, Clock, ExternalLink } from "lucide-react";
+import { MapPin, Clock, ExternalLink, Search } from "lucide-react";
 import type { JobPost } from "@/lib/supabase/types";
 
 type JobWithPoster = JobPost & {
@@ -108,10 +108,20 @@ function CompanyLogo({ company, companyUrl }: { company: string; companyUrl?: st
 export default function JobsList({ jobs }: { jobs: JobWithPoster[] }) {
   const [typeFilter, setTypeFilter] = useState("all");
   const [remoteOnly, setRemoteOnly] = useState(false);
+  const [query, setQuery] = useState("");
 
   const filtered = jobs.filter((job) => {
     if (typeFilter !== "all" && job.job_type !== typeFilter) return false;
     if (remoteOnly && !job.is_remote) return false;
+    if (query.trim()) {
+      const q = query.toLowerCase();
+      const matchesSearch =
+        job.title?.toLowerCase().includes(q) ||
+        job.company?.toLowerCase().includes(q) ||
+        job.location?.toLowerCase().includes(q) ||
+        job.description?.toLowerCase().includes(q);
+      if (!matchesSearch) return false;
+    }
     return true;
   });
 
@@ -136,7 +146,7 @@ export default function JobsList({ jobs }: { jobs: JobWithPoster[] }) {
         </div>
         <button
           onClick={() => setRemoteOnly((v) => !v)}
-          className={`ml-auto px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+          className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
             remoteOnly
               ? "bg-indigo-600 text-white border-indigo-600"
               : "border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-600 bg-white"
@@ -144,6 +154,16 @@ export default function JobsList({ jobs }: { jobs: JobWithPoster[] }) {
         >
           🌐 Remote only
         </button>
+        <div className="relative ml-auto">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-zinc-400 pointer-events-none" />
+          <input
+            type="search"
+            placeholder="Search jobs…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="pl-9 pr-3 py-1.5 text-sm rounded-xl border border-zinc-200 bg-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 transition-all w-44"
+          />
+        </div>
       </div>
 
       {/* Job list */}

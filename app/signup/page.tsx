@@ -61,6 +61,15 @@ export default function SignupPage() {
       }
     }
 
+    // Fire-and-forget admin notification
+    if (user) {
+      fetch('/api/notify-admin-signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id }),
+      }).catch(() => {})
+    }
+
     setSuccess(true)
     setLoading(false)
   }
