@@ -45,7 +45,21 @@ export async function POST(req: NextRequest) {
     const authorFirstName = author.full_name?.split(" ")[0] ?? "there";
     const origin = process.env.NEXT_PUBLIC_SITE_URL ?? "https://talk-talent.vercel.app";
     const topicUrl = `${origin}/forum/${categorySlug ?? ""}/${topicId}`;
+    const relativeLink = `/forum/${categorySlug ?? ""}/${topicId}`;
 
+    // Insert in-app notification (don't let this block the response)
+    const truncatedPreview = replyBody.length > 100 ? replyBody.slice(0, 97) + "…" : replyBody;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any).from("notifications").insert({
+      user_id: author.id,
+      type: "forum_reply",
+      title: `${replierName} replied to "${topic.title}"`,
+      body: truncatedPreview,
+      link: relativeLink,
+      is_read: false,
+    });
+
+    // Send email notification
     const resend = new Resend(process.env.RESEND_API_KEY);
     const from = process.env.FROM_EMAIL ?? "TALK Community <onboarding@resend.dev>";
 

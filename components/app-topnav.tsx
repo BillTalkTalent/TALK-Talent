@@ -324,7 +324,9 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
                           <div className={cn('flex-1 min-w-0', n.is_read && 'ml-4')}>
                             <p className="text-sm font-semibold text-zinc-900 truncate">{n.title}</p>
                             {n.body && (
-                              <p className="text-xs text-zinc-500 mt-0.5">New post in {n.body}</p>
+                              <p className="text-xs text-zinc-500 mt-0.5 line-clamp-2">
+                                {n.type === "forum_topic" ? `New post in ${n.body}` : n.body}
+                              </p>
                             )}
                             <p className="text-[10px] text-zinc-400 mt-1">
                               {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
