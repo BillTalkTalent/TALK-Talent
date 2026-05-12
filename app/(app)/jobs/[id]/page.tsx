@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDistanceToNow } from "date-fns";
-import { ArrowLeft, MapPin, ExternalLink, Mail, Clock } from "lucide-react";
+import { ArrowLeft, MapPin, ExternalLink, Mail, Clock, Pencil } from "lucide-react";
 
 const JOB_TYPE_LABELS: Record<string, string> = {
   "full-time": "Full-time",
@@ -49,6 +49,7 @@ function getLogoUrl(companyUrl: string | null | undefined): string | null {
 export default async function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
   const { data: job } = await supabase
     .from("job_posts")
@@ -61,6 +62,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
   const salary = formatSalary(job.salary_min, job.salary_max, job.salary_currency);
   const applyHref = job.apply_url ?? (job.apply_email ? `mailto:${job.apply_email}` : null);
   const poster = job.profiles as { id: string; full_name: string | null; company: string | null; title: string | null } | null;
+  const isAuthor = user?.id === job.poster_id;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const companyUrl = (job as any).company_url as string | null | undefined;
   const logoUrl = getLogoUrl(companyUrl);
@@ -149,9 +151,16 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
           </span>
         </div>
 
-        {/* Apply button */}
+        {/* Apply / Edit buttons */}
+        <div className="pt-1 flex items-center gap-3">
+        {isAuthor && (
+          <Link href={`/jobs/${id}/edit`}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-zinc-200 text-sm font-medium text-zinc-600 hover:bg-zinc-50 transition-colors">
+            <Pencil className="size-3.5" /> Edit listing
+          </Link>
+        )}
         {applyHref && (
-          <div className="pt-1">
+          <div>
             <a
               href={applyHref}
               target="_blank"
@@ -166,6 +175,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
             </a>
           </div>
         )}
+        </div>
       </div>
 
       {/* Description */}
