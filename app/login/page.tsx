@@ -1,14 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { CheckCircle2 } from 'lucide-react'
+import { CheckCircle2, AlertTriangle } from 'lucide-react'
 
 const benefits = [
   'Exclusive TA leader network',
@@ -18,6 +18,8 @@ const benefits = [
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const linkExpired = searchParams.get('error') === 'link_expired'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -97,6 +99,19 @@ export default function LoginPage() {
             <h2 className="text-2xl font-semibold text-zinc-900">Welcome back</h2>
             <p className="text-sm text-zinc-500">Sign in to your TALK account</p>
           </div>
+
+          {linkExpired && (
+            <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+              <AlertTriangle className="size-4 text-amber-500 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-amber-800">Your invite link has expired</p>
+                <p className="text-xs text-amber-700 mt-0.5">
+                  Invite links are only valid for 24 hours. If you were invited to TALK, ask your inviter to send a new invite, or{' '}
+                  <Link href="/signup" className="underline font-semibold">apply directly</Link>.
+                </p>
+              </div>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-1.5">

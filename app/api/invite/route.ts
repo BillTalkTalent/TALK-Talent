@@ -27,7 +27,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const origin = req.headers.get("origin") ?? "https://talk-talent.vercel.app";
+  // Always use the canonical production URL — never the request origin,
+  // which could be localhost if someone triggers this from a local dev environment.
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://talk-talent.vercel.app";
 
   // Send invite via Supabase Auth (uses Supabase's built-in email)
   const admin = createAdminClient();
@@ -36,7 +38,7 @@ export async function POST(req: NextRequest) {
       invited_by: user.id,
       invitee_name: name ?? null,
     },
-    redirectTo: `${origin}/dashboard`,
+    redirectTo: `${siteUrl}/auth/callback?next=/dashboard`,
   });
 
   if (inviteError && !inviteError.message.includes("already been registered")) {
