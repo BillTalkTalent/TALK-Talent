@@ -26,10 +26,13 @@ const workPrefColor: Record<string, string> = {
 export default async function TalentPoolPage() {
   const supabase = await createClient();
 
-  const { data: entries } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: entries, error: poolError } = await (supabase as any)
     .from("talent_pool")
     .select("*, profiles(id, full_name, avatar_url, title, company)")
     .order("updated_at", { ascending: false });
+
+  if (poolError) console.error("[talent pool]", poolError.message);
 
   const pool = (entries ?? []) as {
     id: string;

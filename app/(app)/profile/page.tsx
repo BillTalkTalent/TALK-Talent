@@ -230,9 +230,11 @@ export default function ProfilePage() {
       available_from: talentForm.available_from || null,
     };
     if (talentEntry) {
-      await db.from("talent_pool").update(payload).eq("id", talentEntry.id);
+      const { error } = await db.from("talent_pool").update(payload).eq("id", talentEntry.id);
+      if (error) { toast.error("Failed to update: " + error.message); setSavingTalent(false); return; }
     } else {
-      const { data } = await db.from("talent_pool").insert(payload).select("id").single();
+      const { data, error } = await db.from("talent_pool").insert(payload).select("id").single();
+      if (error) { toast.error("Failed to save: " + error.message); setSavingTalent(false); return; }
       if (data) setTalentEntry({ id: data.id });
     }
     setSavingTalent(false);
