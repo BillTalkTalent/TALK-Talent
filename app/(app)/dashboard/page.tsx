@@ -188,10 +188,6 @@ export default async function DashboardPage() {
   const jobsPostedCount = jobCountResult.count ?? 0;
   const allRsvps = rsvpResults.data ?? [];
 
-  // DEBUG — remove after confirming polls appear
-  console.log('[dashboard] polls data:', JSON.stringify(activePollsResult.data));
-  console.log('[dashboard] polls error:', JSON.stringify(activePollsResult.error));
-
   // Active polls — exclude any past closes_at even if status is still "open"
   type PollEntry = { id: string; question: string; closes_at: string | null; status: string };
   const activePolls = ((activePollsResult.data ?? []) as PollEntry[]).filter(
@@ -344,84 +340,81 @@ export default async function DashboardPage() {
         )})}
       </div>
 
-      {/* Active Polls — only shown when polls exist */}
-      {activePolls.length > 0 && (
-        <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100">
-            <div className="flex items-center gap-2.5">
-              <div className="size-7 rounded-lg bg-[#8b5cf6]/15 flex items-center justify-center">
-                <BarChart2 className="size-3.5 text-[#8b5cf6]" />
+      {/* Community Activity Feed — full width */}
+      <ForumFeed
+        chapterTopics={chapterTopics}
+        trendingTopics={trendingTopics}
+        hasChapters={hasChapters}
+      />
+
+      {/* Two-column content grid — single column when no polls */}
+      <div className={`grid gap-5 ${activePolls.length > 0 ? "lg:grid-cols-2" : ""}`}>
+
+        {/* Active Polls — left column, only shown when polls exist */}
+        {activePolls.length > 0 ? (
+          <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100">
+              <div className="flex items-center gap-2.5">
+                <div className="size-7 rounded-lg bg-[#8b5cf6]/15 flex items-center justify-center">
+                  <BarChart2 className="size-3.5 text-[#8b5cf6]" />
+                </div>
+                <span className="text-sm font-semibold text-zinc-900">Active Polls</span>
+                {unvotedCount > 0 && (
+                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">
+                    {unvotedCount} need{unvotedCount === 1 ? "s" : ""} your vote
+                  </span>
+                )}
               </div>
-              <span className="text-sm font-semibold text-zinc-900">Active Polls</span>
-              {unvotedCount > 0 && (
-                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">
-                  {unvotedCount} need{unvotedCount === 1 ? "s" : ""} your vote
-                </span>
-              )}
+              <Button variant="ghost" size="sm" className="text-xs text-[#00b894] hover:text-[#00d4aa] hover:bg-[#00d4aa]/10 -mr-1" render={<Link href="/polls" />}>
+                View all <ArrowRight className="size-3 ml-1" />
+              </Button>
             </div>
-            <Button variant="ghost" size="sm" className="text-xs text-[#00b894] hover:text-[#00d4aa] hover:bg-[#00d4aa]/10 -mr-1" render={<Link href="/polls" />}>
-              View all <ArrowRight className="size-3 ml-1" />
-            </Button>
-          </div>
-          <div className="divide-y divide-zinc-50">
-            {activePolls.map((poll) => {
-              const hasVoted = myVotedPollIds.has(poll.id);
-              const totalVotes = pollVoteCountMap[poll.id] ?? 0;
-              return (
-                <Link
-                  key={poll.id}
-                  href={`/polls/${poll.id}`}
-                  className="flex items-center gap-4 px-5 py-3.5 hover:bg-zinc-50 transition-colors group"
-                >
-                  {/* Purple dot indicator */}
-                  <div className={`size-2 rounded-full shrink-0 ${hasVoted ? "bg-zinc-200" : "bg-[#8b5cf6]"}`} />
-
-                  <div className="min-w-0 flex-1">
-                    <p className={`font-medium text-sm truncate transition-colors ${hasVoted ? "text-zinc-500 group-hover:text-zinc-700" : "text-zinc-900 group-hover:text-[#8b5cf6]"}`}>
-                      {poll.question}
-                    </p>
-                    <p className="text-xs text-zinc-400 mt-0.5 flex items-center gap-2">
-                      <span className="flex items-center gap-1">
-                        <Users className="size-3" />
-                        {totalVotes} vote{totalVotes !== 1 ? "s" : ""}
+            <div className="divide-y divide-zinc-50">
+              {activePolls.map((poll) => {
+                const hasVoted = myVotedPollIds.has(poll.id);
+                const totalVotes = pollVoteCountMap[poll.id] ?? 0;
+                return (
+                  <Link
+                    key={poll.id}
+                    href={`/polls/${poll.id}`}
+                    className="flex items-center gap-4 px-5 py-3.5 hover:bg-zinc-50 transition-colors group"
+                  >
+                    <div className={`size-2 rounded-full shrink-0 ${hasVoted ? "bg-zinc-200" : "bg-[#8b5cf6]"}`} />
+                    <div className="min-w-0 flex-1">
+                      <p className={`font-medium text-sm truncate transition-colors ${hasVoted ? "text-zinc-500 group-hover:text-zinc-700" : "text-zinc-900 group-hover:text-[#8b5cf6]"}`}>
+                        {poll.question}
+                      </p>
+                      <p className="text-xs text-zinc-400 mt-0.5 flex items-center gap-2">
+                        <span className="flex items-center gap-1">
+                          <Users className="size-3" />
+                          {totalVotes} vote{totalVotes !== 1 ? "s" : ""}
+                        </span>
+                        {poll.closes_at && (
+                          <>
+                            <span>·</span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="size-3" />
+                              Closes {format(new Date(poll.closes_at), "MMM d")}
+                            </span>
+                          </>
+                        )}
+                      </p>
+                    </div>
+                    {hasVoted ? (
+                      <span className="shrink-0 text-xs font-semibold text-zinc-400 bg-zinc-50 border border-zinc-200 px-2.5 py-1 rounded-full">
+                        Voted ✓
                       </span>
-                      {poll.closes_at && (
-                        <>
-                          <span>·</span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="size-3" />
-                            Closes {format(new Date(poll.closes_at), "MMM d")}
-                          </span>
-                        </>
-                      )}
-                    </p>
-                  </div>
-
-                  {hasVoted ? (
-                    <span className="shrink-0 text-xs font-semibold text-zinc-400 bg-zinc-50 border border-zinc-200 px-2.5 py-1 rounded-full">
-                      Voted ✓
-                    </span>
-                  ) : (
-                    <span className="shrink-0 text-xs font-bold text-white bg-[#8b5cf6] hover:bg-[#7c3aed] px-3 py-1.5 rounded-full transition-colors">
-                      Vote →
-                    </span>
-                  )}
-                </Link>
-              );
-            })}
+                    ) : (
+                      <span className="shrink-0 text-xs font-bold text-white bg-[#8b5cf6] hover:bg-[#7c3aed] px-3 py-1.5 rounded-full transition-colors">
+                        Vote →
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      )}
-
-      {/* Two-column content grid */}
-      <div className="grid gap-5 lg:grid-cols-2">
-
-        {/* Community Activity Feed */}
-        <ForumFeed
-          chapterTopics={chapterTopics}
-          trendingTopics={trendingTopics}
-          hasChapters={hasChapters}
-        />
+        ) : null}
 
         {/* Upcoming Events */}
         <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm overflow-hidden">
