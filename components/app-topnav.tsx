@@ -18,6 +18,7 @@ import {
   BookOpen,
   GraduationCap,
   Bell,
+  Zap,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -49,6 +50,7 @@ const mainNav = [
   { href: '/chapters',   label: 'Chapters',    icon: BookOpen },
   { href: '/vendors',    label: 'Vendors',     icon: Building2 },
   { href: '/mentorship', label: 'Mentorship',  icon: GraduationCap },
+  { href: '/talent',     label: 'Talent Pool', icon: Zap },
 ]
 
 const iconNav = [

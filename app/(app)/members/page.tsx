@@ -6,7 +6,7 @@ import MembersGrid from "./members-grid";
 export default async function MembersPage() {
   const supabase = await createClient();
 
-  const [{ data: members }, { data: chapters }, { data: memberships }] =
+  const [{ data: members }, { data: chapters }, { data: memberships }, { data: talentPool }] =
     await Promise.all([
       supabase
         .from("profiles")
@@ -15,7 +15,11 @@ export default async function MembersPage() {
         .order("full_name", { ascending: true }),
       supabase.from("chapters").select("*").order("sort_order"),
       supabase.from("chapter_memberships").select("*"),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase as any).from("talent_pool").select("user_id"),
     ]);
+
+  const talentPoolIds = new Set<string>((talentPool ?? []).map((t: { user_id: string }) => t.user_id as string));
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -45,6 +49,7 @@ export default async function MembersPage() {
         members={members ?? []}
         chapters={chapters ?? []}
         memberships={memberships ?? []}
+        talentPoolIds={talentPoolIds}
       />
     </div>
   );

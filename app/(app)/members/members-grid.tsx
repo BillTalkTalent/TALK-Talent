@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
-import { ExternalLink, Search, MapPin, ChevronDown, X, Star } from "lucide-react";
+import { ExternalLink, Search, MapPin, ChevronDown, X, Star, Zap } from "lucide-react";
 import type { Chapter, ChapterMembership, Profile } from "@/lib/supabase/types";
 import { cn } from "@/lib/utils";
 
@@ -17,9 +17,10 @@ interface MembersGridProps {
   members: Profile[];
   chapters: Chapter[];
   memberships: ChapterMembership[];
+  talentPoolIds?: Set<string>;
 }
 
-export default function MembersGrid({ members, chapters, memberships }: MembersGridProps) {
+export default function MembersGrid({ members, chapters, memberships, talentPoolIds }: MembersGridProps) {
   const [query, setQuery] = useState("");
   const [activeChapterId, setActiveChapterId] = useState<string | null>(null);
   const [geoOpen, setGeoOpen] = useState(false);
@@ -252,6 +253,11 @@ export default function MembersGrid({ members, chapters, memberships }: MembersG
                     {member.role === 'board_member' && (
                       <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full mt-1">
                         <Star className="size-2.5 fill-amber-500 text-amber-500" /> Board Member
+                      </span>
+                    )}
+                    {talentPoolIds?.has(member.id) && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full mt-1">
+                        <Zap className="size-2.5 fill-emerald-500 text-emerald-500" /> Open to work
                       </span>
                     )}
                     {member.company && (

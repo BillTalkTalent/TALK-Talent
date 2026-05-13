@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Camera, Save, Loader2, Lock, Eye, EyeOff } from "lucide-react";
+import { Camera, Save, Loader2, Lock, Eye, EyeOff, Zap } from "lucide-react";
 import type { Chapter, ChapterMembership, Profile } from "@/lib/supabase/types";
 import { cn } from "@/lib/utils";
 
@@ -43,15 +43,28 @@ export default function ProfilePage() {
   const [showPw, setShowPw] = useState(false);
   const [savingPw, setSavingPw] = useState(false);
 
+  // Talent pool state
+  const [talentEntry, setTalentEntry] = useState<{ id: string } | null>(null);
+  const [isOpenToWork, setIsOpenToWork] = useState(false);
+  const [talentForm, setTalentForm] = useState({
+    headline: "",
+    seeking: "",
+    work_pref: "flexible",
+    available_from: "",
+  });
+  const [savingTalent, setSavingTalent] = useState(false);
+
   useEffect(() => {
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const [profileResult, chaptersResult, membershipsResult] = await Promise.all([
+      const [profileResult, chaptersResult, membershipsResult, talentResult] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", user.id).single(),
         supabase.from("chapters").select("*").order("sort_order"),
         supabase.from("chapter_memberships").select("chapter_id").eq("user_id", user.id),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (supabase as any).from("talent_pool").select("*").eq("user_id", user.id).maybeSingle(),
       ]);
 
       if (profileResult.data) {
@@ -68,6 +81,18 @@ export default function ProfilePage() {
       }
       setChapters(chaptersResult.data ?? []);
       setJoinedChapterIds(new Set((membershipsResult.data ?? []).map((m) => m.chapter_id)));
+
+      if (talentResult.data) {
+        const t = talentResult.data;
+        setTalentEntry({ id: t.id });
+        setIsOpenToWork(true);
+        setTalentForm({
+          headline: t.headline ?? "",
+          seeking: t.seeking ?? "",
+          work_pref: t.work_pref ?? "flexible",
+          available_from: t.available_from ?? "",
+        });
+      }
       setLoading(false);
     };
     init();
@@ -188,6 +213,41 @@ export default function ProfilePage() {
       toast.success("Password updated!");
       setPwForm({ current: "", next: "", confirm: "" });
     }
+  };
+
+  // ── Talent pool ──────────────────────────────────────────────────────────
+  const handleTalentSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profile) return;
+    setSavingTalent(true);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const db = supabase as any;
+    const payload = {
+      user_id: profile.id,
+      headline: talentForm.headline,
+      seeking: talentForm.seeking,
+      work_pref: talentForm.work_pref,
+      available_from: talentForm.available_from || null,
+    };
+    if (talentEntry) {
+      await db.from("talent_pool").update(payload).eq("id", talentEntry.id);
+    } else {
+      const { data } = await db.from("talent_pool").insert(payload).select("id").single();
+      if (data) setTalentEntry({ id: data.id });
+    }
+    setSavingTalent(false);
+    setIsOpenToWork(true);
+    toast.success("Talent pool profile saved!");
+  };
+
+  const handleTalentRemove = async () => {
+    if (!profile || !talentEntry) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any).from("talent_pool").delete().eq("id", talentEntry.id);
+    setTalentEntry(null);
+    setIsOpenToWork(false);
+    setTalentForm({ headline: "", seeking: "", work_pref: "flexible", available_from: "" });
+    toast.success("Removed from talent pool.");
   };
 
   if (loading) {
@@ -384,6 +444,113 @@ export default function ProfilePage() {
               >
                 {savingPw ? <Loader2 className="size-4 animate-spin mr-1.5" /> : <Lock className="size-4 mr-1.5" />}
                 {savingPw ? "Updating…" : "Update password"}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* ── Talent pool ── */}
+      <Card id="talent">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Zap className="size-4 text-[#00b894]" />
+            Open to Work
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Let the community know you&apos;re open to new opportunities. You control when to show and remove yourself.
+          </p>
+        </CardHeader>
+        <Separator />
+        <CardContent className="pt-5 space-y-5">
+          {/* Toggle */}
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-zinc-900">
+                {isOpenToWork ? "You're currently in the talent pool" : "You're not in the talent pool"}
+              </p>
+              <p className="text-xs text-zinc-500 mt-0.5">
+                {isOpenToWork
+                  ? "Visible to all approved members on the Talent Pool page."
+                  : "Add yourself to let others know you're looking."}
+              </p>
+            </div>
+            {isOpenToWork && talentEntry && (
+              <button
+                type="button"
+                onClick={handleTalentRemove}
+                className="text-xs font-semibold text-red-500 hover:text-red-700 border border-red-200 hover:border-red-300 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors"
+              >
+                Remove me
+              </button>
+            )}
+          </div>
+
+          {/* Form — always shown so they can fill before toggling */}
+          <form onSubmit={handleTalentSave} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="tp_headline">Headline <span className="text-zinc-400 font-normal">(your pitch in one line)</span></Label>
+              <input
+                id="tp_headline"
+                type="text"
+                value={talentForm.headline}
+                onChange={e => setTalentForm(f => ({ ...f, headline: e.target.value }))}
+                placeholder="Senior TA Leader available for Head of Talent or consulting roles"
+                className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:outline-none focus:border-[#00d4aa] transition-colors"
+                disabled={savingTalent}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="tp_seeking">What you&apos;re looking for</Label>
+              <input
+                id="tp_seeking"
+                type="text"
+                value={talentForm.seeking}
+                onChange={e => setTalentForm(f => ({ ...f, seeking: e.target.value }))}
+                placeholder="VP Talent Acquisition, Head of TA, Fractional TA leadership"
+                className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:outline-none focus:border-[#00d4aa] transition-colors"
+                disabled={savingTalent}
+              />
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="tp_pref">Work preference</Label>
+                <select
+                  id="tp_pref"
+                  value={talentForm.work_pref}
+                  onChange={e => setTalentForm(f => ({ ...f, work_pref: e.target.value }))}
+                  className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#00d4aa] transition-colors"
+                  disabled={savingTalent}
+                >
+                  <option value="flexible">Flexible</option>
+                  <option value="remote">Remote</option>
+                  <option value="hybrid">Hybrid</option>
+                  <option value="onsite">On-site</option>
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="tp_available">Available from <span className="text-zinc-400 font-normal">(optional)</span></Label>
+                <input
+                  id="tp_available"
+                  type="date"
+                  value={talentForm.available_from}
+                  onChange={e => setTalentForm(f => ({ ...f, available_from: e.target.value }))}
+                  className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:outline-none focus:border-[#00d4aa] transition-colors"
+                  disabled={savingTalent}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <Button
+                type="submit"
+                disabled={savingTalent || !talentForm.headline.trim() || !talentForm.seeking.trim()}
+                style={{ background: "linear-gradient(135deg, #00b894, #00d4aa)" }}
+                className="text-white font-semibold"
+              >
+                {savingTalent
+                  ? <Loader2 className="size-4 animate-spin" />
+                  : <Zap className="size-4" />}
+                {savingTalent ? "Saving…" : isOpenToWork ? "Update my listing" : "Add me to the talent pool"}
               </Button>
             </div>
           </form>
