@@ -235,9 +235,8 @@ export default function ChaptersPage() {
                   {geoByRegion[region].map(chapter => {
                     const joined = joinedIds.has(chapter.id);
                     return (
-                      <button
+                      <div
                         key={chapter.id}
-                        onClick={() => toggleChapter(chapter.id)}
                         className={cn(
                           "flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border text-left transition-all text-sm",
                           joined
@@ -245,15 +244,23 @@ export default function ChaptersPage() {
                             : "border-zinc-100 bg-white hover:border-[#00d4aa]/40 hover:bg-[#00d4aa]/5 text-zinc-700"
                         )}
                       >
-                        <span className="flex items-center gap-2 min-w-0">
+                        {/* Name links to chapter page */}
+                        <a href={`/chapters/${chapter.slug}`} className="flex items-center gap-2 min-w-0 flex-1">
                           <span className="text-sm shrink-0">{chapter.icon}</span>
-                          <span className="font-medium truncate text-xs">{chapter.name}</span>
-                        </span>
-                        {joined
-                          ? <Check className="size-3.5 text-[#00b894] shrink-0" />
-                          : <span className="text-[10px] text-zinc-400 shrink-0">{chapter.memberCount > 0 ? chapter.memberCount : ""}</span>
-                        }
-                      </button>
+                          <span className="font-medium truncate text-xs hover:text-[#00b894] transition-colors">{chapter.name}</span>
+                        </a>
+                        {/* Join/leave toggle */}
+                        <button
+                          onClick={() => toggleChapter(chapter.id)}
+                          title={joined ? "Leave chapter" : "Join chapter"}
+                          className="shrink-0"
+                        >
+                          {joined
+                            ? <Check className="size-3.5 text-[#00b894]" />
+                            : <span className="text-[10px] text-zinc-400">{chapter.memberCount > 0 ? chapter.memberCount : "+"}</span>
+                          }
+                        </button>
+                      </div>
                     );
                   })}
                 </div>
