@@ -41,6 +41,9 @@ interface MembersGridProps {
   currentQ: string;
   currentLetter: string;
   currentChapter: string;
+  currentLevel: string;
+  currentSize: string;
+  currentIndustry: string;
 }
 
 export default function MembersGrid({
@@ -54,6 +57,9 @@ export default function MembersGrid({
   currentQ,
   currentLetter,
   currentChapter,
+  currentLevel,
+  currentSize,
+  currentIndustry,
 }: MembersGridProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -73,6 +79,9 @@ export default function MembersGrid({
       if (currentQ) params.set("q", currentQ);
       if (currentLetter) params.set("letter", currentLetter);
       if (currentChapter) params.set("chapter", currentChapter);
+      if (currentLevel) params.set("level", currentLevel);
+      if (currentSize) params.set("size", currentSize);
+      if (currentIndustry) params.set("industry", currentIndustry);
       // Reset page unless explicitly set
       params.delete("page");
 
@@ -86,7 +95,7 @@ export default function MembersGrid({
       const qs = params.toString();
       return qs ? `${pathname}?${qs}` : pathname;
     },
-    [pathname, currentQ, currentLetter, currentChapter]
+    [pathname, currentQ, currentLetter, currentChapter, currentLevel, currentSize, currentIndustry]
   );
 
   // Debounced search
@@ -145,7 +154,7 @@ export default function MembersGrid({
   const chapterById: Record<string, Chapter> = {};
   for (const c of chapters) chapterById[c.id] = c;
 
-  const hasFilters = currentQ || currentLetter || currentChapter;
+  const hasFilters = currentQ || currentLetter || currentChapter || currentLevel || currentSize || currentIndustry;
 
   // Pagination page numbers
   function pageNumbers(): (number | "…")[] {
@@ -164,6 +173,44 @@ export default function MembersGrid({
     <div className="space-y-4">
       {/* Search + chapter filters */}
       <div className="flex flex-wrap items-center gap-2">
+        <select
+          value={currentLevel}
+          onChange={(e) => router.push(buildUrl({ level: e.target.value, page: "" }))}
+          className="border border-zinc-200 rounded-xl px-3 py-1.5 text-sm bg-white text-zinc-600 focus:outline-none focus:border-[#00d4aa]"
+        >
+          <option value="">All Levels</option>
+          <option value="coordinator">Coordinator</option>
+          <option value="generalist">Generalist</option>
+          <option value="practitioner">Practitioner</option>
+          <option value="manager">Manager</option>
+          <option value="senior_leadership">Senior Leadership</option>
+        </select>
+        <select
+          value={currentSize}
+          onChange={(e) => router.push(buildUrl({ size: e.target.value, page: "" }))}
+          className="border border-zinc-200 rounded-xl px-3 py-1.5 text-sm bg-white text-zinc-600 focus:outline-none focus:border-[#00d4aa]"
+        >
+          <option value="">All Sizes</option>
+          <option value="self_employed">Self-employed</option>
+          <option value="1_10">1–10</option>
+          <option value="11_50">11–50</option>
+          <option value="51_200">51–200</option>
+          <option value="201_500">201–500</option>
+          <option value="501_1000">501–1,000</option>
+          <option value="1001_5000">1,001–5,000</option>
+          <option value="5001_10000">5,001–10,000</option>
+          <option value="10001_plus">10,001+</option>
+        </select>
+        <select
+          value={currentIndustry}
+          onChange={(e) => router.push(buildUrl({ industry: e.target.value, page: "" }))}
+          className="border border-zinc-200 rounded-xl px-3 py-1.5 text-sm bg-white text-zinc-600 focus:outline-none focus:border-[#00d4aa]"
+        >
+          <option value="">All Industries</option>
+          {["Agriculture","Arts & Media","Business Services","Civic/Government/Military","Construction & Architecture","Consumer Goods & Services","Education","Energy & Utilities","Entertainment","Finance & Insurance","Healthcare","Hospitality","Legal","Manufacturing","Non-Profit","Real Estate","Technology","Telecom","Transportation & Logistics"].map(i => (
+            <option key={i} value={i}>{i}</option>
+          ))}
+        </select>
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-zinc-400" />
@@ -403,6 +450,13 @@ export default function MembersGrid({
                     {member.company && (
                       <span className="inline-block text-xs font-semibold text-[#00b894] bg-[#00d4aa]/10 px-2 py-0.5 rounded-full">
                         {member.company}
+                      </span>
+                    )}
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                    {(member as any).ta_level && (
+                      <span className="block text-[10px] text-zinc-400 uppercase tracking-wide font-semibold">
+                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                        {({ coordinator:'Coordinator', generalist:'Generalist', practitioner:'Practitioner', manager:'Manager', senior_leadership:'Senior Leadership' } as Record<string,string>)[(member as any).ta_level]}
                       </span>
                     )}
                   </div>

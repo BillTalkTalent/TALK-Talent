@@ -38,6 +38,9 @@ export default function ProfilePage() {
     bio: "",
     linkedin_url: "",
     avatar_url: "",
+    ta_level: "",
+    company_size: "",
+    industry: "",
   });
   const [pwForm, setPwForm] = useState({ current: "", next: "", confirm: "" });
   const [showPw, setShowPw] = useState(false);
@@ -77,6 +80,12 @@ export default function ProfilePage() {
           bio: d.bio ?? "",
           linkedin_url: d.linkedin_url ?? "",
           avatar_url: d.avatar_url ?? "",
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ta_level: (d as any)?.ta_level ?? "",
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          company_size: (d as any)?.company_size ?? "",
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          industry: (d as any)?.industry ?? "",
         });
       }
       setChapters(chaptersResult.data ?? []);
@@ -166,12 +175,16 @@ export default function ProfilePage() {
     if (!profile) return;
     setSaving(true);
 
-    const { error } = await supabase.from("profiles").update({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase as any).from("profiles").update({
       full_name: form.full_name || null,
       title: form.title || null,
       company: form.company || null,
       bio: form.bio || null,
       linkedin_url: form.linkedin_url || null,
+      ta_level: form.ta_level || null,
+      company_size: form.company_size || null,
+      industry: form.industry || null,
     }).eq("id", profile.id);
 
     setSaving(false);
@@ -377,6 +390,72 @@ export default function ProfilePage() {
               </Button>
             </div>
           </form>
+        </CardContent>
+      </Card>
+
+      {/* ── Professional Context ── */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Professional Context</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Help us match you with relevant peers, events, and content.
+          </p>
+        </CardHeader>
+        <Separator />
+        <CardContent className="pt-5">
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="ta_level">TA Level</Label>
+              <select
+                id="ta_level"
+                value={form.ta_level}
+                onChange={e => setForm(f => ({ ...f, ta_level: e.target.value }))}
+                className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#00d4aa] transition-colors"
+              >
+                <option value="" disabled>Select level…</option>
+                <option value="coordinator">Coordinator</option>
+                <option value="generalist">Generalist</option>
+                <option value="practitioner">Practitioner</option>
+                <option value="manager">Manager</option>
+                <option value="senior_leadership">Senior Leadership</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="company_size">Company Size</Label>
+              <select
+                id="company_size"
+                value={form.company_size}
+                onChange={e => setForm(f => ({ ...f, company_size: e.target.value }))}
+                className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#00d4aa] transition-colors"
+              >
+                <option value="" disabled>Select size…</option>
+                <option value="self_employed">Self-employed</option>
+                <option value="1_10">1–10</option>
+                <option value="11_50">11–50</option>
+                <option value="51_200">51–200</option>
+                <option value="201_500">201–500</option>
+                <option value="501_1000">501–1,000</option>
+                <option value="1001_5000">1,001–5,000</option>
+                <option value="5001_10000">5,001–10,000</option>
+                <option value="10001_plus">10,001+</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="industry">Industry</Label>
+              <select
+                id="industry"
+                value={form.industry}
+                onChange={e => setForm(f => ({ ...f, industry: e.target.value }))}
+                className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#00d4aa] transition-colors"
+              >
+                <option value="" disabled>Select industry…</option>
+                {["Agriculture","Arts & Media","Business Services","Civic/Government/Military","Construction & Architecture","Consumer Goods & Services","Education","Energy & Utilities","Entertainment","Finance & Insurance","Healthcare","Hospitality","Legal","Manufacturing","Non-Profit","Real Estate","Technology","Telecom","Transportation & Logistics"].map(i => (
+                  <option key={i} value={i}>{i}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <p className="text-xs text-zinc-500 mt-3">These save when you click &quot;Save Profile&quot; above.</p>
         </CardContent>
       </Card>
 

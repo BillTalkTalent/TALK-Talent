@@ -35,6 +35,9 @@ export default async function MemberProfilePage({
 
   if (!member) notFound();
 
+  const { data: { user: viewer } } = await supabase.auth.getUser();
+  const isOwnProfile = viewer?.id === member.id;
+
   const [{ data: memberships }, { data: chapters }, { data: leaderships }, { data: recentTopics }] = await Promise.all([
     supabase.from("chapter_memberships").select("chapter_id").eq("user_id", id),
     supabase.from("chapters").select("*").order("sort_order"),
@@ -92,10 +95,12 @@ export default async function MemberProfilePage({
             )}
 
             <div className="flex gap-2 flex-wrap justify-center">
-              <Button render={<Link href={`/messages?with=${member.id}`} />}>
-                <Mail className="size-4" />
-                Send Message
-              </Button>
+              {!isOwnProfile && (
+                <Button render={<Link href={`/messages?new=${member.id}`} />}>
+                  <MessageSquare className="size-4" />
+                  Message
+                </Button>
+              )}
               {member.linkedin_url && (
                 <Button variant="outline" render={<a href={member.linkedin_url} target="_blank" rel="noopener noreferrer" />}>
                   <ExternalLink className="size-4" />

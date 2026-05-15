@@ -28,7 +28,7 @@ type MessageWithSender = DmMessage & { profiles: Profile | null };
 
 export default function MessagesPage() {
   const searchParams = useSearchParams();
-  const withUserId = searchParams.get("with");
+  const withUserId = searchParams.get("with") ?? searchParams.get("new");
   const supabase = createClient();
 
   const [currentUser, setCurrentUser] = useState<Profile | null>(null);

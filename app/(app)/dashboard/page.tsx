@@ -12,6 +12,7 @@ import {
   ArrowRight,
   BarChart2,
   Clock,
+  Bell,
 } from "lucide-react";
 import GettingStartedCard from "@/components/getting-started-card";
 import ForumFeed, { type FeedTopic } from "@/components/forum-feed";
@@ -46,6 +47,7 @@ export default async function DashboardPage() {
     activePollsResult,
     allPollVotesResult,
     myPollVotesResult,
+    unreadNotificationsResult,
   ] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", user?.id ?? "").single(),
     supabase
@@ -123,7 +125,15 @@ export default async function DashboardPage() {
       .from("poll_votes")
       .select("poll_id")
       .eq("user_id", user?.id ?? ""),
+    // Unread notifications count
+    supabase
+      .from("notifications")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user?.id ?? "")
+      .eq("is_read", false),
   ]);
+
+  const unreadCount = unreadNotificationsResult.count ?? 0;
 
   // Build reply count map
   const replyCounts: Record<string, number> = {};
@@ -290,6 +300,21 @@ export default async function DashboardPage() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
+
+      {unreadCount > 0 && (
+        <Link
+          href="/notifications"
+          className="flex items-center justify-between gap-3 rounded-2xl border border-[#00d4aa]/30 bg-[#00d4aa]/10 px-5 py-3 hover:bg-[#00d4aa]/15 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <Bell className="size-5 text-[#00b894]" />
+            <p className="text-sm font-semibold text-zinc-900">
+              You have {unreadCount} unread notification{unreadCount === 1 ? '' : 's'}
+            </p>
+          </div>
+          <ArrowRight className="size-4 text-[#00b894]" />
+        </Link>
+      )}
 
       {/* Hero banner */}
       <div

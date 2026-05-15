@@ -8,9 +8,9 @@ const PAGE_SIZE = 48;
 export default async function MembersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; letter?: string; chapter?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; letter?: string; chapter?: string; page?: string; level?: string; size?: string; industry?: string }>;
 }) {
-  const { q, letter, chapter, page: pageParam } = await searchParams;
+  const { q, letter, chapter, page: pageParam, level, size, industry: industryParam } = await searchParams;
   const page = Math.max(1, parseInt(pageParam ?? "1", 10) || 1);
   const offset = (page - 1) * PAGE_SIZE;
 
@@ -51,6 +51,10 @@ export default async function MembersPage({
   if (letter && !q?.trim()) {
     membersQuery = membersQuery.ilike("full_name", `${letter}%`);
   }
+
+  if (level) membersQuery = membersQuery.eq("ta_level", level);
+  if (size) membersQuery = membersQuery.eq("company_size", size);
+  if (industryParam) membersQuery = membersQuery.eq("industry", industryParam);
 
   if (chapterMemberIds !== null) {
     if (chapterMemberIds.length === 0) {
@@ -119,6 +123,9 @@ export default async function MembersPage({
         currentQ={q ?? ""}
         currentLetter={letter ?? ""}
         currentChapter={chapter ?? ""}
+        currentLevel={level ?? ""}
+        currentSize={size ?? ""}
+        currentIndustry={industryParam ?? ""}
       />
     </div>
   );

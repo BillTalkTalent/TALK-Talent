@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Search, Globe, Mail, Star, Building2 } from "lucide-react";
 import type { Vendor } from "@/lib/supabase/types";
@@ -38,9 +39,10 @@ export default function VendorsGrid({ vendors }: { vendors: Vendor[] }) {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((vendor) => (
-            <div
+            <Link
               key={vendor.id}
-              className={`rounded-2xl bg-white border shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col ${
+              href={`/vendors/${vendor.id}`}
+              className={`rounded-2xl bg-white border shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col cursor-pointer ${
                 vendor.is_featured ? "border-amber-200" : "border-zinc-100"
               }`}
             >
@@ -85,31 +87,29 @@ export default function VendorsGrid({ vendors }: { vendors: Vendor[] }) {
 
                 <div className="space-y-2 mt-auto pt-3 border-t border-zinc-50">
                   {vendor.website && (
-                    <a
-                      href={vendor.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
+                    <span
+                      onClick={(e) => { e.stopPropagation(); e.preventDefault(); window.open(vendor.website!, '_blank', 'noopener,noreferrer'); }}
+                      className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-700 transition-colors cursor-pointer"
                     >
                       <Globe className="size-3.5" />
                       {vendor.website.replace(/^https?:\/\//, "")}
-                    </a>
+                    </span>
                   )}
                   {vendor.contact_name && (
                     <p className="text-xs text-zinc-400">Contact: {vendor.contact_name}</p>
                   )}
                   {vendor.contact_email && (
-                    <a
-                      href={`mailto:${vendor.contact_email}`}
-                      className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-700 transition-colors"
+                    <span
+                      onClick={(e) => { e.stopPropagation(); e.preventDefault(); window.location.href = `mailto:${vendor.contact_email}`; }}
+                      className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-700 transition-colors cursor-pointer"
                     >
                       <Mail className="size-3.5" />
                       {vendor.contact_email}
-                    </a>
+                    </span>
                   )}
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

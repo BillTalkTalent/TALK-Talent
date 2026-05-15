@@ -91,6 +91,9 @@ function EventCard({ event, attendeeCount }: { event: PaidEvent; attendeeCount: 
               <Users className="size-3" /> {attendeeCount} going
             </span>
           </div>
+          <div className="mt-2">
+            {(() => { /* eslint-disable-next-line @typescript-eslint/no-explicit-any */ const t=(event as any).event_type??'in_person'; const m={webinar:'🎥 Webinar',hybrid:'🔀 Hybrid',in_person:'📍 In Person'}; return <span className="text-xs text-zinc-400">{m[t as keyof typeof m]??m.in_person}</span> })()}
+          </div>
         </div>
       </div>
     </Link>

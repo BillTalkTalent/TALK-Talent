@@ -30,6 +30,12 @@ export default function WelcomeWizard({ profile, chapters }: Props) {
   const [bio, setBio] = useState(profile.bio ?? '')
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url ?? '')
   const [uploading, setUploading] = useState(false)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [taLevel, setTaLevel] = useState<string>((profile as any).ta_level ?? '')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [companySize, setCompanySize] = useState<string>((profile as any).company_size ?? '')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [industry, setIndustry] = useState<string>((profile as any).industry ?? '')
 
   // Step 2 fields
   const [selectedChapters, setSelectedChapters] = useState<string[]>([])
@@ -52,12 +58,16 @@ export default function WelcomeWizard({ profile, chapters }: Props) {
 
   async function saveStep1() {
     setLoading(true)
-    await supabase.from('profiles').update({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any).from('profiles').update({
       full_name: fullName,
       title: title || null,
       company: company || null,
       bio: bio || null,
       avatar_url: avatarUrl || null,
+      ta_level: taLevel || null,
+      company_size: companySize || null,
+      industry: industry || null,
     }).eq('id', profile.id)
     setLoading(false)
     setStep(2)
@@ -191,6 +201,55 @@ export default function WelcomeWizard({ profile, chapters }: Props) {
                       {160 - bio.length} characters left
                     </p>
                   )}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-white/50">TA Level</Label>
+                    <select
+                      value={taLevel}
+                      onChange={e => setTaLevel(e.target.value)}
+                      className="w-full border border-white/10 bg-white/5 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#00d4aa]/50 transition-colors"
+                    >
+                      <option value="" disabled>Select level…</option>
+                      <option value="coordinator">Coordinator</option>
+                      <option value="generalist">Generalist</option>
+                      <option value="practitioner">Practitioner</option>
+                      <option value="manager">Manager</option>
+                      <option value="senior_leadership">Senior Leadership</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-white/50">Company Size</Label>
+                    <select
+                      value={companySize}
+                      onChange={e => setCompanySize(e.target.value)}
+                      className="w-full border border-white/10 bg-white/5 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#00d4aa]/50 transition-colors"
+                    >
+                      <option value="" disabled>Select size…</option>
+                      <option value="self_employed">Self-employed</option>
+                      <option value="1_10">1–10</option>
+                      <option value="11_50">11–50</option>
+                      <option value="51_200">51–200</option>
+                      <option value="201_500">201–500</option>
+                      <option value="501_1000">501–1,000</option>
+                      <option value="1001_5000">1,001–5,000</option>
+                      <option value="5001_10000">5,001–10,000</option>
+                      <option value="10001_plus">10,001+</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-white/50">Industry</Label>
+                    <select
+                      value={industry}
+                      onChange={e => setIndustry(e.target.value)}
+                      className="w-full border border-white/10 bg-white/5 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#00d4aa]/50 transition-colors"
+                    >
+                      <option value="" disabled>Select industry…</option>
+                      {["Agriculture","Arts & Media","Business Services","Civic/Government/Military","Construction & Architecture","Consumer Goods & Services","Education","Energy & Utilities","Entertainment","Finance & Insurance","Healthcare","Hospitality","Legal","Manufacturing","Non-Profit","Real Estate","Technology","Telecom","Transportation & Logistics"].map(i => (
+                        <option key={i} value={i}>{i}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
 

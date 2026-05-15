@@ -33,6 +33,29 @@ type PaidEvent = Event & {
 
 type RegistrationStatus = "none" | "pending" | "completed" | "refunded" | "cancelled";
 
+function EventTypeBadge({ type }: { type?: string }) {
+  const map: Record<string, { label: string; className: string }> = {
+    webinar: { label: '🎥 Webinar', className: 'bg-teal-50 text-teal-700 border border-teal-200' },
+    hybrid: { label: '🔀 Hybrid', className: 'bg-purple-50 text-purple-700 border border-purple-200' },
+    in_person: { label: '📍 In Person', className: 'bg-blue-50 text-blue-700 border border-blue-200' },
+  }
+  const c = map[type ?? 'in_person'] ?? map.in_person
+  return <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${c.className}`}>{c.label}</span>
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function buildGoogleCalendarUrl(e: any): string {
+  const fmt = (d: string) => new Date(d).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'')
+  const p = new URLSearchParams({ action:'TEMPLATE', text: e.title??'', dates:`${fmt(e.event_date)}/${fmt(e.end_date??e.event_date)}`, details: e.description??'', location: e.is_virtual?(e.virtual_url??'Online'):(e.location??'') })
+  return `https://calendar.google.com/calendar/render?${p}`
+}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function buildIcalDataUri(e: any): string {
+  const fmt = (d: string) => new Date(d).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'')
+  const ics = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nSUMMARY:${e.title??''}\r\nDTSTART:${fmt(e.event_date)}\r\nDTEND:${fmt(e.end_date??e.event_date)}\r\nDESCRIPTION:${(e.description??'').slice(0,200)}\r\nLOCATION:${e.is_virtual?(e.virtual_url??'Online'):(e.location??'')}\r\nEND:VEVENT\r\nEND:VCALENDAR`
+  return `data:text/calendar;charset=utf8,${encodeURIComponent(ics)}`
+}
+
 function getInitials(name: string | null): string {
   if (!name) return "?";
   return name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase();
@@ -55,6 +78,11 @@ export default function EventDetailPage() {
   const [loading, setLoading] = useState(true);
   const [rsvpLoading, setRsvpLoading] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'attendees'|'conversation'>('attendees');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [posts, setPosts] = useState<any[]>([]);
+  const [postContent, setPostContent] = useState('');
+  const [postLoading, setPostLoading] = useState(false);
 
   const fetchData = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -94,8 +122,26 @@ export default function EventDetailPage() {
       setRegistrationStatus((reg?.status as RegistrationStatus) ?? "none");
     }
 
+    const postsResult = await db.from('event_posts').select('*, profiles(*)').eq('event_id', params.id).order('created_at', { ascending: true });
+    setPosts(postsResult.data ?? []);
+
     setLoading(false);
   }, [params.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handlePost = async () => {
+    if (!currentUserId || !event || !postContent.trim()) return;
+    setPostLoading(true);
+    const { data, error } = await db.from('event_posts').insert({
+      event_id: event.id,
+      author_id: currentUserId,
+      content: postContent.trim(),
+    }).select('*, profiles(*)').single();
+    if (!error && data) {
+      setPosts((prev) => [...prev, data]);
+      setPostContent('');
+    }
+    setPostLoading(false);
+  };
 
   useEffect(() => {
     fetchData();
@@ -223,7 +269,13 @@ export default function EventDetailPage() {
 
         <div className="space-y-3">
           <div className="flex items-start justify-between gap-4 flex-wrap">
-            <h1 className="text-2xl font-bold text-zinc-900">{event.title}</h1>
+            <div>
+              <h1 className="text-2xl font-bold text-zinc-900">{event.title}</h1>
+              <div className="mt-2">
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                <EventTypeBadge type={(event as any)?.event_type} />
+              </div>
+            </div>
             <div className="flex gap-2 flex-wrap shrink-0">
               {isPaid && (
                 <span
@@ -266,6 +318,15 @@ export default function EventDetailPage() {
               {attendees.length} going
               {event.max_attendees && ` / ${event.max_attendees} max`}
             </span>
+          </div>
+
+          <div className="flex gap-2 flex-wrap mt-3">
+            {event && (<>
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              <a href={buildGoogleCalendarUrl(event as any)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-200 text-xs font-medium text-zinc-500 hover:bg-zinc-50 transition-colors"><CalendarDays className="size-3.5"/>Add to Google Calendar</a>
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              <a href={buildIcalDataUri(event as any)} download={`${event.title}.ics`} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-200 text-xs font-medium text-zinc-500 hover:bg-zinc-50 transition-colors"><CalendarDays className="size-3.5"/>Add to iCal</a>
+            </>)}
           </div>
 
           {event.description && (
@@ -346,27 +407,74 @@ export default function EventDetailPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Users className="size-4" />
-              {isPaid ? "Registrations" : "Attendees"} ({attendees.length})
-            </CardTitle>
+            <div className="flex items-center gap-2 border-b border-zinc-100 -mx-6 -mt-6 px-6 pt-1">
+              <button
+                onClick={() => setActiveTab('attendees')}
+                className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab==='attendees' ? 'border-[#00d4aa] text-zinc-900' : 'border-transparent text-zinc-400 hover:text-zinc-600'}`}
+              >
+                {isPaid ? "Registrations" : "Attendees"} ({attendees.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('conversation')}
+                className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab==='conversation' ? 'border-[#00d4aa] text-zinc-900' : 'border-transparent text-zinc-400 hover:text-zinc-600'}`}
+              >
+                Conversation ({posts.length})
+              </button>
+            </div>
           </CardHeader>
           <CardContent>
-            {attendees.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No one has signed up yet.</p>
+            {activeTab === 'attendees' ? (
+              attendees.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No one has signed up yet.</p>
+              ) : (
+                <div className="flex flex-wrap gap-3">
+                  {attendees.map((attendee) => (
+                    <div key={attendee.id} className="flex items-center gap-2">
+                      <Avatar size="sm">
+                        {attendee.avatar_url && (
+                          <AvatarImage src={attendee.avatar_url} alt={attendee.full_name ?? ""} />
+                        )}
+                        <AvatarFallback>{getInitials(attendee.full_name)}</AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm">{attendee.full_name}</span>
+                    </div>
+                  ))}
+                </div>
+              )
             ) : (
-              <div className="flex flex-wrap gap-3">
-                {attendees.map((attendee) => (
-                  <div key={attendee.id} className="flex items-center gap-2">
-                    <Avatar size="sm">
-                      {attendee.avatar_url && (
-                        <AvatarImage src={attendee.avatar_url} alt={attendee.full_name ?? ""} />
-                      )}
-                      <AvatarFallback>{getInitials(attendee.full_name)}</AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm">{attendee.full_name}</span>
+              <div className="space-y-4">
+                {posts.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No posts yet. Start the conversation!</p>
+                ) : (
+                  <div className="space-y-3">
+                    {posts.map((post) => (
+                      <div key={post.id} className="flex items-start gap-3">
+                        <Avatar size="sm">
+                          {post.profiles?.avatar_url && <AvatarImage src={post.profiles.avatar_url} alt={post.profiles?.full_name ?? ''} />}
+                          <AvatarFallback>{getInitials(post.profiles?.full_name ?? null)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 bg-zinc-50 rounded-2xl px-4 py-2.5">
+                          <p className="text-sm font-semibold text-zinc-900">{post.profiles?.full_name ?? 'Unknown'}</p>
+                          <p className="text-sm text-zinc-700 whitespace-pre-wrap">{post.content}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
+                {currentUserId && (
+                  <div className="flex gap-2 pt-2 border-t border-zinc-100">
+                    <textarea
+                      value={postContent}
+                      onChange={(e) => setPostContent(e.target.value)}
+                      placeholder="Share a thought about this event…"
+                      rows={2}
+                      className="flex-1 border border-zinc-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#00d4aa]"
+                    />
+                    <Button onClick={handlePost} disabled={postLoading || !postContent.trim()}>
+                      {postLoading ? <Loader2 className="size-4 animate-spin" /> : 'Post'}
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
