@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useCallback, useTransition } from "react";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Search, Globe, Star, Building2, ChevronLeft, ChevronRight, X } from "lucide-react";
 
 // ---------------------------------------------------------------------------
-// Constants
+// Constants — also imported by vendor-edit-form.tsx
 // ---------------------------------------------------------------------------
 
 export const INDUSTRIES = [
@@ -48,12 +48,8 @@ interface Vendor {
   website: string | null;
   logo_url: string | null;
   is_featured: boolean;
-  contact_name: string | null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   industries_served: string[] | null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   company_sizes_served: string[] | null;
-  legacy_rating: number | null;
 }
 
 interface Props {
@@ -69,23 +65,21 @@ interface Props {
 }
 
 // ---------------------------------------------------------------------------
-// Helpers
+// URL builder — uses only the props passed in (no useSearchParams needed)
 // ---------------------------------------------------------------------------
 
 function buildUrl(
-  pathname: string,
-  current: URLSearchParams,
-  overrides: Record<string, string>
+  base: string,
+  params: { q: string; category: string; industry: string; size: string; page?: number }
 ): string {
-  const next = new URLSearchParams(current.toString());
-  for (const [k, v] of Object.entries(overrides)) {
-    if (v) next.set(k, v);
-    else next.delete(k);
-  }
-  // Reset page when any filter changes (unless we're explicitly setting page)
-  if (!("page" in overrides)) next.delete("page");
-  const qs = next.toString();
-  return qs ? `${pathname}?${qs}` : pathname;
+  const sp = new URLSearchParams();
+  if (params.q) sp.set("q", params.q);
+  if (params.category) sp.set("category", params.category);
+  if (params.industry) sp.set("industry", params.industry);
+  if (params.size) sp.set("size", params.size);
+  if (params.page && params.page > 1) sp.set("page", String(params.page));
+  const qs = sp.toString();
+  return qs ? `${base}?${qs}` : base;
 }
 
 // ---------------------------------------------------------------------------
@@ -104,60 +98,71 @@ export default function VendorsGrid({
   currentSize,
 }: Props) {
   const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const [, startTransition] = useTransition();
   const [inputVal, setInputVal] = useState(currentQ);
-  const debounceRef = { current: null as ReturnType<typeof setTimeout> | null };
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const nav = useCallback(
-    (overrides: Record<string, string>) => {
-      startTransition(() => {
-        router.push(buildUrl(pathname, searchParams, overrides));
-      });
-    },
-    [router, pathname, searchParams]
-  );
+  const base = "/vendors";
+  const params = { q: currentQ, category: currentCategory, industry: currentIndustry, size: currentSize };
 
+  // Debounced search — navigates server-side
   const handleSearch = (val: string) => {
     setInputVal(val);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => nav({ q: val }), 350);
+    debounceRef.current = setTimeout(() => {
+      router.push(buildUrl(base, { ...params, q: val }));
+    }, 350);
   };
 
   const hasFilters = currentQ || currentCategory || currentIndustry || currentSize;
 
   return (
     <div className="space-y-5">
-      {/* ── Filter bar ── */}
+
+      {/* ── Category pill bar ── */}
+      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        <Link
+          href={buildUrl(base, { ...params, category: "", page: 1 })}
+          className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+            !currentCategory
+              ? "bg-zinc-900 text-white border-zinc-900"
+              : "bg-white text-zinc-600 border-zinc-200 hover:border-zinc-400"
+          }`}
+        >
+          All
+        </Link>
+        {categories.map((cat) => (
+          <Link
+            key={cat}
+            href={buildUrl(base, { ...params, category: cat, page: 1 })}
+            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+              currentCategory === cat
+                ? "bg-sky-600 text-white border-sky-600"
+                : "bg-white text-zinc-600 border-zinc-200 hover:border-sky-400 hover:text-sky-700"
+            }`}
+          >
+            {cat}
+          </Link>
+        ))}
+      </div>
+
+      {/* ── Search + secondary filters ── */}
       <div className="flex flex-wrap gap-3 items-center">
-        {/* Search */}
         <div className="relative flex-1 min-w-52 max-w-xs">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-400 pointer-events-none" />
           <Input
-            placeholder="Search vendors..."
+            placeholder="Search vendors…"
             value={inputVal}
             onChange={(e) => handleSearch(e.target.value)}
             className="pl-9 rounded-xl border-zinc-200 bg-white"
           />
         </div>
 
-        {/* Category */}
-        <select
-          value={currentCategory}
-          onChange={(e) => nav({ category: e.target.value })}
-          className="h-10 px-3 pr-8 rounded-xl border border-zinc-200 bg-white text-sm text-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-        >
-          <option value="">All Categories</option>
-          {categories.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
-
         {/* Industry */}
         <select
           value={currentIndustry}
-          onChange={(e) => nav({ industry: e.target.value })}
+          onChange={(e) =>
+            router.push(buildUrl(base, { ...params, industry: e.target.value }))
+          }
           className="h-10 px-3 pr-8 rounded-xl border border-zinc-200 bg-white text-sm text-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-400"
         >
           <option value="">All Industries</option>
@@ -169,7 +174,9 @@ export default function VendorsGrid({
         {/* Company size */}
         <select
           value={currentSize}
-          onChange={(e) => nav({ size: e.target.value })}
+          onChange={(e) =>
+            router.push(buildUrl(base, { ...params, size: e.target.value }))
+          }
           className="h-10 px-3 pr-8 rounded-xl border border-zinc-200 bg-white text-sm text-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-400"
         >
           <option value="">All Company Sizes</option>
@@ -178,17 +185,26 @@ export default function VendorsGrid({
           ))}
         </select>
 
-        {/* Clear */}
         {hasFilters && (
           <Link
-            href={pathname}
-            className="inline-flex items-center gap-1.5 h-10 px-3 rounded-xl border border-zinc-200 bg-white text-sm text-zinc-500 hover:text-zinc-900 hover:border-zinc-300 transition-colors"
+            href={base}
             onClick={() => setInputVal("")}
+            className="inline-flex items-center gap-1.5 h-10 px-3 rounded-xl border border-zinc-200 bg-white text-sm text-zinc-500 hover:text-zinc-900 hover:border-zinc-300 transition-colors"
           >
             <X className="size-3.5" /> Clear
           </Link>
         )}
       </div>
+
+      {/* Active filter label */}
+      {currentCategory && (
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-zinc-500">
+            Showing <span className="font-semibold text-zinc-800">{currentCategory}</span>
+            {" "}— {totalCount.toLocaleString()} vendor{totalCount !== 1 ? "s" : ""}
+          </span>
+        </div>
+      )}
 
       {/* ── Grid ── */}
       {vendors.length === 0 ? (
@@ -196,7 +212,7 @@ export default function VendorsGrid({
           <Building2 className="size-10 text-zinc-200 mx-auto mb-3" />
           <p className="text-zinc-400 font-medium">No vendors found</p>
           {hasFilters && (
-            <Link href={pathname} className="mt-2 text-sm text-emerald-600 hover:underline" onClick={() => setInputVal("")}>
+            <Link href={base} onClick={() => setInputVal("")} className="mt-2 inline-block text-sm text-emerald-600 hover:underline">
               Clear filters
             </Link>
           )}
@@ -207,7 +223,7 @@ export default function VendorsGrid({
             <Link
               key={vendor.id}
               href={`/vendors/${vendor.id}`}
-              className={`rounded-2xl bg-white border shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col cursor-pointer ${
+              className={`rounded-2xl bg-white border shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col ${
                 vendor.is_featured ? "border-amber-200" : "border-zinc-100"
               }`}
             >
@@ -250,11 +266,15 @@ export default function VendorsGrid({
                   </p>
                 )}
 
-                {/* Industry / company size tags */}
-                {((vendor.industries_served?.length ?? 0) > 0 || (vendor.company_sizes_served?.length ?? 0) > 0) && (
+                {/* Industry / size tags */}
+                {((vendor.industries_served?.length ?? 0) > 0 ||
+                  (vendor.company_sizes_served?.length ?? 0) > 0) && (
                   <div className="flex flex-wrap gap-1 mb-3">
                     {vendor.industries_served?.slice(0, 2).map((ind) => (
-                      <span key={ind} className="text-[10px] font-medium text-violet-700 bg-violet-50 border border-violet-100 px-1.5 py-0.5 rounded-full">
+                      <span
+                        key={ind}
+                        className="text-[10px] font-medium text-violet-700 bg-violet-50 border border-violet-100 px-1.5 py-0.5 rounded-full"
+                      >
                         {ind}
                       </span>
                     ))}
@@ -264,14 +284,17 @@ export default function VendorsGrid({
                       </span>
                     )}
                     {vendor.company_sizes_served?.slice(0, 1).map((s) => (
-                      <span key={s} className="text-[10px] font-medium text-teal-700 bg-teal-50 border border-teal-100 px-1.5 py-0.5 rounded-full">
+                      <span
+                        key={s}
+                        className="text-[10px] font-medium text-teal-700 bg-teal-50 border border-teal-100 px-1.5 py-0.5 rounded-full"
+                      >
                         {s}
                       </span>
                     ))}
                   </div>
                 )}
 
-                <div className="space-y-1 mt-auto pt-3 border-t border-zinc-50">
+                <div className="mt-auto pt-3 border-t border-zinc-50">
                   {vendor.website && (
                     <span
                       onClick={(e) => {
@@ -296,7 +319,7 @@ export default function VendorsGrid({
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2 pt-2">
           <Link
-            href={buildUrl(pathname, searchParams, { page: String(currentPage - 1) })}
+            href={buildUrl(base, { ...params, page: currentPage - 1 })}
             aria-disabled={currentPage <= 1}
             className={`inline-flex items-center gap-1 px-3 py-2 rounded-xl text-sm border transition-colors ${
               currentPage <= 1
@@ -306,13 +329,11 @@ export default function VendorsGrid({
           >
             <ChevronLeft className="size-4" /> Prev
           </Link>
-
           <span className="text-sm text-zinc-500 px-2">
             Page {currentPage} of {totalPages}
           </span>
-
           <Link
-            href={buildUrl(pathname, searchParams, { page: String(currentPage + 1) })}
+            href={buildUrl(base, { ...params, page: currentPage + 1 })}
             aria-disabled={currentPage >= totalPages}
             className={`inline-flex items-center gap-1 px-3 py-2 rounded-xl text-sm border transition-colors ${
               currentPage >= totalPages
