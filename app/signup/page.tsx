@@ -37,7 +37,11 @@ export default function SignupPage() {
       },
     })
 
-    if (error) {
+    // A confirmation-email error doesn't mean the account wasn't created —
+    // treat it as a soft failure and continue if we have a user.
+    const isEmailError = error?.message?.toLowerCase().includes('email') ||
+                         error?.message?.toLowerCase().includes('sending')
+    if (error && (!isEmailError || !data.user)) {
       toast.error(error.message)
       setLoading(false)
       return
