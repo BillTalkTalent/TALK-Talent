@@ -26,6 +26,9 @@ async function reactivateMember(id: string) {
   'use server'
   const supabase = await createClient()
   await supabase.from('profiles').update({ status: 'approved', rejection_note: null }).eq('id', id)
+  // Auto-fill profile from legacy staging data (matched by linkedin_url)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase as any).rpc('match_legacy_member', { p_profile_id: id })
   revalidatePath('/admin/members')
 }
 

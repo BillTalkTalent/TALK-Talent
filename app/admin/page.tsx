@@ -23,6 +23,10 @@ async function approveMember(id: string) {
   // 2. Approve them
   await supabase.from('profiles').update({ status: 'approved' }).eq('id', id)
 
+  // 2a. Auto-fill profile from legacy staging data (matched by linkedin_url)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase as any).rpc('match_legacy_member', { p_profile_id: id })
+
   // 3. Send approval email with a magic link so they can log straight in
   if (profile?.email) {
     try {

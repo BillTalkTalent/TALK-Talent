@@ -144,16 +144,7 @@ export default async function ForumCategoryPage({
                         )}
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        by{" "}
-                        {author?.id ? (
-                          <Link
-                            href={`/members/${author.id}`}
-                            className="hover:underline hover:text-foreground transition-colors"
-                            onClick={e => e.stopPropagation()}
-                          >
-                            {author.full_name ?? "Unknown"}
-                          </Link>
-                        ) : (author?.full_name ?? "Unknown")}
+                        by {author?.full_name ?? "Unknown"}
                       </p>
                     </div>
 
