@@ -162,18 +162,45 @@ export default function SignupPage() {
           </div>
 
           {success ? (
-            <div className="rounded-xl border border-[#00d4aa]/30 bg-[#00d4aa]/10 p-8 text-center space-y-3">
-              <CheckCircle2 className="size-10 text-[#00b894] mx-auto" />
-              <h2 className="text-xl font-semibold text-[#0d0d0d]">Application submitted!</h2>
-              <p className="text-sm text-[#00b894]">
-                We&apos;ll review your LinkedIn profile and be in touch.
+            <div className="space-y-4">
+              {/* Header */}
+              <div className="text-center space-y-2">
+                <div className="size-14 rounded-2xl bg-[#00d4aa]/15 border border-[#00d4aa]/30 flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="size-8 text-[#00b894]" />
+                </div>
+                <h2 className="text-2xl font-bold text-zinc-900">Application submitted!</h2>
+                <p className="text-sm text-zinc-500">
+                  You&apos;re on your way to joining TALK.
+                </p>
+              </div>
+
+              {/* 24-hour promise — prominent */}
+              <div className="rounded-xl bg-[#00d4aa]/10 border border-[#00d4aa]/25 px-4 py-3 flex items-center gap-3">
+                <span className="text-xl shrink-0">⏱</span>
+                <p className="text-sm font-semibold text-[#007a60]">
+                  We review every application within <span className="underline decoration-dotted">24 hours</span> — you&apos;ll hear from us by email.
+                </p>
+              </div>
+
+              {/* What happens next */}
+              <div className="rounded-xl border border-zinc-100 bg-zinc-50 p-4 space-y-3">
+                <p className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest">What happens next</p>
+                {[
+                  { n: '1', text: 'We review your LinkedIn profile and background' },
+                  { n: '2', text: 'You receive an approval email with a one-click login link' },
+                  { n: '3', text: 'Full access to the TALK community, immediately' },
+                ].map(({ n, text }) => (
+                  <div key={n} className="flex items-start gap-2.5">
+                    <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-[#00d4aa]/20 text-[9px] font-black text-[#00b894]">{n}</span>
+                    <p className="text-xs text-zinc-500 leading-relaxed">{text}</p>
+                  </div>
+                ))}
+              </div>
+
+              <p className="text-xs text-zinc-400 text-center">
+                Check your spam folder if you don&apos;t see our email. Questions?{' '}
+                <a href="mailto:hello@talktalent.com" className="text-[#00b894] hover:underline font-semibold">hello@talktalent.com</a>
               </p>
-              <Link
-                href="/login"
-                className="inline-block mt-2 text-sm font-semibold text-[#00b894] hover:underline"
-              >
-                Back to sign in
-              </Link>
             </div>
           ) : (
             <>

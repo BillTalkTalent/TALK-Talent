@@ -112,13 +112,17 @@ export default function PendingPage() {
               <Clock className="size-8 text-[#00d4aa]" />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               <h2 className="text-2xl font-bold text-white">
-                {profile?.full_name ? `Hi ${profile.full_name.split(' ')[0]}!` : 'Almost there!'}
+                {profile?.full_name ? `Hi ${profile.full_name.split(' ')[0]}, you're in the queue!` : 'Application received!'}
               </h2>
-              <p className="text-white/60 text-sm leading-relaxed">
-                Your application is under review. Our team will verify your LinkedIn profile
-                and send you an email once you&apos;re approved — usually within 24–48 hours.
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#00d4aa]/15 border border-[#00d4aa]/25">
+                <span className="size-1.5 rounded-full bg-[#00d4aa] animate-pulse shrink-0" />
+                <span className="text-sm font-bold text-[#00d4aa]">We&apos;ll review and approve within 24 hours</span>
+              </div>
+              <p className="text-white/50 text-sm leading-relaxed">
+                You&apos;ll receive an email with a one-click login link as soon as you&apos;re approved.
+                Check your spam folder just in case.
               </p>
             </div>
 
