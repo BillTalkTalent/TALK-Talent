@@ -157,12 +157,15 @@ async function main() {
   const csvRows = await parseCSV(CSV_PATH)
   console.log(`   ${csvRows.length} rows parsed`)
 
-  // Build lookup maps from CSV
+  // Build lookup maps from CSV — index ALL email columns for maximum match rate
   const csvByEmail  = new Map<string, Record<string, string>>()
   const csvByLinkedin = new Map<string, Record<string, string>>()
   for (const row of csvRows) {
-    const email = row['user_email']?.toLowerCase()
-    if (email) csvByEmail.set(email, row)
+    // Check all three email columns: user_email, Professional Email, Personal Email
+    for (const col of ['user_email', 'Professional Email', 'Personal Email']) {
+      const email = row[col]?.toLowerCase()
+      if (email) csvByEmail.set(email, row)
+    }
     const li = normLinkedin(row['linkedin_url'])
     if (li) csvByLinkedin.set(li, row)
   }
