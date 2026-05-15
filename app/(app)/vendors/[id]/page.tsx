@@ -1,8 +1,9 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { ArrowLeft, ExternalLink, Building2 } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Building2, Briefcase, Users } from 'lucide-react'
 import ReviewForm from './review-form'
+import VendorEditForm from './vendor-edit-form'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 function Stars({ n }: { n: number | null }) {
@@ -33,7 +34,8 @@ export default async function VendorDetailPage({
   const supabase = await createClient()
 
   const [vendorRes, reviewsRes, userRes] = await Promise.all([
-    supabase.from('vendors').select('*').eq('id', id).single(),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any).from('vendors').select('*').eq('id', id).single(),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase as any)
       .from('vendor_reviews')
@@ -47,10 +49,24 @@ export default async function VendorDetailPage({
   if (!vendor) notFound()
 
   const user = userRes.data.user
+
+  // Fetch current user's profile to check role
+  const { data: profile } = user
+    ? await supabase.from('profiles').select('role').eq('id', user.id).single()
+    : { data: null }
+
+  const isAdmin = profile?.role === 'admin' || profile?.role === 'board_member'
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const reviewList: any[] = reviewsRes.data ?? []
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const myReview = reviewList.find((r: any) => r.reviewer_id === user?.id) ?? null
+
+  const tabs = [
+    { key: 'reviews', label: `Reviews (${reviewList.length})` },
+    { key: 'write', label: myReview ? 'Edit Your Review' : 'Write a Review' },
+    ...(isAdmin ? [{ key: 'edit', label: '✏️ Edit Details' }] : []),
+  ]
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
@@ -58,6 +74,7 @@ export default async function VendorDetailPage({
         <ArrowLeft className="size-4" /> Back to vendors
       </Link>
 
+      {/* ── Header card ── */}
       <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-6">
         <div className="flex items-start gap-4">
           {vendor.logo_url ? (
@@ -85,6 +102,41 @@ export default async function VendorDetailPage({
           </div>
         </div>
 
+        {/* ── Industries & company sizes ── */}
+        {((vendor.industries_served?.length ?? 0) > 0 || (vendor.company_sizes_served?.length ?? 0) > 0) && (
+          <div className="mt-5 pt-5 border-t border-zinc-100 grid sm:grid-cols-2 gap-4">
+            {(vendor.industries_served?.length ?? 0) > 0 && (
+              <div>
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2">
+                  <Briefcase className="size-3.5" /> Industries Served
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {vendor.industries_served.map((ind: string) => (
+                    <span key={ind} className="text-xs font-medium text-violet-700 bg-violet-50 border border-violet-100 px-2 py-0.5 rounded-full">
+                      {ind}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {(vendor.company_sizes_served?.length ?? 0) > 0 && (
+              <div>
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2">
+                  <Users className="size-3.5" /> Company Sizes
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {vendor.company_sizes_served.map((s: string) => (
+                    <span key={s} className="text-xs font-medium text-teal-700 bg-teal-50 border border-teal-100 px-2 py-0.5 rounded-full">
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Rating summary ── */}
         {reviewList.length > 0 && (
           <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 border-t border-zinc-100">
             {[
@@ -103,22 +155,23 @@ export default async function VendorDetailPage({
         )}
       </div>
 
+      {/* ── Tab bar ── */}
       <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-2xl w-fit">
-        <Link
-          href={`/vendors/${id}?tab=reviews`}
-          className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${tab === 'reviews' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500 hover:text-zinc-900'}`}
-        >
-          Reviews ({reviewList.length})
-        </Link>
-        <Link
-          href={`/vendors/${id}?tab=write`}
-          className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${tab === 'write' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500 hover:text-zinc-900'}`}
-        >
-          {myReview ? 'Edit Your Review' : 'Write a Review'}
-        </Link>
+        {tabs.map(({ key, label }) => (
+          <Link
+            key={key}
+            href={`/vendors/${id}?tab=${key}`}
+            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${tab === key ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500 hover:text-zinc-900'}`}
+          >
+            {label}
+          </Link>
+        ))}
       </div>
 
-      {tab === 'write' ? (
+      {/* ── Tab content ── */}
+      {tab === 'edit' && isAdmin ? (
+        <VendorEditForm vendor={vendor} />
+      ) : tab === 'write' ? (
         <ReviewForm vendorId={vendor.id} existingReview={myReview} />
       ) : (
         <div className="space-y-3">

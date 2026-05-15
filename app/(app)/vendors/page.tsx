@@ -3,17 +3,57 @@ import { Building2, Lightbulb } from "lucide-react";
 import Link from "next/link";
 import VendorsGrid from "./vendors-grid";
 
-export default async function VendorsPage() {
+const PAGE_SIZE = 48;
+
+export default async function VendorsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    q?: string;
+    category?: string;
+    industry?: string;
+    size?: string;
+    page?: string;
+  }>;
+}) {
+  const { q, category, industry, size, page: pageParam } = await searchParams;
+  const page = Math.max(1, parseInt(pageParam ?? "1", 10) || 1);
+  const offset = (page - 1) * PAGE_SIZE;
+
   const supabase = await createClient();
 
-  const { data: vendors } = await supabase
+  // Build query with server-side filters
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let query = (supabase as any)
     .from("vendors")
-    .select("*")
+    .select("*", { count: "exact" })
     .order("is_featured", { ascending: false })
     .order("name", { ascending: true });
 
+  if (q?.trim()) {
+    const safe = q.trim().replace(/[%_]/g, "\\$&");
+    query = query.or(`name.ilike.%${safe}%,description.ilike.%${safe}%,category.ilike.%${safe}%`);
+  }
+
+  if (category) query = query.eq("category", category);
+  if (industry) query = query.contains("industries_served", [industry]);
+  if (size) query = query.contains("company_sizes_served", [size]);
+
+  const { data: vendors, count: totalCount } = await query.range(offset, offset + PAGE_SIZE - 1);
+
+  const totalPages = Math.ceil((totalCount ?? 0) / PAGE_SIZE);
+
+  // Fetch distinct categories for the filter dropdown (from all vendors, not filtered)
+  const { data: allVendors } = await supabase
+    .from("vendors")
+    .select("category")
+    .not("category", "is", null)
+    .order("category");
+
+  const categories = [...new Set((allVendors ?? []).map((v: { category: string }) => v.category).filter(Boolean))].sort() as string[];
+
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
+    <div className="p-6 max-w-7xl mx-auto space-y-6">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
           <div
@@ -24,7 +64,10 @@ export default async function VendorsPage() {
           </div>
           <div>
             <h1 className="text-xl font-bold text-zinc-900">Vendors</h1>
-            <p className="text-sm text-zinc-500">Discover trusted vendors and partners</p>
+            <p className="text-sm text-zinc-500">
+              {totalCount?.toLocaleString() ?? 0} vendor{totalCount !== 1 ? "s" : ""}
+              {(q || category || industry || size) ? " matching filters" : ""}
+            </p>
           </div>
         </div>
         <Link
@@ -36,7 +79,18 @@ export default async function VendorsPage() {
           Suggest a Vendor
         </Link>
       </div>
-      <VendorsGrid vendors={vendors ?? []} />
+
+      <VendorsGrid
+        vendors={vendors ?? []}
+        categories={categories}
+        totalCount={totalCount ?? 0}
+        totalPages={totalPages}
+        currentPage={page}
+        currentQ={q ?? ""}
+        currentCategory={category ?? ""}
+        currentIndustry={industry ?? ""}
+        currentSize={size ?? ""}
+      />
     </div>
   );
 }
