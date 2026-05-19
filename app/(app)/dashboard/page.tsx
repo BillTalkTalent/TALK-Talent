@@ -27,8 +27,9 @@ export default async function DashboardPage() {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  const twoWeeksAgo = new Date();
-  twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+  // Use 90-day window for trending so imported legacy content surfaces
+  const ninetyDaysAgo = new Date();
+  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
 
   const [
     profileResult,
@@ -97,18 +98,18 @@ export default async function DashboardPage() {
       .from("chapter_memberships")
       .select("chapter_id")
       .eq("user_id", user?.id ?? ""),
-    // Trending topics: most viewed in last 14 days
+    // Trending topics: last 90 days, we'll hot-rank client-side
     supabase
       .from("forum_topics")
-      .select("id, title, created_at, views, author_id, profiles(full_name), forum_categories(name, slug)")
-      .gte("created_at", twoWeeksAgo.toISOString())
+      .select("id, title, created_at, views, author_id, profiles(full_name, avatar_url), forum_categories(name, slug)")
+      .gte("created_at", ninetyDaysAgo.toISOString())
       .order("views", { ascending: false })
-      .limit(8),
-    // Recent replies to compute reply counts
+      .limit(50),
+    // Reply counts for trending candidates
     supabase
       .from("forum_replies")
       .select("topic_id")
-      .gte("created_at", twoWeeksAgo.toISOString()),
+      .gte("created_at", ninetyDaysAgo.toISOString()),
     // Active polls
     supabase
       .from("polls")
@@ -158,7 +159,7 @@ export default async function DashboardPage() {
     if (chapterMateIds.length > 0) {
       const { data: feed } = await supabase
         .from("forum_topics")
-        .select("id, title, created_at, views, author_id, profiles(full_name), forum_categories(name, slug)")
+        .select("id, title, created_at, views, author_id, profiles(full_name, avatar_url), forum_categories(name, slug)")
         .in("author_id", chapterMateIds)
         .order("created_at", { ascending: false })
         .limit(8);
@@ -167,7 +168,7 @@ export default async function DashboardPage() {
         id: t.id,
         title: t.title,
         category: t.forum_categories as { name: string; slug: string } | null,
-        author: t.profiles as { full_name: string | null } | null,
+        author: t.profiles as { full_name: string | null; avatar_url: string | null } | null,
         created_at: t.created_at,
         views: t.views ?? 0,
         replyCount: replyCounts[t.id] ?? 0,
@@ -175,19 +176,25 @@ export default async function DashboardPage() {
     }
   }
 
-  // Trending topics: re-sort by replies + views combined
+  // Hot score: engagement / age decay (HN-style)
+  // score = (replies*4 + views) / (hours_old + 2)^1.2
+  function hotScore(replies: number, views: number, createdAt: string): number {
+    const hoursOld = (Date.now() - new Date(createdAt).getTime()) / 3_600_000;
+    return (replies * 4 + views) / Math.pow(hoursOld + 2, 1.2);
+  }
+
   const trendingTopics: FeedTopic[] = (trendingTopicsResult.data ?? [])
     .map(t => ({
       id: t.id,
       title: t.title,
       category: t.forum_categories as { name: string; slug: string } | null,
-      author: t.profiles as { full_name: string | null } | null,
+      author: t.profiles as { full_name: string | null; avatar_url: string | null } | null,
       created_at: t.created_at,
       views: t.views ?? 0,
       replyCount: replyCounts[t.id] ?? 0,
     }))
-    .sort((a, b) => (b.replyCount * 3 + b.views) - (a.replyCount * 3 + a.views))
-    .slice(0, 6);
+    .sort((a, b) => hotScore(b.replyCount, b.views, b.created_at) - hotScore(a.replyCount, a.views, a.created_at))
+    .slice(0, 8);
 
   const profile = profileResult.data;
   const upcomingEvents = eventsResult.data ?? [];

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from "date-fns";
-import { MessageSquare, Pin, Plus, ChevronLeft, ChevronRight, Eye } from "lucide-react";
+import { MessageSquare, Pin, Plus, ChevronLeft, ChevronRight, Eye, Flame, Clock } from "lucide-react";
 import type { Profile } from "@/lib/supabase/types";
 
 const PAGE_SIZE = 25;
@@ -21,15 +21,20 @@ function getInitials(name: string | null): string {
     .toUpperCase();
 }
 
+function hotScore(replies: number, views: number, createdAt: string): number {
+  const hoursOld = (Date.now() - new Date(createdAt).getTime()) / 3_600_000;
+  return (replies * 4 + views) / Math.pow(hoursOld + 2, 1.2);
+}
+
 export default async function ForumCategoryPage({
   params,
   searchParams,
 }: {
   params: Promise<{ categorySlug: string }>;
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; sort?: string }>;
 }) {
   const { categorySlug } = await params;
-  const { page: pageParam } = await searchParams;
+  const { page: pageParam, sort = "recent" } = await searchParams;
   const page = Math.max(1, parseInt(pageParam ?? "1", 10) || 1);
   const offset = (page - 1) * PAGE_SIZE;
 
@@ -58,23 +63,25 @@ export default async function ForumCategoryPage({
     .eq("category_id", category.id)
     .eq("is_pinned", false);
 
-  // Fetch paginated unpinned topics
+  // For "hot" sort, fetch more and re-rank; for "recent" use DB ordering + pagination
+  const isHot = sort === "hot";
+
   const { data: unpinnedTopics } = await supabase
     .from("forum_topics")
     .select("*, profiles(*)")
     .eq("category_id", category.id)
     .eq("is_pinned", false)
     .order("updated_at", { ascending: false })
-    .range(offset, offset + PAGE_SIZE - 1);
+    // Fetch more rows for hot so we can re-rank before slicing
+    .range(isHot ? 0 : offset, isHot ? Math.min((totalUnpinned ?? 0) - 1, 199) : offset + PAGE_SIZE - 1);
 
-  const topics = [...(pinnedTopics ?? []), ...(unpinnedTopics ?? [])];
   const totalPages = Math.ceil((totalUnpinned ?? 0) / PAGE_SIZE);
 
-  // Single batch query for all reply counts — no more N+1
-  const topicIds = topics.map((t) => t.id);
+  // Single batch query for all reply counts
+  const allTopicIds = [...(pinnedTopics ?? []), ...(unpinnedTopics ?? [])].map(t => t.id);
   const { data: replyRows } =
-    topicIds.length > 0
-      ? await supabase.from("forum_replies").select("topic_id").in("topic_id", topicIds)
+    allTopicIds.length > 0
+      ? await supabase.from("forum_replies").select("topic_id").in("topic_id", allTopicIds)
       : { data: [] };
 
   const replyCountMap: Record<string, number> = {};
@@ -82,10 +89,21 @@ export default async function ForumCategoryPage({
     replyCountMap[r.topic_id] = (replyCountMap[r.topic_id] ?? 0) + 1;
   }
 
-  const topicsWithCounts = topics.map((topic) => ({
+  let unpinned = (unpinnedTopics ?? []).map((topic) => ({
     ...topic,
     replyCount: replyCountMap[topic.id] ?? 0,
   }));
+
+  if (isHot) {
+    unpinned = unpinned
+      .sort((a, b) => hotScore(b.replyCount, b.views ?? 0, b.created_at) - hotScore(a.replyCount, a.views ?? 0, a.created_at))
+      .slice(offset, offset + PAGE_SIZE);
+  }
+
+  const topicsWithCounts = [
+    ...(pinnedTopics ?? []).map(t => ({ ...t, replyCount: replyCountMap[t.id] ?? 0 })),
+    ...unpinned,
+  ];
 
   return (
     <div className="p-6 space-y-6">
@@ -101,10 +119,31 @@ export default async function ForumCategoryPage({
             <p className="text-muted-foreground mt-1">{category.description}</p>
           )}
         </div>
-        <Button render={<Link href={`/forum/${categorySlug}/new`} />}>
-          <Plus className="size-4" />
-          New Topic
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* Sort toggle */}
+          <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-xl">
+            <Link
+              href={`/forum/${categorySlug}?sort=recent`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                sort !== "hot" ? "bg-white shadow-sm text-zinc-900" : "text-zinc-500 hover:text-zinc-700"
+              }`}
+            >
+              <Clock className="size-3" /> Recent
+            </Link>
+            <Link
+              href={`/forum/${categorySlug}?sort=hot`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                sort === "hot" ? "bg-white shadow-sm text-orange-600" : "text-zinc-500 hover:text-zinc-700"
+              }`}
+            >
+              <Flame className="size-3" /> Hot
+            </Link>
+          </div>
+          <Button render={<Link href={`/forum/${categorySlug}/new`} />}>
+            <Plus className="size-4" />
+            New Topic
+          </Button>
+        </div>
       </div>
 
       <div className="rounded-xl border overflow-hidden">
