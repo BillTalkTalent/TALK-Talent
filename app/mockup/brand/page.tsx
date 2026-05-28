@@ -56,7 +56,7 @@ function TalkWordmark({ size = 28 }: { size?: number }) {
   return (
     <span style={{ fontFamily: 'system-ui, -apple-system, sans-serif', fontWeight: 900, fontSize: size, lineHeight: 1, letterSpacing: '-0.03em', display: 'inline-flex', alignItems: 'baseline' }}>
       <span style={{ color: '#E8503A' }}>TA</span>
-      <span style={{ color: 'transparent', WebkitTextStroke: `${Math.round(size * 0.08)}px #E8503A` }}>LK</span>
+      <span style={{ color: 'white' }}>LK</span>
     </span>
   )
 }

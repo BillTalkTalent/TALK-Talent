@@ -197,7 +197,7 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
         <Link href="/dashboard" className="flex items-center mr-5 shrink-0" aria-label="TALK home">
           <span style={{ fontFamily: 'var(--font-poppins), system-ui', fontWeight: 900, fontSize: '1.9rem', lineHeight: 1, letterSpacing: '-0.03em', display: 'inline-flex', alignItems: 'baseline' }}>
             <span style={{ color: '#E8503A' }}>TA</span>
-            <span style={{ color: 'transparent', WebkitTextStroke: '2.5px #E8503A' }}>LK</span>
+            <span style={{ color: 'white' }}>LK</span>
           </span>
         </Link>
 

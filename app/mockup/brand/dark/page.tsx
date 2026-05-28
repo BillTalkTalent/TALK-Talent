@@ -62,7 +62,7 @@ export default function DarkMockup() {
       <header style={{ position: 'sticky', top: 0, zIndex: 50, background: `linear-gradient(90deg, ${C.navA} 0%, ${C.navB} 100%)` }}>
         <div style={{ padding: '0 20px', display: 'flex', alignItems: 'center', height: 56, gap: 4 }}>
           <Link href="/mockup/brand/dark" style={{ display: 'flex', alignItems: 'center', gap: 8, marginRight: 20, textDecoration: 'none' }}>
-            <span style={{ fontFamily: 'system-ui', fontWeight: 900, fontSize: '1.9rem', lineHeight: 1, letterSpacing: '-0.03em', display: 'inline-flex', alignItems: 'baseline' }}><span style={{ color: '#E8503A' }}>TA</span><span style={{ color: 'transparent', WebkitTextStroke: '2.5px #E8503A' }}>LK</span></span>
+            <span style={{ fontFamily: 'system-ui', fontWeight: 900, fontSize: '1.9rem', lineHeight: 1, letterSpacing: '-0.03em', display: 'inline-flex', alignItems: 'baseline' }}><span style={{ color: '#E8503A' }}>TA</span><span style={{ color: 'white' }}>LK</span></span>
           </Link>
           <nav style={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, overflowX: 'auto' }}>
             {nav.map((item, i) => (
