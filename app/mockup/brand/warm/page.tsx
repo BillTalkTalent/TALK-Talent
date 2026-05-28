@@ -69,7 +69,7 @@ export default function WarmMockup() {
         <span style={{ color: '#555', marginRight: 4 }}>Theme:</span>
         <Link href="/mockup/brand/dark" style={{ color: '#aaa', padding: '3px 10px', borderRadius: 999, textDecoration: 'none' }}>Midnight Dark</Link>
         <Link href="/mockup/brand/slate" style={{ color: '#aaa', padding: '3px 10px', borderRadius: 999, textDecoration: 'none' }}>Slate Pro</Link>
-        <span style={{ color: 'white', background: C.amber, padding: '3px 10px', borderRadius: 999, color: '#1C1208' }}>Warm Espresso</span>
+        <span style={{ color: '#1C1208', background: C.amber, padding: '3px 10px', borderRadius: 999 }}>Warm Espresso</span>
         <Link href="/mockup/brand/plum" style={{ color: '#aaa', padding: '3px 10px', borderRadius: 999, textDecoration: 'none' }}>Deep Plum</Link>
         <span style={{ width: 1, height: 14, background: '#333', margin: '0 4px' }} />
         <Link href="/mockup/brand" style={{ color: '#555', padding: '3px 10px', borderRadius: 999, textDecoration: 'none' }}>← Gallery</Link>
