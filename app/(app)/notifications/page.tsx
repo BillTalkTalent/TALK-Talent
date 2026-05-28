@@ -51,7 +51,7 @@ export default async function NotificationsPage() {
     <div className="p-6 max-w-3xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="size-10 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #00b894, #00d4aa)' }}>
+          <div className="size-10 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #E8503A, #F07058)' }}>
             <Bell className="size-5 text-white" />
           </div>
           <div>
@@ -81,7 +81,7 @@ export default async function NotificationsPage() {
         <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm divide-y divide-zinc-100">
           {items.map((n) => (
             <div key={n.id} className="p-4 flex items-start gap-3 hover:bg-zinc-50/50 transition-colors">
-              {!n.is_read && <span className="mt-1.5 size-2 rounded-full bg-[#00d4aa] shrink-0" aria-label="unread" />}
+              {!n.is_read && <span className="mt-1.5 size-2 rounded-full bg-[#F07058] shrink-0" aria-label="unread" />}
               {n.is_read && <span className="mt-1.5 size-2 shrink-0" />}
               <div className="flex-1 min-w-0">
                 {n.link ? (

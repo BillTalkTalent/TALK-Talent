@@ -48,7 +48,7 @@ export default function LightMockup() {
           </div>
           <div className="flex items-center gap-3">
             <Link href="/login" className="text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors px-4 py-2">Sign in</Link>
-            <Link href="/signup" className="text-sm font-bold px-5 py-2 rounded-xl transition-all hover:opacity-90" style={{ background: 'linear-gradient(135deg, #00b894, #00d4aa)', color: '#0d0d0d' }}>
+            <Link href="/signup" className="text-sm font-bold px-5 py-2 rounded-xl transition-all hover:opacity-90" style={{ background: 'linear-gradient(135deg, #E8503A, #F07058)', color: '#0d0d0d' }}>
               Apply to join
             </Link>
           </div>
@@ -71,14 +71,14 @@ export default function LightMockup() {
             </span>
           </div>
 
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#00d4aa]/40 bg-[#00d4aa]/10 text-[#00a87d] text-xs font-bold mb-8 tracking-wide uppercase">
-            <span className="size-1.5 rounded-full bg-[#00b894] animate-pulse" />
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#F07058]/40 bg-[#F07058]/10 text-[#00a87d] text-xs font-bold mb-8 tracking-wide uppercase">
+            <span className="size-1.5 rounded-full bg-[#E8503A] animate-pulse" />
             Now accepting applications
           </div>
 
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.05] mb-6 text-zinc-900">
             The private community<br />
-            <span style={{ background: 'linear-gradient(90deg, #00b894, #00d4aa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <span style={{ background: 'linear-gradient(90deg, #E8503A, #F07058)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               for TA leaders.
             </span>
           </h1>
@@ -90,7 +90,7 @@ export default function LightMockup() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/signup"
               className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-base font-black transition-all hover:scale-[1.02] hover:shadow-xl"
-              style={{ background: 'linear-gradient(135deg, #00b894, #00d4aa)', color: '#0d0d0d', boxShadow: '0 8px 32px rgba(0,212,170,0.25)' }}>
+              style={{ background: 'linear-gradient(135deg, #E8503A, #F07058)', color: '#0d0d0d', boxShadow: '0 8px 32px rgba(0,212,170,0.25)' }}>
               Apply for membership <ArrowRight className="size-4" />
             </Link>
             <Link href="/login"
@@ -103,7 +103,7 @@ export default function LightMockup() {
 
         {/* Mockup */}
         <div className="relative max-w-5xl mx-auto mt-20">
-          <div className="absolute -inset-1 rounded-3xl blur-2xl opacity-20" style={{ background: 'linear-gradient(135deg, #00d4aa, #9B5CFF)' }} />
+          <div className="absolute -inset-1 rounded-3xl blur-2xl opacity-20" style={{ background: 'linear-gradient(135deg, #F07058, #9B5CFF)' }} />
           <div className="relative rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.12)] border border-zinc-200">
             <div className="flex items-center gap-2 px-4 h-11" style={{ background: 'linear-gradient(90deg, #0d0d0d, #1a1a2e)' }}>
               <div className="flex items-center gap-1.5 mr-4 shrink-0">
@@ -111,22 +111,22 @@ export default function LightMockup() {
                 <span className="font-black text-white" style={{ fontSize: '0.9rem' }}>T<span className="relative inline-block">A<span className="absolute rounded-full" style={{ width: 3, height: 3, background: '#9B5CFF', bottom: 1, left: '50%', transform: 'translateX(-50%)' }}/></span>LK</span>
               </div>
               {[{ w: 'w-14', active: true }, { w: 'w-12' }, { w: 'w-20' }, { w: 'w-8' }, { w: 'w-10' }, { w: 'w-14' }, { w: 'w-12' }].map((item, i) => (
-                <div key={i} className={`h-6 ${item.w} rounded-md ${item.active ? 'bg-[#00d4aa]' : 'bg-white/10'}`} />
+                <div key={i} className={`h-6 ${item.w} rounded-md ${item.active ? 'bg-[#F07058]' : 'bg-white/10'}`} />
               ))}
               <div className="ml-auto flex items-center gap-2">
-                <div className="size-6 rounded-full bg-[#00d4aa]/60" />
+                <div className="size-6 rounded-full bg-[#F07058]/60" />
                 <div className="h-3 w-12 rounded bg-white/20" />
               </div>
             </div>
             <div className="p-5 space-y-4 bg-slate-50">
               <div className="rounded-xl p-5 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0d0d0d 0%, #1a1a2e 55%, #16213e 100%)' }}>
-                <div className="h-2.5 w-24 rounded bg-[#00d4aa]/60 mb-2" />
+                <div className="h-2.5 w-24 rounded bg-[#F07058]/60 mb-2" />
                 <div className="h-5 w-56 rounded bg-white/80 mb-1.5" />
                 <div className="h-2.5 w-40 rounded bg-white/25" />
               </div>
               <div className="grid grid-cols-4 gap-3">
                 {[
-                  { num: '12k', grad: 'linear-gradient(135deg,#00b894,#00d4aa)' },
+                  { num: '12k', grad: 'linear-gradient(135deg,#E8503A,#F07058)' },
                   { num: '12',  grad: 'linear-gradient(135deg,#ea580c,#f97316)' },
                   { num: '89',  grad: 'linear-gradient(135deg,#7c3aed,#8b5cf6)' },
                   { num: '34',  grad: 'linear-gradient(135deg,#1d4ed8,#3b82f6)' },
@@ -171,7 +171,7 @@ export default function LightMockup() {
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {[
-              { icon: Users,        title: 'Member Directory', desc: 'Connect with vetted TA leaders across industries, company sizes, and specializations.', color: '#00d4aa', bg: '#f0fdf9' },
+              { icon: Users,        title: 'Member Directory', desc: 'Connect with vetted TA leaders across industries, company sizes, and specializations.', color: '#F07058', bg: '#f0fdf9' },
               { icon: CalendarDays, title: 'Events & Classes',  desc: 'Live roundtables, workshops, and virtual classes taught by practitioners — not consultants.', color: '#f97316', bg: '#fff7ed' },
               { icon: MessageSquare,title: 'Forum',             desc: 'Candid discussions on sourcing, tools, leadership, comp, and everything in between.', color: '#8b5cf6', bg: '#faf5ff' },
               { icon: Briefcase,    title: 'Job Board',         desc: 'TA-specific roles posted directly by members and trusted companies. No noise.', color: '#3b82f6', bg: '#eff6ff' },
@@ -205,7 +205,7 @@ export default function LightMockup() {
               ].map(({ icon: Icon, text }) => (
                 <div key={text} className="flex items-start gap-3">
                   <div className="size-6 rounded-lg flex items-center justify-center shrink-0 mt-0.5 bg-[#f0fdf9]">
-                    <Icon className="size-3.5 text-[#00b894]" />
+                    <Icon className="size-3.5 text-[#E8503A]" />
                   </div>
                   <p className="text-sm text-zinc-500 leading-relaxed">{text}</p>
                 </div>
@@ -213,12 +213,12 @@ export default function LightMockup() {
             </div>
           </div>
           <div className="rounded-2xl p-8 border border-zinc-200 bg-white shadow-sm">
-            <div className="text-5xl font-black leading-none mb-4" style={{ color: '#00d4aa' }}>&ldquo;</div>
+            <div className="text-5xl font-black leading-none mb-4" style={{ color: '#F07058' }}>&ldquo;</div>
             <p className="text-zinc-600 text-lg leading-relaxed mb-6">
               TALK is the first community I&apos;ve been part of where I actually learn something every week. The quality of conversation is unlike anything else in the TA space.
             </p>
             <div className="flex items-center gap-3">
-              <div className="size-10 rounded-full flex items-center justify-center font-bold text-sm" style={{ background: 'linear-gradient(135deg,#00b894,#00d4aa)', color: '#0d0d0d' }}>S</div>
+              <div className="size-10 rounded-full flex items-center justify-center font-bold text-sm" style={{ background: 'linear-gradient(135deg,#E8503A,#F07058)', color: '#0d0d0d' }}>S</div>
               <div>
                 <p className="text-sm font-bold text-zinc-900">Sarah K.</p>
                 <p className="text-xs text-zinc-400">Head of Talent · Series B SaaS</p>
@@ -236,7 +236,7 @@ export default function LightMockup() {
             <p className="text-zinc-500 text-lg mb-10 max-w-lg mx-auto">Applications take 2 minutes. We review every one personally and get back to you within a few days.</p>
             <Link href="/signup"
               className="inline-flex items-center gap-2 px-10 py-4 rounded-2xl text-base font-black transition-all hover:scale-[1.02]"
-              style={{ background: 'linear-gradient(135deg, #00b894, #00d4aa)', color: '#0d0d0d', boxShadow: '0 8px 40px rgba(0,212,170,0.25)' }}>
+              style={{ background: 'linear-gradient(135deg, #E8503A, #F07058)', color: '#0d0d0d', boxShadow: '0 8px 40px rgba(0,212,170,0.25)' }}>
               Apply for membership <ArrowRight className="size-4" />
             </Link>
             <p className="mt-5 text-xs text-zinc-400">Membership is free during our launch period.</p>

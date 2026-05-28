@@ -112,7 +112,7 @@ export default function ReviewForm({ vendorId, existingReview }: Props) {
           onChange={e => setSummary(e.target.value)}
           rows={3}
           required
-          className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#00d4aa]"
+          className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#F07058]"
           placeholder="Overall, how was your experience with this vendor?"
         />
       </div>
@@ -125,7 +125,7 @@ export default function ReviewForm({ vendorId, existingReview }: Props) {
             value={pros}
             onChange={e => setPros(e.target.value)}
             rows={3}
-            className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#00d4aa]"
+            className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#F07058]"
           />
         </div>
         <div className="space-y-1.5">
@@ -135,7 +135,7 @@ export default function ReviewForm({ vendorId, existingReview }: Props) {
             value={cons}
             onChange={e => setCons(e.target.value)}
             rows={3}
-            className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#00d4aa]"
+            className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#F07058]"
           />
         </div>
       </div>
@@ -147,7 +147,7 @@ export default function ReviewForm({ vendorId, existingReview }: Props) {
             id="tenure"
             value={tenureMonths}
             onChange={e => setTenureMonths(e.target.value)}
-            className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#00d4aa]"
+            className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#F07058]"
           >
             <option value="">Not specified</option>
             <option value="1">&lt; 3 months</option>
@@ -164,7 +164,7 @@ export default function ReviewForm({ vendorId, existingReview }: Props) {
             id="selected"
             value={selectedIt}
             onChange={e => setSelectedIt(e.target.value)}
-            className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#00d4aa]"
+            className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#F07058]"
           >
             <option value="">Not specified</option>
             <option value="yes">Yes</option>

@@ -30,7 +30,7 @@ export default async function InvitePage({
       <div className="flex items-center gap-3">
         <div
           className="size-10 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: "linear-gradient(135deg, #00b894, #00d4aa)" }}
+          style={{ background: "linear-gradient(135deg, #E8503A, #F07058)" }}
         >
           <Mail className="size-5 text-white" />
         </div>
@@ -44,7 +44,7 @@ export default async function InvitePage({
       {sent === "true" && (
         <div
           className="rounded-2xl p-4 flex items-center gap-3 text-white"
-          style={{ background: "linear-gradient(135deg, #00b894, #00d4aa)" }}
+          style={{ background: "linear-gradient(135deg, #E8503A, #F07058)" }}
         >
           <CheckCircle2 className="size-5 shrink-0" />
           <p className="text-sm font-semibold">Invite sent! They&apos;ll receive an email to join TALK.</p>

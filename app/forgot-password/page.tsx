@@ -61,7 +61,7 @@ export default function ForgotPasswordPage() {
             <Button
               type="submit"
               className="w-full text-white font-semibold"
-              style={{ background: 'linear-gradient(90deg, #00b894, #00d4aa)' }}
+              style={{ background: 'linear-gradient(90deg, #E8503A, #F07058)' }}
               size="lg"
               disabled={loading}
             >

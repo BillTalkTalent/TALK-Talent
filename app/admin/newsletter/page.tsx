@@ -46,7 +46,7 @@ export default async function AdminNewsletterPage() {
         <Link
           href="/admin/newsletter/new"
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white hover:opacity-90 transition-opacity"
-          style={{ background: 'linear-gradient(135deg, #00b894, #00d4aa)', color: '#0d0d0d' }}
+          style={{ background: 'linear-gradient(135deg, #E8503A, #F07058)', color: '#0d0d0d' }}
         >
           <Plus className="size-4" />
           Write new edition
@@ -56,8 +56,8 @@ export default async function AdminNewsletterPage() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         <div className="rounded-xl border border-zinc-100 bg-white p-4 flex items-center gap-3">
-          <div className="size-9 rounded-lg bg-[#00d4aa]/10 flex items-center justify-center">
-            <Users className="size-4 text-[#00b894]" />
+          <div className="size-9 rounded-lg bg-[#F07058]/10 flex items-center justify-center">
+            <Users className="size-4 text-[#E8503A]" />
           </div>
           <div>
             <p className="text-2xl font-black text-zinc-900">{memberCount}</p>
@@ -104,7 +104,7 @@ export default async function AdminNewsletterPage() {
                   <FileText className="size-4 text-zinc-400" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm text-zinc-900 truncate group-hover:text-[#00b894] transition-colors">
+                  <p className="font-semibold text-sm text-zinc-900 truncate group-hover:text-[#E8503A] transition-colors">
                     {n.subject || 'Untitled'}
                   </p>
                   <p className="text-xs text-zinc-400 mt-0.5">
@@ -128,7 +128,7 @@ export default async function AdminNewsletterPage() {
           <Link
             href="/admin/newsletter/new"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 transition-opacity"
-            style={{ background: 'linear-gradient(135deg, #00b894, #00d4aa)', color: '#0d0d0d' }}
+            style={{ background: 'linear-gradient(135deg, #E8503A, #F07058)', color: '#0d0d0d' }}
           >
             <Plus className="size-4" /> Write first edition
           </Link>
@@ -138,7 +138,7 @@ export default async function AdminNewsletterPage() {
       {/* Quick compose if no drafts open */}
       <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm p-6">
         <h2 className="text-sm font-bold text-zinc-700 mb-5 flex items-center gap-2">
-          <Plus className="size-4 text-[#00b894]" /> Quick compose
+          <Plus className="size-4 text-[#E8503A]" /> Quick compose
         </h2>
         <NewsletterForm memberCount={memberCount} />
       </div>

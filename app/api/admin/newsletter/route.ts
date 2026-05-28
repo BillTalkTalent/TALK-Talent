@@ -4,7 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { Resend } from 'resend'
 
 const SECTION_META: Record<string, { label: string; color: string }> = {
-  talk_news:            { label: 'TALK News',             color: '#00b894' },
+  talk_news:            { label: 'TALK News',             color: '#E8503A' },
   member_highlight:     { label: 'Member Highlight',      color: '#f59e0b' },
   industry_news:        { label: 'Industry News',         color: '#3b82f6' },
   career_opportunities: { label: 'Career Opportunities',  color: '#8b5cf6' },
@@ -43,10 +43,10 @@ function buildEmailHtml(subject: string, sections: Record<string, string>, membe
   h1,h2,h3{color:#111827;margin:0 0 10px;}
   ul,ol{padding-left:1.5em;margin:0 0 12px;}
   li{margin-bottom:4px;line-height:1.6;}
-  a{color:#00b894;}
+  a{color:#E8503A;}
   strong{color:#111827;}
   hr{border:none;border-top:1px solid #e5e7eb;margin:16px 0;}
-  blockquote{border-left:3px solid #00d4aa;padding-left:12px;margin:0 0 12px;color:#6b7280;font-style:italic;}
+  blockquote{border-left:3px solid #F07058;padding-left:12px;margin:0 0 12px;color:#6b7280;font-style:italic;}
 </style>
 </head>
 <body>
@@ -60,7 +60,7 @@ function buildEmailHtml(subject: string, sections: Record<string, string>, membe
       <tr>
         <td style="vertical-align:middle;padding-right:10px;">
           <svg width="28" height="28" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="34" height="34" rx="9" fill="#00d4aa"/>
+            <rect width="34" height="34" rx="9" fill="#F07058"/>
             <rect x="8" y="12" width="18" height="3" rx="1.5" fill="white"/>
             <rect x="8" y="18.5" width="13" height="3" rx="1.5" fill="white"/>
           </svg>

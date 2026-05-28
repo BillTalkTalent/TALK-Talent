@@ -30,7 +30,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div className="flex items-center gap-3">
           {/* Logo mark */}
           <svg width="28" height="28" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="34" height="34" rx="9" fill="#00d4aa"/>
+            <rect width="34" height="34" rx="9" fill="#F07058"/>
             <rect x="8" y="12" width="18" height="3" rx="1.5" fill="white"/>
             <rect x="8" y="18.5" width="13" height="3" rx="1.5" fill="white"/>
           </svg>

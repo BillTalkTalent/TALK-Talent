@@ -118,7 +118,7 @@ export default function SignupPage() {
         <div className="flex flex-col gap-5">
           {benefits.map((benefit) => (
             <div key={benefit} className="flex items-center gap-3">
-              <CheckCircle2 className="size-5 shrink-0 text-[#00d4aa]" />
+              <CheckCircle2 className="size-5 shrink-0 text-[#F07058]" />
               <span className="text-base text-white/90">{benefit}</span>
             </div>
           ))}
@@ -169,8 +169,8 @@ export default function SignupPage() {
             <div className="space-y-4">
               {/* Header */}
               <div className="text-center space-y-2">
-                <div className="size-14 rounded-2xl bg-[#00d4aa]/15 border border-[#00d4aa]/30 flex items-center justify-center mx-auto">
-                  <CheckCircle2 className="size-8 text-[#00b894]" />
+                <div className="size-14 rounded-2xl bg-[#F07058]/15 border border-[#F07058]/30 flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="size-8 text-[#E8503A]" />
                 </div>
                 <h2 className="text-2xl font-bold text-zinc-900">Application submitted!</h2>
                 <p className="text-sm text-zinc-500">
@@ -179,7 +179,7 @@ export default function SignupPage() {
               </div>
 
               {/* 24-hour promise — prominent */}
-              <div className="rounded-xl bg-[#00d4aa]/10 border border-[#00d4aa]/25 px-4 py-3 flex items-center gap-3">
+              <div className="rounded-xl bg-[#F07058]/10 border border-[#F07058]/25 px-4 py-3 flex items-center gap-3">
                 <span className="text-xl shrink-0">⏱</span>
                 <p className="text-sm font-semibold text-[#007a60]">
                   We review every application within <span className="underline decoration-dotted">24 hours</span> — you&apos;ll hear from us by email.
@@ -195,7 +195,7 @@ export default function SignupPage() {
                   { n: '3', text: 'Full access to the TALK community, immediately' },
                 ].map(({ n, text }) => (
                   <div key={n} className="flex items-start gap-2.5">
-                    <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-[#00d4aa]/20 text-[9px] font-black text-[#00b894]">{n}</span>
+                    <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-[#F07058]/20 text-[9px] font-black text-[#E8503A]">{n}</span>
                     <p className="text-xs text-zinc-500 leading-relaxed">{text}</p>
                   </div>
                 ))}
@@ -203,7 +203,7 @@ export default function SignupPage() {
 
               <p className="text-xs text-zinc-400 text-center">
                 Check your spam folder if you don&apos;t see our email. Questions?{' '}
-                <a href="mailto:hello@talktalent.com" className="text-[#00b894] hover:underline font-semibold">hello@talktalent.com</a>
+                <a href="mailto:hello@talktalent.com" className="text-[#E8503A] hover:underline font-semibold">hello@talktalent.com</a>
               </p>
             </div>
           ) : (
@@ -261,7 +261,7 @@ export default function SignupPage() {
                 <Button
                   type="submit"
                   className="w-full text-white font-semibold"
-                  style={{ background: 'linear-gradient(90deg, #00b894, #00d4aa)' }}
+                  style={{ background: 'linear-gradient(90deg, #E8503A, #F07058)' }}
                   size="lg"
                   disabled={loading}
                 >
@@ -271,7 +271,7 @@ export default function SignupPage() {
 
               <p className="text-sm text-zinc-500 text-center">
                 Already have an account?{' '}
-                <Link href="/login" className="font-semibold text-[#00b894] hover:underline">
+                <Link href="/login" className="font-semibold text-[#E8503A] hover:underline">
                   Sign in
                 </Link>
               </p>

@@ -80,7 +80,7 @@ export default async function AdminForumPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-sm">
-            <Plus className="size-4 text-[#00b894]" />
+            <Plus className="size-4 text-[#E8503A]" />
             Add New Category
           </CardTitle>
         </CardHeader>

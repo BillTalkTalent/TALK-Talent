@@ -81,7 +81,7 @@ export default function LoginForm() {
         <div className="flex flex-col gap-5">
           {benefits.map((benefit) => (
             <div key={benefit} className="flex items-center gap-3">
-              <CheckCircle2 className="size-5 shrink-0 text-[#00d4aa]" />
+              <CheckCircle2 className="size-5 shrink-0 text-[#F07058]" />
               <span className="text-base text-white/90">{benefit}</span>
             </div>
           ))}
@@ -161,7 +161,7 @@ export default function LoginForm() {
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
-                <Link href="/forgot-password" className="text-xs text-[#00b894] hover:underline">
+                <Link href="/forgot-password" className="text-xs text-[#E8503A] hover:underline">
                   Forgot password?
                 </Link>
               </div>
@@ -177,7 +177,7 @@ export default function LoginForm() {
             <Button
               type="submit"
               className="w-full text-white font-semibold"
-              style={{ background: 'linear-gradient(90deg, #00b894, #00d4aa)' }}
+              style={{ background: 'linear-gradient(90deg, #E8503A, #F07058)' }}
               size="lg"
               disabled={loading}
             >
@@ -187,7 +187,7 @@ export default function LoginForm() {
 
           <p className="text-sm text-zinc-500 text-center">
             Don&apos;t have an account?{' '}
-            <Link href="/signup" className="font-semibold text-[#00b894] hover:underline">
+            <Link href="/signup" className="font-semibold text-[#E8503A] hover:underline">
               Sign up
             </Link>
           </p>

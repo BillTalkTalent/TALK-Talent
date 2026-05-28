@@ -63,7 +63,7 @@ export async function GET(req: Request) {
               ${category?.name ?? 'Forum'} · by ${author?.full_name ?? 'a member'}
             </div>
             <div style="font-size: 13px; color: #555; line-height: 1.5;">${snippet}</div>
-            <a href="${link}" style="display: inline-block; margin-top: 8px; font-size: 12px; font-weight: 600; color: #00b894; text-decoration: none;">
+            <a href="${link}" style="display: inline-block; margin-top: 8px; font-size: 12px; font-weight: 600; color: #E8503A; text-decoration: none;">
               Read &amp; Reply →
             </a>
           </td>
@@ -96,7 +96,7 @@ export async function GET(req: Request) {
 
             <div style="margin-top:28px;text-align:center;">
               <a href="${origin}/forum"
-                style="display:inline-block;padding:12px 28px;background:#00d4aa;color:#0d0d0d;font-weight:700;font-size:14px;text-decoration:none;border-radius:10px;">
+                style="display:inline-block;padding:12px 28px;background:#F07058;color:#0d0d0d;font-weight:700;font-size:14px;text-decoration:none;border-radius:10px;">
                 View All Discussions
               </a>
             </div>

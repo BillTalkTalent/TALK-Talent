@@ -92,7 +92,7 @@ export default function ForumFeed({ chapterTopics, trendingTopics, hasChapters }
         </div>
         <Link
           href="/forum"
-          className="flex items-center gap-1 text-xs text-[#00b894] hover:text-[#00d4aa] font-semibold transition-colors"
+          className="flex items-center gap-1 text-xs text-[#E8503A] hover:text-[#F07058] font-semibold transition-colors"
         >
           All discussions <ArrowRight className="size-3" />
         </Link>

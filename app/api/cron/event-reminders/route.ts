@@ -106,14 +106,14 @@ function buildReminderEmail(
               📍 ${locationLine}
             </p>
             ${event.is_virtual && event.virtual_url
-              ? `<p style="margin:8px 0 0;font-size:13px;"><a href="${event.virtual_url}" style="color:#00b894;font-weight:600;">Join link →</a></p>`
+              ? `<p style="margin:8px 0 0;font-size:13px;"><a href="${event.virtual_url}" style="color:#E8503A;font-weight:600;">Join link →</a></p>`
               : ''}
           </div>
           <p style="margin:0 0 24px;font-size:15px;color:#6b7280;line-height:1.6;">
             Hi ${firstName}, just a reminder that you&apos;re going to this event tomorrow. See you there!
           </p>
           <table cellpadding="0" cellspacing="0" style="margin:0 0 16px;">
-            <tr><td style="background:linear-gradient(135deg,#00b894,#00d4aa);border-radius:10px;">
+            <tr><td style="background:linear-gradient(135deg,#E8503A,#F07058);border-radius:10px;">
               <a href="${eventUrl}" style="display:inline-block;padding:12px 28px;font-size:14px;font-weight:700;color:#0d0d0d;text-decoration:none;border-radius:10px;">
                 View event details →
               </a>

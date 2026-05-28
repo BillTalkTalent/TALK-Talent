@@ -80,7 +80,7 @@ export default function SettingsForm({ userId, initialPrefs }: { userId: string;
                     disabled={saving}
                     className="sr-only peer"
                   />
-                  <div className="w-9 h-5 bg-zinc-200 rounded-full peer peer-checked:bg-[#00d4aa] transition-colors" />
+                  <div className="w-9 h-5 bg-zinc-200 rounded-full peer peer-checked:bg-[#F07058] transition-colors" />
                   <div className="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4" />
                 </label>
               </div>

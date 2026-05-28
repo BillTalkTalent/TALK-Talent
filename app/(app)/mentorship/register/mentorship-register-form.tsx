@@ -118,7 +118,7 @@ export default function MentorshipRegisterForm({
   if (success) {
     return (
       <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm p-12 text-center">
-        <CheckCircle2 className="size-12 mx-auto mb-3 text-[#00d4aa]" />
+        <CheckCircle2 className="size-12 mx-auto mb-3 text-[#F07058]" />
         <p className="text-lg font-bold text-zinc-900">Profile saved!</p>
         <p className="text-sm text-zinc-500 mt-1">Redirecting you back to Mentorship…</p>
       </div>
@@ -175,7 +175,7 @@ export default function MentorshipRegisterForm({
             onClick={() => setIsMentee(!isMentee)}
             className={`rounded-xl border-2 p-4 text-left transition-all ${
               isMentee
-                ? "border-[#00b894] bg-[#00d4aa]/5"
+                ? "border-[#E8503A] bg-[#F07058]/5"
                 : "border-zinc-200 hover:border-zinc-300"
             }`}
           >
@@ -185,7 +185,7 @@ export default function MentorshipRegisterForm({
               Learn from experienced TA leaders
             </p>
             {isMentee && (
-              <span className="inline-block mt-2 text-[10px] font-bold text-white bg-[#00b894] px-2 py-0.5 rounded-full">
+              <span className="inline-block mt-2 text-[10px] font-bold text-white bg-[#E8503A] px-2 py-0.5 rounded-full">
                 Selected
               </span>
             )}
@@ -243,8 +243,8 @@ export default function MentorshipRegisterForm({
                         onClick={() => toggleArea(area.id, "asMentee")}
                         className={`text-[10px] font-bold px-2.5 py-1 rounded-full border transition-all ${
                           sel.asMentee
-                            ? "bg-[#00b894] text-white border-[#00b894]"
-                            : "bg-white text-zinc-400 border-zinc-200 hover:border-[#00b894] hover:text-[#00b894]"
+                            ? "bg-[#E8503A] text-white border-[#E8503A]"
+                            : "bg-white text-zinc-400 border-zinc-200 hover:border-[#E8503A] hover:text-[#E8503A]"
                         }`}
                       >
                         Mentee

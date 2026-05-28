@@ -121,13 +121,13 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
                 )}
                 {chapter.website_url && (
                   <a href={chapter.website_url} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-[#00b894] hover:underline">
+                    className="flex items-center gap-1 text-[#E8503A] hover:underline">
                     <Globe className="size-3" /> Website
                   </a>
                 )}
                 {chapter.contact_email && (
                   <a href={`mailto:${chapter.contact_email}`}
-                    className="flex items-center gap-1 text-[#00b894] hover:underline">
+                    className="flex items-center gap-1 text-[#E8503A] hover:underline">
                     <Mail className="size-3" /> {chapter.contact_email}
                   </a>
                 )}
@@ -136,7 +136,7 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
           </div>
           <div>
             {isMember ? (
-              <span className="text-xs font-semibold text-[#00b894] bg-[#00d4aa]/10 border border-[#00d4aa]/20 px-3 py-1.5 rounded-xl">
+              <span className="text-xs font-semibold text-[#E8503A] bg-[#F07058]/10 border border-[#F07058]/20 px-3 py-1.5 rounded-xl">
                 ✓ You&apos;re a member
               </span>
             ) : (
@@ -211,10 +211,10 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
           <div className="flex flex-wrap gap-2">
             {members.slice(0, 24).map(m => (
               <Link key={m.id} href={`/members/${m.id}`} title={m.full_name ?? undefined}>
-                <Avatar className="size-9 hover:ring-2 hover:ring-[#00d4aa] transition-all">
+                <Avatar className="size-9 hover:ring-2 hover:ring-[#F07058] transition-all">
                   {m.avatar_url && <AvatarImage src={m.avatar_url} alt={m.full_name ?? ''} />}
                   <AvatarFallback className="text-xs font-bold"
-                    style={{ background: 'linear-gradient(135deg, #00b894, #00d4aa)', color: 'white' }}>
+                    style={{ background: 'linear-gradient(135deg, #E8503A, #F07058)', color: 'white' }}>
                     {getInitials(m.full_name)}
                   </AvatarFallback>
                 </Avatar>

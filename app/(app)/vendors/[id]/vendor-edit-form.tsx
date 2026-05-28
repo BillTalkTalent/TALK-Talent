@@ -201,7 +201,7 @@ export default function VendorEditForm({ vendor }: { vendor: any }) {
         onClick={handleSave}
         disabled={saving}
         className="px-6 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-60 transition-opacity hover:opacity-90"
-        style={{ background: "linear-gradient(135deg, #00b894, #00d4aa)" }}
+        style={{ background: "linear-gradient(135deg, #E8503A, #F07058)" }}
       >
         {saving ? "Saving…" : "Save Changes"}
       </button>

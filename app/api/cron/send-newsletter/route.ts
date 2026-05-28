@@ -78,7 +78,7 @@ function buildEmailHtml(subject: string, bodyHtml: string, memberName: string) {
   .prose p{margin:0 0 1em;color:#374151;line-height:1.7;}
   .prose ul,.prose ol{padding-left:1.5em;margin:0 0 1em;color:#374151;}
   .prose li{margin-bottom:0.4em;line-height:1.6;}
-  .prose a{color:#00b894;}
+  .prose a{color:#E8503A;}
   .prose strong{color:#111827;}
   .prose hr{border:none;border-top:1px solid #e5e7eb;margin:2em 0;}
 </style>

@@ -37,7 +37,7 @@ export default function LandingPage() {
             <Link href="/login" className="text-sm font-medium text-white/60 hover:text-white transition-colors px-4 py-2">
               Sign in
             </Link>
-            <Link href="/signup" className="text-sm font-bold px-5 py-2 rounded-xl transition-all hover:opacity-90" style={{ background: 'linear-gradient(135deg, #00b894, #00d4aa)', color: '#0a0a0f' }}>
+            <Link href="/signup" className="text-sm font-bold px-5 py-2 rounded-xl transition-all hover:opacity-90" style={{ background: 'linear-gradient(135deg, #E8503A, #F07058)', color: '#0a0a0f' }}>
               Apply to join
             </Link>
           </div>
@@ -47,7 +47,7 @@ export default function LandingPage() {
       {/* ── Hero ── */}
       <section className="relative pt-40 pb-28 px-6 overflow-hidden">
         {/* Background glow orbs */}
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[700px] h-[400px] rounded-full opacity-20 blur-[120px] pointer-events-none" style={{ background: 'radial-gradient(ellipse, #00d4aa 0%, transparent 70%)' }} />
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[700px] h-[400px] rounded-full opacity-20 blur-[120px] pointer-events-none" style={{ background: 'radial-gradient(ellipse, #F07058 0%, transparent 70%)' }} />
         <div className="absolute top-40 right-0 w-96 h-96 rounded-full opacity-10 blur-[100px] pointer-events-none" style={{ background: 'radial-gradient(ellipse, #9B5CFF 0%, transparent 70%)' }} />
 
         <div className="relative max-w-4xl mx-auto text-center">
@@ -77,14 +77,14 @@ export default function LandingPage() {
             </span>
           </div>
 
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#00d4aa]/30 bg-[#00d4aa]/10 text-[#00d4aa] text-xs font-bold mb-8 tracking-wide uppercase">
-            <span className="size-1.5 rounded-full bg-[#00d4aa] animate-pulse" />
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#F07058]/30 bg-[#F07058]/10 text-[#F07058] text-xs font-bold mb-8 tracking-wide uppercase">
+            <span className="size-1.5 rounded-full bg-[#F07058] animate-pulse" />
             Now accepting applications
           </div>
 
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.05] mb-6">
             The private community<br />
-            <span style={{ background: 'linear-gradient(90deg, #00b894, #00d4aa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <span style={{ background: 'linear-gradient(90deg, #E8503A, #F07058)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               for TA leaders.
             </span>
           </h1>
@@ -97,7 +97,7 @@ export default function LandingPage() {
             <Link
               href="/signup"
               className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-base font-black transition-all hover:scale-[1.02] hover:shadow-xl"
-              style={{ background: 'linear-gradient(135deg, #00b894, #00d4aa)', color: '#0a0a0f', boxShadow: '0 8px 32px rgba(0,212,170,0.25)' }}
+              style={{ background: 'linear-gradient(135deg, #E8503A, #F07058)', color: '#0a0a0f', boxShadow: '0 8px 32px rgba(0,212,170,0.25)' }}
             >
               Apply for membership <ArrowRight className="size-4" />
             </Link>
@@ -112,7 +112,7 @@ export default function LandingPage() {
         {/* Hero mockup */}
         <div className="relative max-w-5xl mx-auto mt-20">
           {/* Outer glow */}
-          <div className="absolute -inset-1 rounded-3xl blur-2xl opacity-40" style={{ background: 'linear-gradient(135deg, #00d4aa33, #9B5CFF22)' }} />
+          <div className="absolute -inset-1 rounded-3xl blur-2xl opacity-40" style={{ background: 'linear-gradient(135deg, #F0705833, #9B5CFF22)' }} />
           <div className="relative rounded-2xl overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.7)] border border-white/10">
 
             {/* ── App nav bar ── */}
@@ -140,10 +140,10 @@ export default function LandingPage() {
               </div>
               {/* Nav items */}
               {[{ w: 'w-14', active: true }, { w: 'w-12' }, { w: 'w-20' }, { w: 'w-8' }, { w: 'w-10' }, { w: 'w-14' }, { w: 'w-12' }].map((item, i) => (
-                <div key={i} className={`h-6 ${item.w} rounded-md ${item.active ? 'bg-[#00d4aa]' : 'bg-white/10'}`} />
+                <div key={i} className={`h-6 ${item.w} rounded-md ${item.active ? 'bg-[#F07058]' : 'bg-white/10'}`} />
               ))}
               <div className="ml-auto flex items-center gap-2">
-                <div className="size-6 rounded-full bg-[#00d4aa]/60" />
+                <div className="size-6 rounded-full bg-[#F07058]/60" />
                 <div className="h-3 w-12 rounded bg-white/20" />
               </div>
             </div>
@@ -153,8 +153,8 @@ export default function LandingPage() {
 
               {/* Hero banner */}
               <div className="rounded-xl p-5 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0d0d0d 0%, #1a1a2e 55%, #16213e 100%)' }}>
-                <div className="absolute right-4 top-4 size-24 rounded-full blur-2xl opacity-20" style={{ background: '#00d4aa' }} />
-                <div className="h-2.5 w-24 rounded bg-[#00d4aa]/60 mb-2" />
+                <div className="absolute right-4 top-4 size-24 rounded-full blur-2xl opacity-20" style={{ background: '#F07058' }} />
+                <div className="h-2.5 w-24 rounded bg-[#F07058]/60 mb-2" />
                 <div className="h-5 w-56 rounded bg-white/80 mb-1.5" />
                 <div className="h-2.5 w-40 rounded bg-white/25" />
               </div>
@@ -162,7 +162,7 @@ export default function LandingPage() {
               {/* Stat cards */}
               <div className="grid grid-cols-4 gap-3">
                 {[
-                  { num: '12k', label: 'Total Members', grad: 'linear-gradient(135deg,#00b894,#00d4aa)' },
+                  { num: '12k', label: 'Total Members', grad: 'linear-gradient(135deg,#E8503A,#F07058)' },
                   { num: '12',  label: 'Upcoming Events', grad: 'linear-gradient(135deg,#ea580c,#f97316)' },
                   { num: '89',  label: 'Active Discussions', grad: 'linear-gradient(135deg,#7c3aed,#8b5cf6)' },
                   { num: '34',  label: 'Jobs Posted', grad: 'linear-gradient(135deg,#1d4ed8,#3b82f6)' },
@@ -186,12 +186,12 @@ export default function LandingPage() {
                       </div>
                       <div className="h-3 w-32 rounded bg-zinc-200" />
                     </div>
-                    <div className="h-2.5 w-12 rounded bg-[#00d4aa]/40" />
+                    <div className="h-2.5 w-12 rounded bg-[#F07058]/40" />
                   </div>
                   {[
                     { month: 'MAY', day: '14', title: 'AI & the Candidate Experience', tag: 'EVENT', tagColor: '#f97316' },
                     { month: 'MAY', day: '21', title: 'TA Leadership Roundtable', tag: 'EVENT', tagColor: '#f97316' },
-                    { month: 'MAY', day: '28', title: 'Claude Code for TA Leaders', tag: 'CLASS', tagColor: '#00b894' },
+                    { month: 'MAY', day: '28', title: 'Claude Code for TA Leaders', tag: 'CLASS', tagColor: '#E8503A' },
                   ].map(({ month, day, title, tag, tagColor }) => (
                     <div key={day+title} className="flex items-center gap-3 px-4 py-2.5 border-b border-zinc-50 last:border-0">
                       <div className="w-9 rounded-lg py-1 text-center shrink-0" style={{ background: 'linear-gradient(135deg,#eef2ff,#e0e7ff)' }}>
@@ -218,7 +218,7 @@ export default function LandingPage() {
                       </div>
                       <div className="h-3 w-28 rounded bg-zinc-200" />
                     </div>
-                    <div className="h-2.5 w-12 rounded bg-[#00d4aa]/40" />
+                    <div className="h-2.5 w-12 rounded bg-[#F07058]/40" />
                   </div>
                   {[
                     { cat: 'Ask the Community', topic: 'How are you using AI in sourcing?', ago: '2h ago' },
@@ -246,7 +246,7 @@ export default function LandingPage() {
                     </div>
                     <div className="h-3 w-24 rounded bg-zinc-200" />
                   </div>
-                  <div className="h-2.5 w-12 rounded bg-[#00d4aa]/40" />
+                  <div className="h-2.5 w-12 rounded bg-[#F07058]/40" />
                 </div>
                 <div className="grid grid-cols-3 divide-x divide-zinc-50">
                   {[
@@ -270,7 +270,7 @@ export default function LandingPage() {
             </div>
           </div>
           {/* Glow under mockup */}
-          <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-2/3 h-16 blur-3xl opacity-30 rounded-full" style={{ background: '#00d4aa' }} />
+          <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-2/3 h-16 blur-3xl opacity-30 rounded-full" style={{ background: '#F07058' }} />
         </div>
       </section>
 
@@ -294,7 +294,7 @@ export default function LandingPage() {
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {[
-              { icon: Users, title: 'Member Directory', desc: 'Connect with vetted TA leaders across industries, company sizes, and specializations.', color: '#00d4aa' },
+              { icon: Users, title: 'Member Directory', desc: 'Connect with vetted TA leaders across industries, company sizes, and specializations.', color: '#F07058' },
               { icon: CalendarDays, title: 'Events & Classes', desc: 'Live roundtables, workshops, and virtual classes taught by practitioners — not consultants.', color: '#f97316' },
               { icon: MessageSquare, title: 'Forum', desc: 'Candid discussions on sourcing, tools, leadership, comp, and everything in between.', color: '#8b5cf6' },
               { icon: Briefcase, title: 'Job Board', desc: 'TA-specific roles posted directly by members and trusted companies. No noise.', color: '#3b82f6' },
@@ -328,7 +328,7 @@ export default function LandingPage() {
               ].map(({ icon: Icon, text }) => (
                 <div key={text} className="flex items-start gap-3">
                   <div className="size-6 rounded-lg flex items-center justify-center shrink-0 mt-0.5" style={{ background: 'rgba(0,212,170,0.15)' }}>
-                    <Icon className="size-3.5 text-[#00d4aa]" />
+                    <Icon className="size-3.5 text-[#F07058]" />
                   </div>
                   <p className="text-sm text-white/60 leading-relaxed">{text}</p>
                 </div>
@@ -338,12 +338,12 @@ export default function LandingPage() {
 
           {/* Testimonial */}
           <div className="rounded-2xl p-8 border border-white/10 relative" style={{ background: 'linear-gradient(135deg, rgba(0,212,170,0.05), rgba(0,212,170,0.02))' }}>
-            <div className="text-5xl text-[#00d4aa]/30 font-black leading-none mb-4">&ldquo;</div>
+            <div className="text-5xl text-[#F07058]/30 font-black leading-none mb-4">&ldquo;</div>
             <p className="text-white/70 text-lg leading-relaxed mb-6">
               TALK is the first community I&apos;ve been part of where I actually learn something every week. The quality of conversation is unlike anything else in the TA space.
             </p>
             <div className="flex items-center gap-3">
-              <div className="size-10 rounded-full flex items-center justify-center font-bold text-sm" style={{ background: 'linear-gradient(135deg,#00b894,#00d4aa)', color: '#0a0a0f' }}>S</div>
+              <div className="size-10 rounded-full flex items-center justify-center font-bold text-sm" style={{ background: 'linear-gradient(135deg,#E8503A,#F07058)', color: '#0a0a0f' }}>S</div>
               <div>
                 <p className="text-sm font-bold text-white">Sarah K.</p>
                 <p className="text-xs text-white/65">Head of Talent · Series B SaaS</p>
@@ -356,14 +356,14 @@ export default function LandingPage() {
       {/* ── CTA ── */}
       <section className="py-28 px-6">
         <div className="max-w-3xl mx-auto text-center relative">
-          <div className="absolute inset-0 rounded-3xl opacity-10 blur-2xl pointer-events-none" style={{ background: 'radial-gradient(ellipse, #00d4aa, transparent)' }} />
+          <div className="absolute inset-0 rounded-3xl opacity-10 blur-2xl pointer-events-none" style={{ background: 'radial-gradient(ellipse, #F07058, transparent)' }} />
           <div className="relative rounded-3xl border border-white/10 p-16" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.03), rgba(0,212,170,0.03))' }}>
             <h2 className="text-4xl font-black tracking-tight mb-4">Ready to join?</h2>
             <p className="text-white/75 text-lg mb-10 max-w-lg mx-auto">Applications take 2 minutes. We review every one personally and get back to you within a few days.</p>
             <Link
               href="/signup"
               className="inline-flex items-center gap-2 px-10 py-4 rounded-2xl text-base font-black transition-all hover:scale-[1.02]"
-              style={{ background: 'linear-gradient(135deg, #00b894, #00d4aa)', color: '#0a0a0f', boxShadow: '0 8px 40px rgba(0,212,170,0.3)' }}
+              style={{ background: 'linear-gradient(135deg, #E8503A, #F07058)', color: '#0a0a0f', boxShadow: '0 8px 40px rgba(0,212,170,0.3)' }}
             >
               Apply for membership <ArrowRight className="size-4" />
             </Link>

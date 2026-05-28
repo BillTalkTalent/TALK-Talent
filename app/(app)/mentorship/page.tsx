@@ -243,7 +243,7 @@ export default async function MentorshipPage() {
           <Button
             size="sm"
             className="shrink-0 font-semibold text-sm px-5"
-            style={{ background: "linear-gradient(135deg, #00b894, #00d4aa)", color: "#0d0d0d" }}
+            style={{ background: "linear-gradient(135deg, #E8503A, #F07058)", color: "#0d0d0d" }}
             render={<Link href="/mentorship/register" />}
           >
             Get Started

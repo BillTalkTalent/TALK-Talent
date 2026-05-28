@@ -57,7 +57,7 @@ export default function RequestActions({ requestId, isRequester = false }: Props
         onClick={() => updateStatus("accepted")}
         disabled={isPending}
         className="flex items-center gap-1.5 text-xs font-semibold text-white px-3 py-1.5 rounded-lg transition-opacity disabled:opacity-50"
-        style={{ background: "linear-gradient(135deg, #00b894, #00d4aa)" }}
+        style={{ background: "linear-gradient(135deg, #E8503A, #F07058)" }}
       >
         <CheckCircle2 className="size-3.5" />
         Accept

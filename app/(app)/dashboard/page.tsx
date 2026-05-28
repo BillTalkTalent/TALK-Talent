@@ -279,7 +279,7 @@ export default async function DashboardPage() {
       label: "Total Members",
       value: memberCount,
       icon: Users,
-      style: { background: "linear-gradient(135deg, #00b894, #00d4aa)" },
+      style: { background: "linear-gradient(135deg, #E8503A, #F07058)" },
       href: "/members",
     },
     {
@@ -311,15 +311,15 @@ export default async function DashboardPage() {
       {unreadCount > 0 && (
         <Link
           href="/notifications"
-          className="flex items-center justify-between gap-3 rounded-2xl border border-[#00d4aa]/30 bg-[#00d4aa]/10 px-5 py-3 hover:bg-[#00d4aa]/15 transition-colors"
+          className="flex items-center justify-between gap-3 rounded-2xl border border-[#F07058]/30 bg-[#F07058]/10 px-5 py-3 hover:bg-[#F07058]/15 transition-colors"
         >
           <div className="flex items-center gap-3">
-            <Bell className="size-5 text-[#00b894]" />
+            <Bell className="size-5 text-[#E8503A]" />
             <p className="text-sm font-semibold text-zinc-900">
               You have {unreadCount} unread notification{unreadCount === 1 ? '' : 's'}
             </p>
           </div>
-          <ArrowRight className="size-4 text-[#00b894]" />
+          <ArrowRight className="size-4 text-[#E8503A]" />
         </Link>
       )}
 
@@ -337,9 +337,9 @@ export default async function DashboardPage() {
           }}
         />
         {/* Glowing orb */}
-        <div className="absolute -top-10 -right-10 size-48 rounded-full opacity-20 blur-3xl" style={{background: "radial-gradient(circle, #00d4aa, transparent)"}} />
+        <div className="absolute -top-10 -right-10 size-48 rounded-full opacity-20 blur-3xl" style={{background: "radial-gradient(circle, #F07058, transparent)"}} />
         <div className="relative">
-          <p className="text-sm font-medium text-[#00d4aa]/80 mb-1">
+          <p className="text-sm font-medium text-[#F07058]/80 mb-1">
             {new Date().toLocaleDateString("en-US", {
               weekday: "long",
               month: "long",
@@ -397,7 +397,7 @@ export default async function DashboardPage() {
                   </span>
                 )}
               </div>
-              <Button variant="ghost" size="sm" className="text-xs text-[#00b894] hover:text-[#00d4aa] hover:bg-[#00d4aa]/10 -mr-1" render={<Link href="/polls" />}>
+              <Button variant="ghost" size="sm" className="text-xs text-[#E8503A] hover:text-[#F07058] hover:bg-[#F07058]/10 -mr-1" render={<Link href="/polls" />}>
                 View all <ArrowRight className="size-3 ml-1" />
               </Button>
             </div>
@@ -457,7 +457,7 @@ export default async function DashboardPage() {
               </div>
               <span className="text-sm font-semibold text-zinc-900">Upcoming Events &amp; Classes</span>
             </div>
-            <Button variant="ghost" size="sm" className="text-xs text-[#00b894] hover:text-[#00d4aa] hover:bg-[#00d4aa]/10 -mr-1" render={<Link href="/events" />}>
+            <Button variant="ghost" size="sm" className="text-xs text-[#E8503A] hover:text-[#F07058] hover:bg-[#F07058]/10 -mr-1" render={<Link href="/events" />}>
               View all <ArrowRight className="size-3 ml-1" />
             </Button>
           </div>
@@ -489,11 +489,11 @@ export default async function DashboardPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 mb-0.5">
                         {(event as unknown as { is_paid: boolean }).is_paid ? (
-                          <span className="text-[9px] font-black uppercase tracking-wide text-white bg-[#00b894] px-1.5 py-0.5 rounded-full shrink-0">Class</span>
+                          <span className="text-[9px] font-black uppercase tracking-wide text-white bg-[#E8503A] px-1.5 py-0.5 rounded-full shrink-0">Class</span>
                         ) : (
                           <span className="text-[9px] font-black uppercase tracking-wide text-[#f97316] bg-[#f97316]/10 px-1.5 py-0.5 rounded-full shrink-0">Event</span>
                         )}
-                        <p className="font-medium text-sm text-zinc-900 truncate group-hover:text-[#00d4aa] transition-colors">
+                        <p className="font-medium text-sm text-zinc-900 truncate group-hover:text-[#F07058] transition-colors">
                           {event.title}
                         </p>
                       </div>
@@ -529,7 +529,7 @@ export default async function DashboardPage() {
             </div>
             <span className="text-sm font-semibold text-zinc-900">Recent Job Posts</span>
           </div>
-          <Button variant="ghost" size="sm" className="text-xs text-[#00b894] hover:text-[#00d4aa] hover:bg-[#00d4aa]/10 -mr-1" render={<Link href="/jobs" />}>
+          <Button variant="ghost" size="sm" className="text-xs text-[#E8503A] hover:text-[#F07058] hover:bg-[#F07058]/10 -mr-1" render={<Link href="/jobs" />}>
             View all <ArrowRight className="size-3 ml-1" />
           </Button>
         </div>
@@ -551,7 +551,7 @@ export default async function DashboardPage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-medium text-sm text-zinc-900 group-hover:text-[#00d4aa] transition-colors">
+                    <p className="font-medium text-sm text-zinc-900 group-hover:text-[#F07058] transition-colors">
                       {job.title}
                     </p>
                     <span className="text-[10px] font-semibold text-violet-700 bg-violet-50 border border-violet-100 px-1.5 py-0.5 rounded-full">

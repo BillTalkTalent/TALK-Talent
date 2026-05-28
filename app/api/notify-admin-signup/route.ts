@@ -109,7 +109,7 @@ function buildAdminEmail(member: NewMember, origin: string): string {
         <!-- Header -->
         <tr><td style="background:linear-gradient(135deg,#0d0d0d 0%,#1a1a2e 100%);border-radius:16px 16px 0 0;padding:24px 32px;">
           <span style="font-size:20px;font-weight:900;color:#ffffff;letter-spacing:-0.5px;">TALK</span>
-          <span style="display:inline-block;width:5px;height:5px;background:#00d4aa;border-radius:50%;vertical-align:super;margin-left:1px;"></span>
+          <span style="display:inline-block;width:5px;height:5px;background:#F07058;border-radius:50%;vertical-align:super;margin-left:1px;"></span>
           <span style="margin-left:12px;font-size:12px;font-weight:600;color:#ffffff80;letter-spacing:0.05em;text-transform:uppercase;">Admin Alert</span>
         </td></tr>
 

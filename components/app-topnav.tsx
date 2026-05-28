@@ -1,16 +1,16 @@
 'use client'
 
+import React from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import {
-  LayoutDashboard,
+  Home,
   Users,
   Building2,
   Calendar,
   MessageSquare,
-  Hash,
-  Mail,
+  MessagesSquare,
   Settings,
   LogOut,
   Briefcase,
@@ -20,6 +20,7 @@ import {
   Bell,
   Zap,
 } from 'lucide-react'
+
 import { createClient } from '@/lib/supabase/client'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import type { Profile } from '@/lib/supabase/types'
@@ -41,22 +42,19 @@ interface AppTopNavProps {
 }
 
 const mainNav = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/members',   label: 'Members',   icon: Users },
-  { href: '/events',    label: 'Events & Classes', icon: Calendar },
-  { href: '/forum',     label: 'Forum',      icon: MessageSquare },
+  { href: '/dashboard', label: 'Home',       icon: Home },
+  { href: '/members',   label: 'Members',    icon: Users },
+  { href: '/events',    label: 'Events',     icon: Calendar },
+  { href: '/forum',     label: 'Forums',     icon: MessageSquare },
+  { href: '/messages',  label: 'Chats',      icon: MessagesSquare },
   { href: '/jobs',      label: 'Jobs',       icon: Briefcase },
   { href: '/polls',     label: 'Polls',      icon: BarChart2 },
-  { href: '/chapters',   label: 'Chapters',    icon: BookOpen },
-  { href: '/vendors',    label: 'Vendors',     icon: Building2 },
-  { href: '/mentorship', label: 'Mentorship',  icon: GraduationCap },
-  { href: '/talent',     label: 'Talent Pool', icon: Zap },
+  { href: '/chapters',  label: 'Chapters',   icon: BookOpen },
+  { href: '/vendors',   label: 'Vendors',    icon: Building2 },
+  { href: '/mentorship',label: 'Mentorship', icon: GraduationCap },
+  { href: '/talent',    label: 'Talent Pool',icon: Zap },
 ]
 
-const iconNav = [
-  { href: '/chat',     label: 'Chat',     icon: Hash },
-  { href: '/messages', label: 'Messages', icon: Mail },
-]
 
 export default function AppTopNav({ profile }: AppTopNavProps) {
   const pathname = usePathname()
@@ -230,50 +228,32 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
         <nav className="flex items-center gap-0.5 flex-1 overflow-x-auto scrollbar-none">
           {mainNav.map(({ href, label, icon: Icon }) => {
             const active = pathname === href || pathname.startsWith(href + '/')
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={cn(
-                  'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all',
-                  active
-                    ? 'bg-[#00d4aa] text-[#0d0d0d] font-semibold'
-                    : 'text-white/60 hover:bg-white/10 hover:text-white'
-                )}
-              >
-                <Icon className="size-4 shrink-0" />
-                {label}
-              </Link>
-            )
-          })}
-        </nav>
-
-        {/* ── Icon nav + admin + profile ── */}
-        <div className="flex items-center gap-1 ml-3 shrink-0">
-          {iconNav.map(({ href, label, icon: Icon }) => {
-            const active = pathname === href || pathname.startsWith(href + '/')
             const isMessages = href === '/messages'
             return (
               <Link
                 key={href}
                 href={href}
-                title={label}
                 className={cn(
-                  'relative flex items-center justify-center size-9 rounded-lg transition-all',
+                  'relative flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all',
                   active
-                    ? 'bg-[#00d4aa] text-[#0d0d0d]'
+                    ? 'bg-[#F07058] text-[#0d0d0d] font-semibold'
                     : 'text-white/60 hover:bg-white/10 hover:text-white'
                 )}
               >
-                <Icon className="size-4" />
+                <Icon className="size-4 shrink-0" />
+                {label}
                 {isMessages && unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-black px-1 leading-none">
+                  <span className="min-w-[16px] h-4 flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-black px-1 leading-none">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
               </Link>
             )
           })}
+        </nav>
+
+        {/* ── Right-side controls: bell + admin + profile ── */}
+        <div className="flex items-center gap-1 ml-3 shrink-0">
 
           {/* Notification bell */}
           <div className="relative" ref={notifRef}>
@@ -283,7 +263,7 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
               className={cn(
                 'relative flex items-center justify-center size-9 rounded-lg transition-all',
                 notifOpen
-                  ? 'bg-[#00d4aa] text-[#0d0d0d]'
+                  ? 'bg-[#F07058] text-[#0d0d0d]'
                   : 'text-white/60 hover:bg-white/10 hover:text-white'
               )}
             >
@@ -300,7 +280,7 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
                 <div className="px-4 py-3 border-b border-zinc-100 flex items-center justify-between">
                   <span className="text-sm font-bold text-zinc-900">Notifications</span>
                   {notifications.some(n => !n.is_read) && (
-                    <span className="text-xs text-[#00b894] font-semibold">Marked as read</span>
+                    <span className="text-xs text-[#E8503A] font-semibold">Marked as read</span>
                   )}
                 </div>
                 <div className="max-h-80 overflow-y-auto">
@@ -316,12 +296,12 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
                         onClick={() => handleNotifClick(n.link)}
                         className={cn(
                           'w-full text-left px-4 py-3 border-b border-zinc-50 last:border-0 hover:bg-zinc-50 transition-colors',
-                          !n.is_read && 'bg-[#00d4aa]/5'
+                          !n.is_read && 'bg-[#F07058]/5'
                         )}
                       >
                         <div className="flex items-start gap-2.5">
                           {!n.is_read && (
-                            <span className="mt-1.5 size-1.5 rounded-full bg-[#00d4aa] shrink-0" />
+                            <span className="mt-1.5 size-1.5 rounded-full bg-[#F07058] shrink-0" />
                           )}
                           <div className={cn('flex-1 min-w-0', n.is_read && 'ml-4')}>
                             <p className="text-sm font-semibold text-zinc-900 truncate">{n.title}</p>
@@ -364,13 +344,13 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
           {/* Profile dropdown */}
           <div className="relative group/profile">
             <button className="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-white/15 transition-colors">
-              <Avatar className="size-7 ring-2 ring-[#00d4aa]/60 shrink-0">
+              <Avatar className="size-7 ring-2 ring-[#F07058]/60 shrink-0">
                 {profile.avatar_url && (
                   <AvatarImage src={profile.avatar_url} alt={profile.full_name ?? ''} />
                 )}
                 <AvatarFallback
                   className="text-xs font-bold"
-                  style={{ background: 'linear-gradient(135deg, #00b894, #00d4aa)', color: '#0d0d0d' }}
+                  style={{ background: 'linear-gradient(135deg, #E8503A, #F07058)', color: '#0d0d0d' }}
                 >
                   {profile.full_name?.[0]?.toUpperCase() ?? '?'}
                 </AvatarFallback>

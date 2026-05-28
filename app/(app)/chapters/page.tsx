@@ -207,7 +207,7 @@ export default function ChaptersPage() {
       <section>
         <div className="flex items-center gap-3 mb-4 flex-wrap">
           <div className="flex items-center gap-2">
-            <MapPin className="size-4 text-[#00b894]" />
+            <MapPin className="size-4 text-[#E8503A]" />
             <h2 className="text-base font-bold text-zinc-900">Geographic Chapters</h2>
             <span className="text-xs text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full">{geoChapters.length}</span>
           </div>
@@ -219,7 +219,7 @@ export default function ChaptersPage() {
               placeholder="Search city or state…"
               value={geoSearch}
               onChange={e => setGeoSearch(e.target.value)}
-              className="pl-8 pr-3 py-1.5 text-sm rounded-xl border border-zinc-200 bg-white focus:outline-none focus:border-[#00d4aa] w-52 transition-colors"
+              className="pl-8 pr-3 py-1.5 text-sm rounded-xl border border-zinc-200 bg-white focus:outline-none focus:border-[#F07058] w-52 transition-colors"
             />
           </div>
         </div>
@@ -240,14 +240,14 @@ export default function ChaptersPage() {
                         className={cn(
                           "flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border text-left transition-all text-sm",
                           joined
-                            ? "border-[#00d4aa]/50 bg-[#00d4aa]/8 text-zinc-900"
-                            : "border-zinc-100 bg-white hover:border-[#00d4aa]/40 hover:bg-[#00d4aa]/5 text-zinc-700"
+                            ? "border-[#F07058]/50 bg-[#F07058]/8 text-zinc-900"
+                            : "border-zinc-100 bg-white hover:border-[#F07058]/40 hover:bg-[#F07058]/5 text-zinc-700"
                         )}
                       >
                         {/* Name links to chapter page */}
                         <a href={`/chapters/${chapter.slug}`} className="flex items-center gap-2 min-w-0 flex-1">
                           <span className="text-sm shrink-0">{chapter.icon}</span>
-                          <span className="font-medium truncate text-xs hover:text-[#00b894] transition-colors">{chapter.name}</span>
+                          <span className="font-medium truncate text-xs hover:text-[#E8503A] transition-colors">{chapter.name}</span>
                         </a>
                         {/* Join/leave toggle */}
                         <button
@@ -256,7 +256,7 @@ export default function ChaptersPage() {
                           className="shrink-0"
                         >
                           {joined
-                            ? <Check className="size-3.5 text-[#00b894]" />
+                            ? <Check className="size-3.5 text-[#E8503A]" />
                             : <span className="text-[10px] text-zinc-400">{chapter.memberCount > 0 ? chapter.memberCount : "+"}</span>
                           }
                         </button>

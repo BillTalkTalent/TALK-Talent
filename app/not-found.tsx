@@ -27,7 +27,7 @@ export default function NotFound() {
         <Link
           href="/dashboard"
           className="px-6 py-3 rounded-xl font-bold text-[#0d0d0d] hover:opacity-90 transition-opacity"
-          style={{ background: "linear-gradient(135deg, #00b894, #00d4aa)" }}
+          style={{ background: "linear-gradient(135deg, #E8503A, #F07058)" }}
         >
           Go to Dashboard
         </Link>

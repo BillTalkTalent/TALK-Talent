@@ -51,7 +51,7 @@ export default async function TalentPoolPage() {
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
           <div className="size-10 rounded-xl flex items-center justify-center shrink-0"
-            style={{ background: "linear-gradient(135deg, #00b894, #00d4aa)" }}>
+            style={{ background: "linear-gradient(135deg, #E8503A, #F07058)" }}>
             <Zap className="size-5 text-white" />
           </div>
           <div>
@@ -64,7 +64,7 @@ export default async function TalentPoolPage() {
         <Link
           href="/profile#talent"
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-[#0d0d0d] hover:opacity-90 transition-opacity"
-          style={{ background: "linear-gradient(135deg, #00b894, #00d4aa)" }}
+          style={{ background: "linear-gradient(135deg, #E8503A, #F07058)" }}
         >
           <Zap className="size-4" />
           Update my status
@@ -77,7 +77,7 @@ export default async function TalentPoolPage() {
           <p className="text-zinc-500 font-medium">No one in the talent pool yet</p>
           <p className="text-sm text-zinc-400 mt-1">
             If you&apos;re open to new opportunities,{" "}
-            <Link href="/profile#talent" className="text-[#00b894] hover:underline font-semibold">
+            <Link href="/profile#talent" className="text-[#E8503A] hover:underline font-semibold">
               add yourself
             </Link>.
           </p>
@@ -87,15 +87,15 @@ export default async function TalentPoolPage() {
           {pool.map((entry) => {
             const p = entry.profiles;
             return (
-              <div key={entry.id} className="rounded-2xl bg-white border border-zinc-100 shadow-sm hover:shadow-md hover:border-[#00d4aa] transition-all p-5 flex flex-col gap-4">
+              <div key={entry.id} className="rounded-2xl bg-white border border-zinc-100 shadow-sm hover:shadow-md hover:border-[#F07058] transition-all p-5 flex flex-col gap-4">
                 {/* Top: avatar + name */}
                 <div className="flex items-start gap-3">
                   <Link href={`/members/${entry.user_id}`} className="shrink-0">
-                    <Avatar className="size-12 ring-2 ring-offset-1 ring-[#00d4aa]/30">
+                    <Avatar className="size-12 ring-2 ring-offset-1 ring-[#F07058]/30">
                       {p?.avatar_url && <AvatarImage src={p.avatar_url} alt={p.full_name ?? ""} />}
                       <AvatarFallback
                         className="text-sm font-bold"
-                        style={{ background: "linear-gradient(135deg, #00b894, #00d4aa)", color: "white" }}
+                        style={{ background: "linear-gradient(135deg, #E8503A, #F07058)", color: "white" }}
                       >
                         {getInitials(p?.full_name ?? null)}
                       </AvatarFallback>
@@ -103,7 +103,7 @@ export default async function TalentPoolPage() {
                   </Link>
                   <div className="min-w-0 flex-1">
                     <Link href={`/members/${entry.user_id}`}>
-                      <p className="font-bold text-zinc-900 hover:text-[#00d4aa] transition-colors truncate">
+                      <p className="font-bold text-zinc-900 hover:text-[#F07058] transition-colors truncate">
                         {p?.full_name ?? "Member"}
                       </p>
                     </Link>
@@ -149,7 +149,7 @@ export default async function TalentPoolPage() {
                   <Link
                     href={`/messages?with=${entry.user_id}`}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-white transition-opacity hover:opacity-90"
-                    style={{ background: "linear-gradient(135deg, #00b894, #00d4aa)" }}
+                    style={{ background: "linear-gradient(135deg, #E8503A, #F07058)" }}
                   >
                     <Mail className="size-3" />
                     Message

@@ -119,7 +119,7 @@ export default function ChapterEditForm({ chapter, isAdmin, slug }: ChapterEditF
             onChange={e => set('description', e.target.value)}
             placeholder="e.g. The TA community for the greater Chicago area"
             maxLength={160}
-            className="w-full text-sm border border-zinc-200 rounded-xl px-3 py-2 focus:outline-none focus:border-[#00d4aa] transition-colors"
+            className="w-full text-sm border border-zinc-200 rounded-xl px-3 py-2 focus:outline-none focus:border-[#F07058] transition-colors"
           />
           <p className="text-[11px] text-zinc-400">{form.description.length}/160 — shows under the chapter name</p>
         </div>
@@ -131,7 +131,7 @@ export default function ChapterEditForm({ chapter, isAdmin, slug }: ChapterEditF
             onChange={e => set('long_description', e.target.value)}
             rows={5}
             placeholder="Tell members what this chapter is about, who it's for, when you typically meet, etc."
-            className="w-full text-sm border border-zinc-200 rounded-xl px-3 py-2 focus:outline-none focus:border-[#00d4aa] transition-colors resize-none"
+            className="w-full text-sm border border-zinc-200 rounded-xl px-3 py-2 focus:outline-none focus:border-[#F07058] transition-colors resize-none"
           />
         </div>
 
@@ -142,7 +142,7 @@ export default function ChapterEditForm({ chapter, isAdmin, slug }: ChapterEditF
             value={form.banner_url}
             onChange={e => set('banner_url', e.target.value)}
             placeholder="https://..."
-            className="w-full text-sm border border-zinc-200 rounded-xl px-3 py-2 focus:outline-none focus:border-[#00d4aa] transition-colors"
+            className="w-full text-sm border border-zinc-200 rounded-xl px-3 py-2 focus:outline-none focus:border-[#F07058] transition-colors"
           />
           <p className="text-[11px] text-zinc-400">Paste a direct image URL (JPG, PNG, WebP). Displays as a wide banner above the chapter header.</p>
         </div>
@@ -159,7 +159,7 @@ export default function ChapterEditForm({ chapter, isAdmin, slug }: ChapterEditF
             value={form.website_url}
             onChange={e => set('website_url', e.target.value)}
             placeholder="https://..."
-            className="w-full text-sm border border-zinc-200 rounded-xl px-3 py-2 focus:outline-none focus:border-[#00d4aa] transition-colors"
+            className="w-full text-sm border border-zinc-200 rounded-xl px-3 py-2 focus:outline-none focus:border-[#F07058] transition-colors"
           />
         </div>
 
@@ -170,7 +170,7 @@ export default function ChapterEditForm({ chapter, isAdmin, slug }: ChapterEditF
             value={form.contact_email}
             onChange={e => set('contact_email', e.target.value)}
             placeholder="chicago@talk-community.com"
-            className="w-full text-sm border border-zinc-200 rounded-xl px-3 py-2 focus:outline-none focus:border-[#00d4aa] transition-colors"
+            className="w-full text-sm border border-zinc-200 rounded-xl px-3 py-2 focus:outline-none focus:border-[#F07058] transition-colors"
           />
         </div>
       </div>
@@ -188,7 +188,7 @@ export default function ChapterEditForm({ chapter, isAdmin, slug }: ChapterEditF
           type="submit"
           disabled={saving}
           className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-60 transition-opacity"
-          style={{ background: 'linear-gradient(135deg, #00b894, #00d4aa)' }}
+          style={{ background: 'linear-gradient(135deg, #E8503A, #F07058)' }}
         >
           {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
           Save Changes

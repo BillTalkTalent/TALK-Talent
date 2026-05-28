@@ -33,7 +33,7 @@ export default async function SuggestVendorPage({
 
       {submitted === "true" ? (
         <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm p-12 text-center space-y-3">
-          <CheckCircle2 className="size-12 mx-auto text-[#00d4aa]" />
+          <CheckCircle2 className="size-12 mx-auto text-[#F07058]" />
           <p className="text-lg font-bold text-zinc-900">Thanks for the suggestion!</p>
           <p className="text-sm text-zinc-500">
             Our team will review it and add it to the vendor directory if it&apos;s a good fit.

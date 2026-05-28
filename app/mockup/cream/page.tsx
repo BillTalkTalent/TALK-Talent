@@ -59,7 +59,7 @@ export default function CreamMockup() {
           </div>
           <div className="flex items-center gap-3">
             <Link href="/login" className="text-sm font-medium px-4 py-2 transition-colors" style={{ color: C.muted }}>Sign in</Link>
-            <Link href="/signup" className="text-sm font-bold px-5 py-2 rounded-xl transition-all hover:opacity-90" style={{ background: 'linear-gradient(135deg, #00b894, #00d4aa)', color: '#0d0d0d' }}>
+            <Link href="/signup" className="text-sm font-bold px-5 py-2 rounded-xl transition-all hover:opacity-90" style={{ background: 'linear-gradient(135deg, #E8503A, #F07058)', color: '#0d0d0d' }}>
               Apply to join
             </Link>
           </div>
@@ -71,8 +71,8 @@ export default function CreamMockup() {
         <div className="relative max-w-4xl mx-auto text-center">
 
           {/* Serif-feel overline */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-xs font-bold mb-8 tracking-wide uppercase" style={{ borderColor: '#00d4aa60', background: '#00d4aa12', color: '#00907a' }}>
-            <span className="size-1.5 rounded-full bg-[#00b894] animate-pulse" />
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-xs font-bold mb-8 tracking-wide uppercase" style={{ borderColor: '#F0705860', background: '#F0705812', color: '#00907a' }}>
+            <span className="size-1.5 rounded-full bg-[#E8503A] animate-pulse" />
             Now accepting applications
           </div>
 
@@ -88,7 +88,7 @@ export default function CreamMockup() {
 
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.05] mb-6" style={{ color: C.text }}>
             The private community<br />
-            <span style={{ background: 'linear-gradient(90deg, #00b894, #00d4aa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <span style={{ background: 'linear-gradient(90deg, #E8503A, #F07058)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               for TA leaders.
             </span>
           </h1>
@@ -100,7 +100,7 @@ export default function CreamMockup() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/signup"
               className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-base font-black transition-all hover:scale-[1.02]"
-              style={{ background: 'linear-gradient(135deg, #00b894, #00d4aa)', color: '#0d0d0d', boxShadow: '0 8px 32px rgba(0,212,170,0.2)' }}>
+              style={{ background: 'linear-gradient(135deg, #E8503A, #F07058)', color: '#0d0d0d', boxShadow: '0 8px 32px rgba(0,212,170,0.2)' }}>
               Apply for membership <ArrowRight className="size-4" />
             </Link>
             <Link href="/login"
@@ -114,7 +114,7 @@ export default function CreamMockup() {
 
         {/* Mockup */}
         <div className="relative max-w-5xl mx-auto mt-20">
-          <div className="absolute -inset-2 rounded-3xl blur-3xl opacity-15" style={{ background: 'linear-gradient(135deg, #00d4aa, #9B5CFF)' }} />
+          <div className="absolute -inset-2 rounded-3xl blur-3xl opacity-15" style={{ background: 'linear-gradient(135deg, #F07058, #9B5CFF)' }} />
           <div className="relative rounded-2xl overflow-hidden border" style={{ boxShadow: '0 20px 60px rgba(0,0,0,0.1)', borderColor: C.border }}>
             <div className="flex items-center gap-2 px-4 h-11" style={{ background: 'linear-gradient(90deg, #0d0d0d, #1a1a2e)' }}>
               <div className="flex items-center gap-1.5 mr-4 shrink-0">
@@ -131,20 +131,20 @@ export default function CreamMockup() {
                 <span className="font-black text-white" style={{ fontSize: '0.9rem' }}>TALK</span>
               </div>
               {[{ w: 'w-14', active: true }, { w: 'w-12' }, { w: 'w-20' }, { w: 'w-8' }, { w: 'w-10' }].map((item, i) => (
-                <div key={i} className={`h-6 ${item.w} rounded-md ${item.active ? 'bg-[#00d4aa]' : 'bg-white/10'}`} />
+                <div key={i} className={`h-6 ${item.w} rounded-md ${item.active ? 'bg-[#F07058]' : 'bg-white/10'}`} />
               ))}
               <div className="ml-auto flex items-center gap-2">
-                <div className="size-6 rounded-full bg-[#00d4aa]/60" />
+                <div className="size-6 rounded-full bg-[#F07058]/60" />
               </div>
             </div>
             <div className="p-5 space-y-4" style={{ background: C.bgAlt }}>
               <div className="rounded-xl p-5" style={{ background: 'linear-gradient(135deg, #0d0d0d, #1a1a2e)' }}>
-                <div className="h-2.5 w-24 rounded bg-[#00d4aa]/60 mb-2" />
+                <div className="h-2.5 w-24 rounded bg-[#F07058]/60 mb-2" />
                 <div className="h-5 w-56 rounded bg-white/80 mb-1.5" />
                 <div className="h-2.5 w-40 rounded bg-white/25" />
               </div>
               <div className="grid grid-cols-4 gap-3">
-                {['linear-gradient(135deg,#00b894,#00d4aa)','linear-gradient(135deg,#ea580c,#f97316)','linear-gradient(135deg,#7c3aed,#8b5cf6)','linear-gradient(135deg,#1d4ed8,#3b82f6)'].map((grad, i) => (
+                {['linear-gradient(135deg,#E8503A,#F07058)','linear-gradient(135deg,#ea580c,#f97316)','linear-gradient(135deg,#7c3aed,#8b5cf6)','linear-gradient(135deg,#1d4ed8,#3b82f6)'].map((grad, i) => (
                   <div key={i} className="rounded-xl p-4 text-white" style={{ background: grad }}>
                     <div className="text-2xl font-black leading-none mb-1">{['12k','12','89','34'][i]}</div>
                     <div className="h-2 w-14 rounded bg-white/40 mt-1" />
@@ -183,7 +183,7 @@ export default function CreamMockup() {
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {[
-              { icon: Users,        title: 'Member Directory', desc: 'Connect with vetted TA leaders across industries, company sizes, and specializations.', color: '#00b894' },
+              { icon: Users,        title: 'Member Directory', desc: 'Connect with vetted TA leaders across industries, company sizes, and specializations.', color: '#E8503A' },
               { icon: CalendarDays, title: 'Events & Classes',  desc: 'Live roundtables, workshops, and virtual classes taught by practitioners.', color: '#f97316' },
               { icon: MessageSquare,title: 'Forum',             desc: 'Candid discussions on sourcing, tools, leadership, comp, and everything in between.', color: '#8b5cf6' },
               { icon: Briefcase,    title: 'Job Board',         desc: 'TA-specific roles posted directly by members and trusted companies. No noise.', color: '#3b82f6' },
@@ -216,8 +216,8 @@ export default function CreamMockup() {
                 { icon: CheckCircle2, text: 'Run by practitioners, for practitioners — zero vendor bias' },
               ].map(({ icon: Icon, text }) => (
                 <div key={text} className="flex items-start gap-3">
-                  <div className="size-6 rounded-lg flex items-center justify-center shrink-0 mt-0.5" style={{ background: '#00d4aa18' }}>
-                    <Icon className="size-3.5 text-[#00b894]" />
+                  <div className="size-6 rounded-lg flex items-center justify-center shrink-0 mt-0.5" style={{ background: '#F0705818' }}>
+                    <Icon className="size-3.5 text-[#E8503A]" />
                   </div>
                   <p className="text-sm leading-relaxed" style={{ color: C.muted }}>{text}</p>
                 </div>
@@ -225,12 +225,12 @@ export default function CreamMockup() {
             </div>
           </div>
           <div className="rounded-2xl p-8 border" style={{ background: C.card, borderColor: C.border }}>
-            <div className="text-5xl font-black leading-none mb-4" style={{ color: '#00d4aa' }}>&ldquo;</div>
+            <div className="text-5xl font-black leading-none mb-4" style={{ color: '#F07058' }}>&ldquo;</div>
             <p className="text-lg leading-relaxed mb-6" style={{ color: C.muted }}>
               TALK is the first community I&apos;ve been part of where I actually learn something every week. The quality of conversation is unlike anything else in the TA space.
             </p>
             <div className="flex items-center gap-3">
-              <div className="size-10 rounded-full flex items-center justify-center font-bold text-sm" style={{ background: 'linear-gradient(135deg,#00b894,#00d4aa)', color: '#0d0d0d' }}>S</div>
+              <div className="size-10 rounded-full flex items-center justify-center font-bold text-sm" style={{ background: 'linear-gradient(135deg,#E8503A,#F07058)', color: '#0d0d0d' }}>S</div>
               <div>
                 <p className="text-sm font-bold" style={{ color: C.text }}>Sarah K.</p>
                 <p className="text-xs" style={{ color: C.subtle }}>Head of Talent · Series B SaaS</p>
@@ -248,7 +248,7 @@ export default function CreamMockup() {
             <p className="text-lg mb-10 max-w-lg mx-auto" style={{ color: C.muted }}>Applications take 2 minutes. We review every one personally and get back to you within a few days.</p>
             <Link href="/signup"
               className="inline-flex items-center gap-2 px-10 py-4 rounded-2xl text-base font-black transition-all hover:scale-[1.02]"
-              style={{ background: 'linear-gradient(135deg, #00b894, #00d4aa)', color: '#0d0d0d', boxShadow: '0 8px 40px rgba(0,212,170,0.2)' }}>
+              style={{ background: 'linear-gradient(135deg, #E8503A, #F07058)', color: '#0d0d0d', boxShadow: '0 8px 40px rgba(0,212,170,0.2)' }}>
               Apply for membership <ArrowRight className="size-4" />
             </Link>
             <p className="mt-5 text-xs" style={{ color: C.subtle }}>Membership is free during our launch period.</p>

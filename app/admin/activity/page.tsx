@@ -69,8 +69,8 @@ export default async function AdminActivityPage() {
   const neverLoggedIn = members.filter(m => !m.last_login).length
 
   const stats = [
-    { label: 'Signups today', value: signupsToday, icon: UserPlus, color: '#00b894' },
-    { label: 'Signups this week', value: signupsThisWeek, icon: UserPlus, color: '#00d4aa' },
+    { label: 'Signups today', value: signupsToday, icon: UserPlus, color: '#E8503A' },
+    { label: 'Signups this week', value: signupsThisWeek, icon: UserPlus, color: '#F07058' },
     { label: 'Active this week', value: activeThisWeek, icon: LogIn, color: '#8b5cf6' },
     { label: 'Active this month', value: activeThisMonth, icon: Activity, color: '#3b82f6' },
   ]

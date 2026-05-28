@@ -79,7 +79,7 @@ export default function MentorshipRequestForm({
   if (success) {
     return (
       <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm p-12 text-center">
-        <CheckCircle2 className="size-12 mx-auto mb-3 text-[#00d4aa]" />
+        <CheckCircle2 className="size-12 mx-auto mb-3 text-[#F07058]" />
         <p className="text-lg font-bold text-zinc-900">Request sent!</p>
         <p className="text-sm text-zinc-500 mt-1">
           {mentorUser.full_name?.split(" ")[0]} will be notified. Redirecting…

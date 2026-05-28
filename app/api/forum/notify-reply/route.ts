@@ -146,13 +146,13 @@ function buildReplyNotificationEmail(
           </p>
 
           <!-- Reply preview -->
-          <div style="border-left:3px solid #00d4aa;padding:12px 16px;background:#f8fafc;border-radius:0 8px 8px 0;margin-bottom:24px;">
+          <div style="border-left:3px solid #F07058;padding:12px 16px;background:#f8fafc;border-radius:0 8px 8px 0;margin-bottom:24px;">
             <p style="margin:0;font-size:14px;color:#374151;line-height:1.7;white-space:pre-wrap;">${truncatedBody}</p>
           </div>
 
           <!-- CTA -->
           <table cellpadding="0" cellspacing="0">
-            <tr><td style="background:linear-gradient(135deg,#00b894,#00d4aa);border-radius:10px;">
+            <tr><td style="background:linear-gradient(135deg,#E8503A,#F07058);border-radius:10px;">
               <a href="${topicUrl}"
                 style="display:inline-block;padding:12px 28px;font-size:14px;font-weight:700;color:#0d0d0d;text-decoration:none;border-radius:10px;">
                 View the conversation →

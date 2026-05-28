@@ -51,7 +51,7 @@ function EventCard({ event, attendeeCount }: { event: PaidEvent; attendeeCount: 
             </span>
             <div className="flex items-center gap-1.5">
               {event.is_paid && event.price != null && (
-                <span className="inline-flex items-center gap-1 text-xs font-bold text-white bg-[#00b894] px-2.5 py-1 rounded-full">
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-white bg-[#E8503A] px-2.5 py-1 rounded-full">
                   <CreditCard className="size-3" />
                   {formatPrice(event.price, event.currency)}
                 </span>
@@ -66,7 +66,7 @@ function EventCard({ event, attendeeCount }: { event: PaidEvent; attendeeCount: 
 
           <div className="flex items-center gap-2 mb-1">
             {event.is_paid ? (
-              <span className="text-[10px] font-black uppercase tracking-wide text-white bg-[#00b894] px-2 py-0.5 rounded-full">Class</span>
+              <span className="text-[10px] font-black uppercase tracking-wide text-white bg-[#E8503A] px-2 py-0.5 rounded-full">Class</span>
             ) : (
               <span className="text-[10px] font-black uppercase tracking-wide text-[#f97316] bg-[#f97316]/10 border border-[#f97316]/20 px-2 py-0.5 rounded-full">Event</span>
             )}

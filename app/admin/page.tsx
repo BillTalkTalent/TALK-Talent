@@ -90,7 +90,7 @@ function buildApprovalEmail(firstName: string, loginUrl: string, origin: string)
 
           <!-- CTA button -->
           <table cellpadding="0" cellspacing="0" style="margin:0 0 28px;">
-            <tr><td style="background:linear-gradient(135deg,#00b894,#00d4aa);border-radius:10px;">
+            <tr><td style="background:linear-gradient(135deg,#E8503A,#F07058);border-radius:10px;">
               <a href="${loginUrl}"
                 style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:700;color:#0d0d0d;text-decoration:none;border-radius:10px;">
                 Get started →

@@ -54,7 +54,7 @@ async function sendAnnouncement(formData: FormData) {
 
   const html = `
     <div style="font-family: -apple-system, system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
-      <div style="border-left: 4px solid #00d4aa; padding-left: 16px; margin-bottom: 24px;">
+      <div style="border-left: 4px solid #F07058; padding-left: 16px; margin-bottom: 24px;">
         <p style="margin: 0; font-size: 12px; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Chapter Announcement · ${chapter.name}</p>
         <h1 style="margin: 8px 0 0 0; font-size: 22px; color: #0d0d0d;">${subject}</h1>
       </div>
@@ -62,7 +62,7 @@ async function sendAnnouncement(formData: FormData) {
       <hr style="margin: 32px 0; border: none; border-top: 1px solid #e4e4e7;">
       <p style="font-size: 12px; color: #71717a;">
         Sent by <strong>${profile.full_name ?? 'a chapter lead'}</strong> ·
-        <a href="${origin}/chapters/${chapter.slug}" style="color: #00b894;">View chapter</a> ·
+        <a href="${origin}/chapters/${chapter.slug}" style="color: #E8503A;">View chapter</a> ·
         <a href="${origin}/notifications/settings" style="color: #71717a;">Notification settings</a>
       </p>
     </div>
@@ -117,7 +117,7 @@ export default async function AnnouncePage({ params }: { params: Promise<{ slug:
         <ArrowLeft className="size-4" /> Back to {chapter.name}
       </Link>
       <div className="flex items-center gap-3">
-        <div className="size-10 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #00b894, #00d4aa)' }}>
+        <div className="size-10 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #E8503A, #F07058)' }}>
           <Megaphone className="size-5 text-white" />
         </div>
         <div>
@@ -135,7 +135,7 @@ export default async function AnnouncePage({ params }: { params: Promise<{ slug:
             required
             maxLength={140}
             placeholder="What's the announcement?"
-            className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#00d4aa]"
+            className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#F07058]"
           />
         </div>
         <div className="space-y-1.5">
@@ -145,14 +145,14 @@ export default async function AnnouncePage({ params }: { params: Promise<{ slug:
             required
             rows={10}
             placeholder="Share the details with the chapter…"
-            className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#00d4aa]"
+            className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#F07058]"
           />
         </div>
         <div className="flex justify-end">
           <button
             type="submit"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-[#0d0d0d] hover:opacity-90 transition-opacity"
-            style={{ background: 'linear-gradient(135deg, #00b894, #00d4aa)' }}
+            style={{ background: 'linear-gradient(135deg, #E8503A, #F07058)' }}
           >
             <Megaphone className="size-4" /> Send Announcement
           </button>

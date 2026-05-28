@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label'
 const NewsletterEditor = dynamic(() => import('@/components/newsletter-editor'), { ssr: false })
 
 const SECTIONS = [
-  { key: 'talk_news',          label: 'TALK News',            icon: Newspaper,  color: '#00b894', desc: 'Community updates, announcements, upcoming events' },
+  { key: 'talk_news',          label: 'TALK News',            icon: Newspaper,  color: '#E8503A', desc: 'Community updates, announcements, upcoming events' },
   { key: 'member_highlight',   label: 'Member Highlight',     icon: Star,       color: '#f59e0b', desc: 'Spotlight a member — their story, role, or advice' },
   { key: 'industry_news',      label: 'Industry News',        icon: Globe,      color: '#3b82f6', desc: "TA trends, research, and what's happening out there" },
   { key: 'career_opportunities', label: 'Career Opportunities', icon: Briefcase, color: '#8b5cf6', desc: 'Curated jobs and opportunities worth sharing' },
@@ -283,7 +283,7 @@ export default function NewsletterForm({
             onClick={send}
             disabled={!!loading}
             className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold disabled:opacity-60 transition-all hover:opacity-90"
-            style={{ background: 'linear-gradient(135deg, #00b894, #00d4aa)', color: '#0d0d0d' }}
+            style={{ background: 'linear-gradient(135deg, #E8503A, #F07058)', color: '#0d0d0d' }}
           >
             {loading === 'send' ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
             Send now · {memberCount} members
@@ -301,7 +301,7 @@ export default function NewsletterForm({
               <div className="flex items-center gap-2">
                 <Input type="date" value={scheduleDate} onChange={e => setScheduleDate(e.target.value)} className="w-40" />
                 <button type="button" onClick={() => setScheduleDate(nextMonday())}
-                  className="text-xs font-semibold text-[#00b894] hover:underline whitespace-nowrap flex items-center gap-1">
+                  className="text-xs font-semibold text-[#E8503A] hover:underline whitespace-nowrap flex items-center gap-1">
                   <Calendar className="size-3" /> Next Monday
                 </button>
               </div>

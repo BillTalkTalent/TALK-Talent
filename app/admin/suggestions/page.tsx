@@ -152,7 +152,7 @@ export default async function AdminSuggestionsPage() {
       {/* Invitations */}
       <section className="space-y-4">
         <div className="flex items-center gap-2">
-          <Mail className="size-5 text-[#00b894]" />
+          <Mail className="size-5 text-[#E8503A]" />
           <h2 className="text-base font-bold text-zinc-900">
             Member Invitations
             <span className="ml-2 text-xs font-medium text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full">

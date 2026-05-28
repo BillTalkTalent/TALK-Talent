@@ -63,7 +63,7 @@ export default function InviteForm({ inviterId }: { inviterId: string }) {
           rows={3}
           maxLength={400}
           placeholder="Hey, I thought you'd love this community of TA leaders…"
-          className="flex w-full rounded-xl border border-zinc-200 bg-transparent px-3.5 py-2.5 text-sm placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#00d4aa]/40 focus:border-[#00d4aa] resize-none"
+          className="flex w-full rounded-xl border border-zinc-200 bg-transparent px-3.5 py-2.5 text-sm placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#F07058]/40 focus:border-[#F07058] resize-none"
         />
       </div>
 
@@ -77,7 +77,7 @@ export default function InviteForm({ inviterId }: { inviterId: string }) {
         type="submit"
         disabled={isPending}
         className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-[#0d0d0d] disabled:opacity-70 transition-opacity hover:opacity-90"
-        style={{ background: "linear-gradient(135deg, #00b894, #00d4aa)" }}
+        style={{ background: "linear-gradient(135deg, #E8503A, #F07058)" }}
       >
         {isPending ? (
           <><Loader2 className="size-4 animate-spin" /> Sending invite…</>

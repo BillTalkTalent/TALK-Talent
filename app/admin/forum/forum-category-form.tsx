@@ -143,7 +143,7 @@ export default function ForumCategoryForm({ action, category, trigger }: Props) 
               Cancel
             </Button>
           )}
-          <Button type="submit" size="sm" className="bg-[#00b894] hover:bg-[#00a884] text-white">
+          <Button type="submit" size="sm" className="bg-[#E8503A] hover:bg-[#00a884] text-white">
             {category ? "Save changes" : "Add category"}
           </Button>
         </div>

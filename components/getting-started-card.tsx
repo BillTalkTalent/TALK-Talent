@@ -55,7 +55,7 @@ export default function GettingStartedCard({ items }: Props) {
         <div className="relative size-10 shrink-0">
           <svg className="size-10 -rotate-90" viewBox="0 0 36 36">
             <circle cx="18" cy="18" r="15" fill="none" stroke="#f3f4f6" strokeWidth="3" />
-            <circle cx="18" cy="18" r="15" fill="none" stroke="#00d4aa" strokeWidth="3"
+            <circle cx="18" cy="18" r="15" fill="none" stroke="#F07058" strokeWidth="3"
               strokeDasharray={`${pct * 0.942} 94.2`} strokeLinecap="round" />
           </svg>
           <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-zinc-700">
@@ -103,7 +103,7 @@ export default function GettingStartedCard({ items }: Props) {
             >
               <div className="shrink-0">
                 {item.done
-                  ? <CheckCircle2 className="size-5 text-[#00d4aa]" />
+                  ? <CheckCircle2 className="size-5 text-[#F07058]" />
                   : <Circle className="size-5 text-zinc-200 group-hover:text-zinc-300 transition-colors" />
                 }
               </div>
@@ -114,7 +114,7 @@ export default function GettingStartedCard({ items }: Props) {
                 <p className="text-xs text-zinc-400 truncate">{item.desc}</p>
               </div>
               {!item.done && (
-                <span className="text-xs font-semibold text-[#00b894] shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                <span className="text-xs font-semibold text-[#E8503A] shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                   Do this →
                 </span>
               )}

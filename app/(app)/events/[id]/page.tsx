@@ -249,7 +249,7 @@ export default function EventDetailPage() {
         {justRegistered && (
           <div
             className="rounded-2xl p-4 flex items-start gap-3 text-white"
-            style={{ background: "linear-gradient(135deg, #00b894, #00d4aa)" }}
+            style={{ background: "linear-gradient(135deg, #E8503A, #F07058)" }}
           >
             <PartyPopper className="size-5 shrink-0 mt-0.5" />
             <div>
@@ -280,7 +280,7 @@ export default function EventDetailPage() {
               {isPaid && (
                 <span
                   className="inline-flex items-center gap-1 text-sm font-bold px-3 py-1 rounded-full text-white"
-                  style={{ background: "linear-gradient(135deg, #00b894, #00d4aa)" }}
+                  style={{ background: "linear-gradient(135deg, #E8503A, #F07058)" }}
                 >
                   <CreditCard className="size-3.5" />
                   {formatPrice(event.price!, event.currency)}
@@ -354,7 +354,7 @@ export default function EventDetailPage() {
                 onClick={handleCheckout}
                 disabled={checkoutLoading}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white shadow-sm disabled:opacity-70 transition-opacity hover:opacity-90"
-                style={{ background: "linear-gradient(135deg, #00b894, #00d4aa)", color: "#0d0d0d" }}
+                style={{ background: "linear-gradient(135deg, #E8503A, #F07058)", color: "#0d0d0d" }}
               >
                 {checkoutLoading ? (
                   <><Loader2 className="size-4 animate-spin" /> Redirecting to checkout…</>
@@ -410,13 +410,13 @@ export default function EventDetailPage() {
             <div className="flex items-center gap-2 border-b border-zinc-100 -mx-6 -mt-6 px-6 pt-1">
               <button
                 onClick={() => setActiveTab('attendees')}
-                className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab==='attendees' ? 'border-[#00d4aa] text-zinc-900' : 'border-transparent text-zinc-400 hover:text-zinc-600'}`}
+                className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab==='attendees' ? 'border-[#F07058] text-zinc-900' : 'border-transparent text-zinc-400 hover:text-zinc-600'}`}
               >
                 {isPaid ? "Registrations" : "Attendees"} ({attendees.length})
               </button>
               <button
                 onClick={() => setActiveTab('conversation')}
-                className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab==='conversation' ? 'border-[#00d4aa] text-zinc-900' : 'border-transparent text-zinc-400 hover:text-zinc-600'}`}
+                className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab==='conversation' ? 'border-[#F07058] text-zinc-900' : 'border-transparent text-zinc-400 hover:text-zinc-600'}`}
               >
                 Conversation ({posts.length})
               </button>
@@ -468,7 +468,7 @@ export default function EventDetailPage() {
                       onChange={(e) => setPostContent(e.target.value)}
                       placeholder="Share a thought about this event…"
                       rows={2}
-                      className="flex-1 border border-zinc-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#00d4aa]"
+                      className="flex-1 border border-zinc-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#F07058]"
                     />
                     <Button onClick={handlePost} disabled={postLoading || !postContent.trim()}>
                       {postLoading ? <Loader2 className="size-4 animate-spin" /> : 'Post'}

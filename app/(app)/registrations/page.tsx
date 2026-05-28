@@ -62,7 +62,7 @@ export default async function RegistrationsPage() {
       <div className="flex items-center gap-3">
         <div
           className="size-10 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: "linear-gradient(135deg, #00b894, #00d4aa)" }}
+          style={{ background: "linear-gradient(135deg, #E8503A, #F07058)" }}
         >
           <Receipt className="size-5 text-white" />
         </div>
@@ -81,7 +81,7 @@ export default async function RegistrationsPage() {
           </p>
           <Link
             href="/events"
-            className="inline-block mt-4 text-sm font-semibold text-[#00b894] hover:underline"
+            className="inline-block mt-4 text-sm font-semibold text-[#E8503A] hover:underline"
           >
             Browse events →
           </Link>
@@ -102,7 +102,7 @@ export default async function RegistrationsPage() {
                   className="h-1"
                   style={{
                     background: isConfirmed
-                      ? "linear-gradient(90deg, #00b894, #00d4aa)"
+                      ? "linear-gradient(90deg, #E8503A, #F07058)"
                       : "linear-gradient(90deg, #d1d5db, #e5e7eb)",
                   }}
                 />
@@ -117,7 +117,7 @@ export default async function RegistrationsPage() {
                   ) : (
                     <div
                       className="size-16 rounded-xl flex items-center justify-center flex-shrink-0"
-                      style={{ background: "linear-gradient(135deg, #00b894, #00d4aa)" }}
+                      style={{ background: "linear-gradient(135deg, #E8503A, #F07058)" }}
                     >
                       <CreditCard className="size-6 text-white" />
                     </div>
@@ -127,7 +127,7 @@ export default async function RegistrationsPage() {
                     <div className="flex items-start justify-between gap-2 flex-wrap">
                       <Link
                         href={`/events/${event?.id}`}
-                        className="font-bold text-sm text-zinc-900 hover:text-[#00d4aa] transition-colors truncate"
+                        className="font-bold text-sm text-zinc-900 hover:text-[#F07058] transition-colors truncate"
                       >
                         {event?.title ?? "Event removed"}
                       </Link>
@@ -149,7 +149,7 @@ export default async function RegistrationsPage() {
                     <div className="flex items-center gap-3 flex-wrap">
                       {reg.amount_paid != null && (
                         <span className="text-xs font-semibold text-zinc-600 flex items-center gap-1">
-                          <CreditCard className="size-3 text-[#00b894]" />
+                          <CreditCard className="size-3 text-[#E8503A]" />
                           {formatPrice(reg.amount_paid, reg.currency)} paid
                         </span>
                       )}

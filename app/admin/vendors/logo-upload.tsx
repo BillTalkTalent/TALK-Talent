@@ -75,7 +75,7 @@ export default function LogoUpload({ currentUrl, onUpload, onClear }: LogoUpload
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="size-16 rounded-xl border-2 border-dashed border-zinc-200 hover:border-[#00d4aa] hover:bg-[#00d4aa]/5 transition-all flex flex-col items-center justify-center gap-1 text-zinc-400 hover:text-[#00d4aa] disabled:opacity-50"
+          className="size-16 rounded-xl border-2 border-dashed border-zinc-200 hover:border-[#F07058] hover:bg-[#F07058]/5 transition-all flex flex-col items-center justify-center gap-1 text-zinc-400 hover:text-[#F07058] disabled:opacity-50"
         >
           {uploading ? (
             <Loader2 className="size-4 animate-spin" />

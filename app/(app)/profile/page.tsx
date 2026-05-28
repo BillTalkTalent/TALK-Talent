@@ -410,7 +410,7 @@ export default function ProfilePage() {
                 id="ta_level"
                 value={form.ta_level}
                 onChange={e => setForm(f => ({ ...f, ta_level: e.target.value }))}
-                className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#00d4aa] transition-colors"
+                className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#F07058] transition-colors"
               >
                 <option value="" disabled>Select level…</option>
                 <option value="coordinator">Coordinator</option>
@@ -426,7 +426,7 @@ export default function ProfilePage() {
                 id="company_size"
                 value={form.company_size}
                 onChange={e => setForm(f => ({ ...f, company_size: e.target.value }))}
-                className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#00d4aa] transition-colors"
+                className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#F07058] transition-colors"
               >
                 <option value="" disabled>Select size…</option>
                 <option value="self_employed">Self-employed</option>
@@ -446,7 +446,7 @@ export default function ProfilePage() {
                 id="industry"
                 value={form.industry}
                 onChange={e => setForm(f => ({ ...f, industry: e.target.value }))}
-                className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#00d4aa] transition-colors"
+                className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#F07058] transition-colors"
               >
                 <option value="" disabled>Select industry…</option>
                 {["Agriculture","Arts & Media","Business Services","Civic/Government/Military","Construction & Architecture","Consumer Goods & Services","Education","Energy & Utilities","Entertainment","Finance & Insurance","Healthcare","Hospitality","Legal","Manufacturing","Non-Profit","Real Estate","Technology","Telecom","Transportation & Logistics"].map(i => (
@@ -535,7 +535,7 @@ export default function ProfilePage() {
       <Card id="talent">
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
-            <Zap className="size-4 text-[#00b894]" />
+            <Zap className="size-4 text-[#E8503A]" />
             Open to Work
           </CardTitle>
           <p className="text-sm text-muted-foreground">
@@ -577,7 +577,7 @@ export default function ProfilePage() {
                 value={talentForm.headline}
                 onChange={e => setTalentForm(f => ({ ...f, headline: e.target.value }))}
                 placeholder="Senior TA Leader available for Head of Talent or consulting roles"
-                className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:outline-none focus:border-[#00d4aa] transition-colors"
+                className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:outline-none focus:border-[#F07058] transition-colors"
                 disabled={savingTalent}
               />
             </div>
@@ -589,7 +589,7 @@ export default function ProfilePage() {
                 value={talentForm.seeking}
                 onChange={e => setTalentForm(f => ({ ...f, seeking: e.target.value }))}
                 placeholder="VP Talent Acquisition, Head of TA, Fractional TA leadership"
-                className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:outline-none focus:border-[#00d4aa] transition-colors"
+                className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:outline-none focus:border-[#F07058] transition-colors"
                 disabled={savingTalent}
               />
             </div>
@@ -600,7 +600,7 @@ export default function ProfilePage() {
                   id="tp_pref"
                   value={talentForm.work_pref}
                   onChange={e => setTalentForm(f => ({ ...f, work_pref: e.target.value }))}
-                  className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#00d4aa] transition-colors"
+                  className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#F07058] transition-colors"
                   disabled={savingTalent}
                 >
                   <option value="flexible">Flexible</option>
@@ -616,7 +616,7 @@ export default function ProfilePage() {
                   type="date"
                   value={talentForm.available_from}
                   onChange={e => setTalentForm(f => ({ ...f, available_from: e.target.value }))}
-                  className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:outline-none focus:border-[#00d4aa] transition-colors"
+                  className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:outline-none focus:border-[#F07058] transition-colors"
                   disabled={savingTalent}
                 />
               </div>
@@ -625,7 +625,7 @@ export default function ProfilePage() {
               <Button
                 type="submit"
                 disabled={savingTalent || !talentForm.headline.trim() || !talentForm.seeking.trim()}
-                style={{ background: "linear-gradient(135deg, #00b894, #00d4aa)" }}
+                style={{ background: "linear-gradient(135deg, #E8503A, #F07058)" }}
                 className="text-white font-semibold"
               >
                 {savingTalent
