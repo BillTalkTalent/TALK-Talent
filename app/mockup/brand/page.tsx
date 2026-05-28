@@ -52,23 +52,12 @@ const schemes = [
   },
 ]
 
-// Tiny TALK logo SVG
-function TalkLogo({ size = 28, stroke = '#ffffff' }: { size?: number; stroke?: string }) {
+function TalkWordmark({ size = 28 }: { size?: number }) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 554 475" height={size} style={{ width: 'auto' }}>
-      <defs>
-        <linearGradient id="pg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#9B5CFF"/><stop offset="100%" stopColor="#6F2CFF"/>
-        </linearGradient>
-      </defs>
-      <g transform="translate(110 95)">
-        <path d="M218 62 H342 C402 62 444 105 444 165 V221 C444 281 402 324 342 324 H272 L335 380 L256 324 H218 C158 324 116 281 116 221 V165 C116 105 158 62 218 62Z" fill="none" stroke={stroke} strokeWidth="24" strokeLinejoin="round"/>
-        <path d="M248 178 H352 C375 178 392 195 392 218 V240 C392 267 371 288 344 288 H250 C222 288 202 267 202 240 V224 C202 197 221 178 248 178Z" fill="url(#pg)"/>
-        <path d="M50 0 H268 C330 0 374 44 374 106 V175 C374 237 330 281 268 281 H206 L206 333 C206 346 191 353 181 344 L113 281 H50 C20 281 0 261 0 231 V50 C0 20 20 0 50 0Z" fill={stroke}/>
-        <rect x="126" y="78" width="208" height="38" rx="19" fill="#000" opacity="0.85"/>
-        <path d="M126 154 H270 C282 154 292 164 292 176 C292 188 282 198 270 198 H225 V281 C225 293 215 303 203 303 C191 303 181 293 181 281 V198 H126 C114 198 104 188 104 176 C104 164 114 154 126 154Z" fill="#000" opacity="0.85"/>
-      </g>
-    </svg>
+    <span style={{ fontFamily: 'system-ui, -apple-system, sans-serif', fontWeight: 900, fontSize: size, lineHeight: 1, letterSpacing: '-0.03em', display: 'inline-flex', alignItems: 'baseline' }}>
+      <span style={{ color: '#E8503A' }}>TA</span>
+      <span style={{ color: 'transparent', WebkitTextStroke: `${Math.round(size * 0.08)}px #E8503A` }}>LK</span>
+    </span>
   )
 }
 
@@ -78,13 +67,8 @@ export default function BrandMockupIndex() {
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 12 }}>
-            <TalkLogo size={40} stroke="#ffffff" />
-            <span style={{ color: 'white', fontWeight: 900, fontSize: 28, letterSpacing: '-0.02em' }}>
-              T<span style={{ position: 'relative', display: 'inline-block' }}>A
-                <span style={{ position: 'absolute', width: 5, height: 5, borderRadius: '50%', background: 'linear-gradient(135deg,#9B5CFF,#6F2CFF)', bottom: 3, left: '50%', transform: 'translateX(-50%)' }} />
-              </span>LK
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+            <TalkWordmark size={48} />
           </div>
           <p style={{ color: '#555', fontSize: 14 }}>Brand color explorations · 4 directions · Click to preview full dashboard</p>
         </div>
@@ -98,8 +82,7 @@ export default function BrandMockupIndex() {
               >
                 {/* Mini nav */}
                 <div style={{ background: s.nav, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <TalkLogo size={22} stroke="#ffffff" />
-                  <span style={{ color: 'white', fontWeight: 800, fontSize: 13, letterSpacing: '-0.01em' }}>TALK</span>
+                  <TalkWordmark size={18} />
                   <div style={{ display: 'flex', gap: 3, marginLeft: 8 }}>
                     {['Home', 'Members', 'Events', 'Forums', 'Jobs'].map((item, i) => (
                       <span key={item} style={{
