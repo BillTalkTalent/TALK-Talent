@@ -194,8 +194,11 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
       <div className="px-5 flex items-center h-14 gap-1">
 
         {/* ── Logo ── */}
-        <Link href="/dashboard" className="flex items-center mr-5 shrink-0">
-          <img src="/talk-logo.svg" alt="TALK" height={34} style={{ height: 34, width: 'auto' }} />
+        <Link href="/dashboard" className="flex items-center mr-5 shrink-0" aria-label="TALK home">
+          <span style={{ fontFamily: 'var(--font-poppins), system-ui', fontWeight: 900, fontSize: '1.9rem', lineHeight: 1, letterSpacing: '-0.03em', display: 'inline-flex', alignItems: 'baseline' }}>
+            <span style={{ color: '#E8503A' }}>TA</span>
+            <span style={{ color: 'transparent', WebkitTextStroke: '2.5px #E8503A' }}>LK</span>
+          </span>
         </Link>
 
         {/* ── Main nav ── */}
