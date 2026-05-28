@@ -194,34 +194,8 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
       <div className="px-5 flex items-center h-14 gap-1">
 
         {/* ── Logo ── */}
-        <Link href="/dashboard" className="flex items-center gap-2 mr-5 shrink-0">
-          {/* Icon */}
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 554 475" height="34" style={{ width: 'auto' }} aria-hidden="true">
-            <defs>
-              <linearGradient id="purpleAccent" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#9B5CFF"/>
-                <stop offset="100%" stopColor="#6F2CFF"/>
-              </linearGradient>
-            </defs>
-            <g transform="translate(110 95)">
-              <path d="M218 62 H342 C402 62 444 105 444 165 V221 C444 281 402 324 342 324 H272 L335 380 L256 324 H218 C158 324 116 281 116 221 V165 C116 105 158 62 218 62Z"
-                fill="none" stroke="#FFFFFF" strokeWidth="24" strokeLinejoin="round"/>
-              <path d="M248 178 H352 C375 178 392 195 392 218 V240 C392 267 371 288 344 288 H250 C222 288 202 267 202 240 V224 C202 197 221 178 248 178Z"
-                fill="url(#purpleAccent)"/>
-              <path d="M50 0 H268 C330 0 374 44 374 106 V175 C374 237 330 281 268 281 H206 L206 333 C206 346 191 353 181 344 L113 281 H50 C20 281 0 261 0 231 V50 C0 20 20 0 50 0Z"
-                fill="#FFFFFF"/>
-              <rect x="126" y="78" width="208" height="38" rx="19" fill="#000000" opacity="0.92"/>
-              <path d="M126 154 H270 C282 154 292 164 292 176 C292 188 282 198 270 198 H225 V281 C225 293 215 303 203 303 C191 303 181 293 181 281 V198 H126 C114 198 104 188 104 176 C104 164 114 154 126 154Z"
-                fill="#000000" opacity="0.92"/>
-            </g>
-          </svg>
-          {/* Wordmark */}
-          <span className="font-black text-white tracking-tight" style={{ fontSize: '1.35rem', letterSpacing: '-0.01em' }}>
-            T<span className="relative inline-block">
-              A
-              <span className="absolute rounded-full" style={{ width: 6, height: 6, background: 'linear-gradient(135deg,#9B5CFF,#6F2CFF)', bottom: 3, left: '50%', transform: 'translateX(-50%)' }} />
-            </span>LK
-          </span>
+        <Link href="/dashboard" className="flex items-center mr-5 shrink-0">
+          <img src="/talk-logo.svg" alt="TALK" height={34} style={{ height: 34, width: 'auto' }} />
         </Link>
 
         {/* ── Main nav ── */}
