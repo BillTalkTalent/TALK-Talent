@@ -16,24 +16,7 @@ const C = {
   textDim: '#444',
 }
 
-function Logo({ size = 34, stroke = '#ffffff' }: { size?: number; stroke?: string }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 554 475" height={size} style={{ width: 'auto' }}>
-      <defs>
-        <linearGradient id="d-pg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#9B5CFF"/><stop offset="100%" stopColor="#6F2CFF"/>
-        </linearGradient>
-      </defs>
-      <g transform="translate(110 95)">
-        <path d="M218 62 H342 C402 62 444 105 444 165 V221 C444 281 402 324 342 324 H272 L335 380 L256 324 H218 C158 324 116 281 116 221 V165 C116 105 158 62 218 62Z" fill="none" stroke={stroke} strokeWidth="24" strokeLinejoin="round"/>
-        <path d="M248 178 H352 C375 178 392 195 392 218 V240 C392 267 371 288 344 288 H250 C222 288 202 267 202 240 V224 C202 197 221 178 248 178Z" fill="url(#d-pg)"/>
-        <path d="M50 0 H268 C330 0 374 44 374 106 V175 C374 237 330 281 268 281 H206 L206 333 C206 346 191 353 181 344 L113 281 H50 C20 281 0 261 0 231 V50 C0 20 20 0 50 0Z" fill={stroke}/>
-        <rect x="126" y="78" width="208" height="38" rx="19" fill="#000" opacity="0.9"/>
-        <path d="M126 154 H270 C282 154 292 164 292 176 C292 188 282 198 270 198 H225 V281 C225 293 215 303 203 303 C191 303 181 293 181 281 V198 H126 C114 198 104 188 104 176 C104 164 114 154 126 154Z" fill="#000" opacity="0.9"/>
-      </g>
-    </svg>
-  )
-}
+
 
 const members = [
   { name: 'Sarah Chen', title: 'VP Talent · Stripe', initials: 'SC', color: '#E8503A' },
@@ -79,12 +62,7 @@ export default function DarkMockup() {
       <header style={{ position: 'sticky', top: 0, zIndex: 50, background: `linear-gradient(90deg, ${C.navA} 0%, ${C.navB} 100%)` }}>
         <div style={{ padding: '0 20px', display: 'flex', alignItems: 'center', height: 56, gap: 4 }}>
           <Link href="/mockup/brand/dark" style={{ display: 'flex', alignItems: 'center', gap: 8, marginRight: 20, textDecoration: 'none' }}>
-            <Logo size={34} stroke="#ffffff" />
-            <span style={{ fontWeight: 900, color: 'white', fontSize: '1.35rem', letterSpacing: '-0.01em' }}>
-              T<span style={{ position: 'relative', display: 'inline-block' }}>A
-                <span style={{ position: 'absolute', width: 6, height: 6, borderRadius: '50%', background: 'linear-gradient(135deg,#9B5CFF,#6F2CFF)', bottom: 3, left: '50%', transform: 'translateX(-50%)' }} />
-              </span>LK
-            </span>
+            <img src="/talk-logo.svg" alt="TALK" style={{ height: 32, width: 'auto' }} />
           </Link>
           <nav style={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, overflowX: 'auto' }}>
             {nav.map((item, i) => (
