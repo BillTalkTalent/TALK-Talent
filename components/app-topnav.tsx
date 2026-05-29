@@ -18,7 +18,6 @@ import {
   BookOpen,
   GraduationCap,
   Bell,
-  Zap,
 } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
@@ -47,12 +46,11 @@ const mainNav = [
   { href: '/events',    label: 'Events',     icon: Calendar },
   { href: '/forum',     label: 'Forums',     icon: MessageSquare },
   { href: '/messages',  label: 'Chats',      icon: MessagesSquare },
-  { href: '/jobs',      label: 'Jobs',       icon: Briefcase },
+  { href: '/careers',   label: 'Careers',    icon: Briefcase },
   { href: '/polls',     label: 'Polls',      icon: BarChart2 },
   { href: '/chapters',  label: 'Chapters',   icon: BookOpen },
   { href: '/vendors',   label: 'Vendors',    icon: Building2 },
   { href: '/mentorship',label: 'Mentorship', icon: GraduationCap },
-  { href: '/talent',    label: 'Talent Pool',icon: Zap },
 ]
 
 
