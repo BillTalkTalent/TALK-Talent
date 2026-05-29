@@ -326,20 +326,20 @@ export default async function DashboardPage() {
       {/* Hero banner */}
       <div
         className="relative overflow-hidden rounded-2xl p-8 text-white"
-        style={{ background: "linear-gradient(135deg, #0d0d0d 0%, #1a1a2e 55%, #16213e 100%)" }}
+        style={{ background: "linear-gradient(135deg, #0F1F35 0%, #162D4A 55%, #1A3A5C 100%)" }}
       >
-        {/* Dot grid pattern */}
+        {/* Subtle dot grid */}
         <div
-          className="absolute inset-0 opacity-[0.08]"
+          className="absolute inset-0 opacity-[0.06]"
           style={{
             backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)",
             backgroundSize: "20px 20px",
           }}
         />
-        {/* Glowing orb */}
-        <div className="absolute -top-10 -right-10 size-48 rounded-full opacity-20 blur-3xl" style={{background: "radial-gradient(circle, #F07058, transparent)"}} />
+        {/* Blue glow orb */}
+        <div className="absolute -top-10 -right-10 size-48 rounded-full opacity-20 blur-3xl" style={{ background: "radial-gradient(circle, #3B82F6, transparent)" }} />
         <div className="relative">
-          <p className="text-sm font-medium text-[#F07058]/80 mb-1">
+          <p className="text-sm font-medium text-blue-300/70 mb-1">
             {new Date().toLocaleDateString("en-US", {
               weekday: "long",
               month: "long",
