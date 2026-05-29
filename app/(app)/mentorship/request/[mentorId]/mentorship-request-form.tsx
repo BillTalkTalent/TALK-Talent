@@ -71,6 +71,26 @@ export default function MentorshipRequestForm({
         }
         return;
       }
+
+      // Fetch the new request ID so we can trigger the notification
+      const { data: newRequest } = await supabase
+        .from("mentorship_requests")
+        .select("id")
+        .eq("requester_id", requesterId)
+        .eq("mentor_id", mentorId)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (newRequest?.id) {
+        fetch("/api/mentorship/notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ requestId: newRequest.id, event: "requested" }),
+        }).catch(() => {});
+      }
+
       setSuccess(true);
       setTimeout(() => router.push("/mentorship/requests"), 1600);
     });

@@ -23,6 +23,16 @@ export default function RequestActions({ requestId, isRequester = false }: Props
         .from("mentorship_requests")
         .update({ status })
         .eq("id", requestId);
+
+      // Fire notification for accepted / declined (not withdrawn — that's the requester's own action)
+      if (status === "accepted" || status === "declined") {
+        fetch("/api/mentorship/notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ requestId, event: status }),
+        }).catch(() => {});
+      }
+
       setDone(true);
       router.refresh();
     });

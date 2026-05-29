@@ -248,16 +248,24 @@ export default function MessagesPage() {
   const sendMessage = async () => {
     if (!draft.trim() || !currentUser || !activeConvId) return;
     setSending(true);
+    const content = draft.trim();
 
     await supabase.from("dm_messages").insert({
       conversation_id: activeConvId,
       sender_id: currentUser.id,
-      content: draft.trim(),
+      content,
       is_read: false,
     });
 
     setDraft("");
     setSending(false);
+
+    // Fire-and-forget: email + in-app notification for the recipient
+    fetch("/api/dm/notify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ conversationId: activeConvId, messageContent: content }),
+    }).catch(() => {});
 
     // Refresh conversation list
     const refreshed = await loadConversations(currentUser.id);
