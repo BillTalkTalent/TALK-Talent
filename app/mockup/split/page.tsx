@@ -250,7 +250,7 @@ export default function SplitMockup() {
               style={{ background: 'linear-gradient(135deg, #E8503A, #F07058)', color: '#0d0d0d', boxShadow: '0 8px 40px rgba(0,212,170,0.25)' }}>
               Apply for membership <ArrowRight className="size-4" />
             </Link>
-            <p className="mt-5 text-xs text-zinc-400">Membership is free during our launch period.</p>
+            <p className="mt-5 text-xs text-zinc-400">Membership is always free for the TA community.</p>
           </div>
         </div>
       </section>

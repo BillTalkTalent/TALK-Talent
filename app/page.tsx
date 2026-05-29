@@ -275,7 +275,7 @@ export default function LandingPage() {
           >
             Apply for membership <ArrowRight className="size-4" />
           </Link>
-          <p className="mt-5 text-xs text-white/40">Membership is free during our launch period.</p>
+          <p className="mt-5 text-xs text-white/40">Membership is always free for the TA community.</p>
         </div>
       </section>
 

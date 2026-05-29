@@ -106,7 +106,7 @@ export default function SignupPage() {
         </div>
 
         <p className="text-sm text-white/35">
-          Membership is free during our launch period.
+          Membership is always free for the TA community.
         </p>
       </div>
 
