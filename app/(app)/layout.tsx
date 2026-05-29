@@ -35,7 +35,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-slate-50">
+    <div className="flex flex-col h-screen overflow-hidden" style={{ background: '#F5F8FC' }}>
       <AppTopNav profile={profile} />
       <main className="flex-1 overflow-y-auto">
         {children}

@@ -83,33 +83,14 @@ export default function SignupPage() {
       {/* Left panel — hidden on mobile */}
       <div
         className="hidden md:flex md:w-2/5 flex-col justify-between p-12"
-        style={{ background: 'linear-gradient(160deg, #0d0d0d 0%, #1a1a2e 55%, #16213e 100%)' }}
+        style={{ background: 'linear-gradient(160deg, #0F1F35 0%, #162D4A 55%, #1A3A5C 100%)' }}
       >
         {/* Logo */}
         <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-3">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 554 475" height="46" style={{ width: 'auto' }} aria-hidden="true">
-              <defs>
-                <linearGradient id="signup-grad" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#9B5CFF"/>
-                  <stop offset="100%" stopColor="#6F2CFF"/>
-                </linearGradient>
-              </defs>
-              <g transform="translate(110 95)">
-                <path d="M218 62 H342 C402 62 444 105 444 165 V221 C444 281 402 324 342 324 H272 L335 380 L256 324 H218 C158 324 116 281 116 221 V165 C116 105 158 62 218 62Z" fill="none" stroke="#FFFFFF" strokeWidth="24" strokeLinejoin="round"/>
-                <path d="M248 178 H352 C375 178 392 195 392 218 V240 C392 267 371 288 344 288 H250 C222 288 202 267 202 240 V224 C202 197 221 178 248 178Z" fill="url(#signup-grad)"/>
-                <path d="M50 0 H268 C330 0 374 44 374 106 V175 C374 237 330 281 268 281 H206 L206 333 C206 346 191 353 181 344 L113 281 H50 C20 281 0 261 0 231 V50 C0 20 20 0 50 0Z" fill="#FFFFFF"/>
-                <rect x="126" y="78" width="208" height="38" rx="19" fill="#000000" opacity="0.92"/>
-                <path d="M126 154 H270 C282 154 292 164 292 176 C292 188 282 198 270 198 H225 V281 C225 293 215 303 203 303 C191 303 181 293 181 281 V198 H126 C114 198 104 188 104 176 C104 164 114 154 126 154Z" fill="#000000" opacity="0.92"/>
-              </g>
-            </svg>
-            <span className="font-black text-white tracking-tight" style={{ fontSize: '2.75rem', letterSpacing: '-0.02em' }}>
-              T<span className="relative inline-block">
-                A
-                <span className="absolute rounded-full" style={{ width: 8, height: 8, background: 'linear-gradient(135deg,#9B5CFF,#6F2CFF)', bottom: 4, left: '50%', transform: 'translateX(-50%)' }} />
-              </span>LK
-            </span>
-          </div>
+          <span style={{ fontFamily: 'var(--font-poppins), system-ui', fontWeight: 900, fontSize: '2.75rem', lineHeight: 1, letterSpacing: '-0.03em', display: 'inline-flex', alignItems: 'baseline' }}>
+            <span style={{ color: '#E8503A' }}>TA</span>
+            <span style={{ color: 'white' }}>LK</span>
+          </span>
           <p className="text-sm text-white/50 font-medium">
             The private community for TA leaders.
           </p>
@@ -118,7 +99,7 @@ export default function SignupPage() {
         <div className="flex flex-col gap-5">
           {benefits.map((benefit) => (
             <div key={benefit} className="flex items-center gap-3">
-              <CheckCircle2 className="size-5 shrink-0 text-[#F07058]" />
+              <CheckCircle2 className="size-5 shrink-0" style={{ color: '#93C5FD' }} />
               <span className="text-base text-white/90">{benefit}</span>
             </div>
           ))}
@@ -130,38 +111,14 @@ export default function SignupPage() {
       </div>
 
       {/* Right panel */}
-      <div className="flex flex-1 items-center justify-center bg-[#f5fffe] p-8">
+      <div className="flex flex-1 items-center justify-center p-8" style={{ background: '#F5F8FC' }}>
         <div className="w-full max-w-sm space-y-8">
           {/* Mobile logo */}
           <div className="md:hidden flex flex-col items-center gap-2">
-            <div className="flex items-center gap-2.5">
-              <div
-                className="size-9 rounded-xl flex items-center justify-center shrink-0"
-                style={{ background: 'linear-gradient(135deg, #0d0d0d, #1a1a2e)' }}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 554 475" height="22" style={{ width: 'auto' }} aria-hidden="true">
-                  <defs>
-                    <linearGradient id="signup-mob-grad" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%" stopColor="#9B5CFF"/>
-                      <stop offset="100%" stopColor="#6F2CFF"/>
-                    </linearGradient>
-                  </defs>
-                  <g transform="translate(110 95)">
-                    <path d="M218 62 H342 C402 62 444 105 444 165 V221 C444 281 402 324 342 324 H272 L335 380 L256 324 H218 C158 324 116 281 116 221 V165 C116 105 158 62 218 62Z" fill="none" stroke="#FFFFFF" strokeWidth="24" strokeLinejoin="round"/>
-                    <path d="M248 178 H352 C375 178 392 195 392 218 V240 C392 267 371 288 344 288 H250 C222 288 202 267 202 240 V224 C202 197 221 178 248 178Z" fill="url(#signup-mob-grad)"/>
-                    <path d="M50 0 H268 C330 0 374 44 374 106 V175 C374 237 330 281 268 281 H206 L206 333 C206 346 191 353 181 344 L113 281 H50 C20 281 0 261 0 231 V50 C0 20 20 0 50 0Z" fill="#FFFFFF"/>
-                    <rect x="126" y="78" width="208" height="38" rx="19" fill="#000000" opacity="0.92"/>
-                    <path d="M126 154 H270 C282 154 292 164 292 176 C292 188 282 198 270 198 H225 V281 C225 293 215 303 203 303 C191 303 181 293 181 281 V198 H126 C114 198 104 188 104 176 C104 164 114 154 126 154Z" fill="#000000" opacity="0.92"/>
-                  </g>
-                </svg>
-              </div>
-              <span className="font-black text-[#0d0d0d] tracking-tight" style={{ fontSize: '1.75rem', letterSpacing: '-0.02em' }}>
-                T<span className="relative inline-block">
-                  A
-                  <span className="absolute rounded-full" style={{ width: 6, height: 6, background: 'linear-gradient(135deg,#9B5CFF,#6F2CFF)', bottom: 2, left: '50%', transform: 'translateX(-50%)' }} />
-                </span>LK
-              </span>
-            </div>
+            <span style={{ fontFamily: 'var(--font-poppins), system-ui', fontWeight: 900, fontSize: '1.75rem', lineHeight: 1, letterSpacing: '-0.03em', display: 'inline-flex', alignItems: 'baseline' }}>
+              <span style={{ color: '#E8503A' }}>TA</span>
+              <span style={{ color: '#0F1F35' }}>LK</span>
+            </span>
             <p className="text-xs text-zinc-400 font-medium">The private community for TA leaders.</p>
           </div>
 
@@ -169,8 +126,8 @@ export default function SignupPage() {
             <div className="space-y-4">
               {/* Header */}
               <div className="text-center space-y-2">
-                <div className="size-14 rounded-2xl bg-[#F07058]/15 border border-[#F07058]/30 flex items-center justify-center mx-auto">
-                  <CheckCircle2 className="size-8 text-[#E8503A]" />
+                <div className="size-14 rounded-2xl bg-[#1E4B82]/10 border border-[#1E4B82]/25 flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="size-8 text-[#1E4B82]" />
                 </div>
                 <h2 className="text-2xl font-bold text-zinc-900">Application submitted!</h2>
                 <p className="text-sm text-zinc-500">
@@ -179,9 +136,9 @@ export default function SignupPage() {
               </div>
 
               {/* 24-hour promise — prominent */}
-              <div className="rounded-xl bg-[#F07058]/10 border border-[#F07058]/25 px-4 py-3 flex items-center gap-3">
+              <div className="rounded-xl bg-[#1E4B82]/08 border border-[#1E4B82]/20 px-4 py-3 flex items-center gap-3">
                 <span className="text-xl shrink-0">⏱</span>
-                <p className="text-sm font-semibold text-[#007a60]">
+                <p className="text-sm font-semibold text-[#1E4B82]">
                   We review every application within <span className="underline decoration-dotted">24 hours</span> — you&apos;ll hear from us by email.
                 </p>
               </div>
@@ -195,7 +152,7 @@ export default function SignupPage() {
                   { n: '3', text: 'Full access to the TALK community, immediately' },
                 ].map(({ n, text }) => (
                   <div key={n} className="flex items-start gap-2.5">
-                    <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-[#F07058]/20 text-[9px] font-black text-[#E8503A]">{n}</span>
+                    <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-[#1E4B82]/15 text-[9px] font-black text-[#1E4B82]">{n}</span>
                     <p className="text-xs text-zinc-500 leading-relaxed">{text}</p>
                   </div>
                 ))}
@@ -203,7 +160,7 @@ export default function SignupPage() {
 
               <p className="text-xs text-zinc-400 text-center">
                 Check your spam folder if you don&apos;t see our email. Questions?{' '}
-                <a href="mailto:hello@talktalent.com" className="text-[#E8503A] hover:underline font-semibold">hello@talktalent.com</a>
+                <a href="mailto:hello@talktalent.com" className="text-[#1E4B82] hover:underline font-semibold">hello@talktalent.com</a>
               </p>
             </div>
           ) : (
@@ -261,7 +218,7 @@ export default function SignupPage() {
                 <Button
                   type="submit"
                   className="w-full text-white font-semibold"
-                  style={{ background: 'linear-gradient(90deg, #E8503A, #F07058)' }}
+                  style={{ background: '#E8503A' }}
                   size="lg"
                   disabled={loading}
                 >
@@ -271,7 +228,7 @@ export default function SignupPage() {
 
               <p className="text-sm text-zinc-500 text-center">
                 Already have an account?{' '}
-                <Link href="/login" className="font-semibold text-[#E8503A] hover:underline">
+                <Link href="/login" className="font-semibold text-[#1E4B82] hover:underline">
                   Sign in
                 </Link>
               </p>

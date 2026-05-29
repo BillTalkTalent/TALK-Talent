@@ -189,7 +189,7 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
   return (
     <header
       className="sticky top-0 z-50"
-      style={{ background: 'linear-gradient(90deg, #0d0d0d 0%, #1a1a2e 100%)' }}
+      style={{ background: 'linear-gradient(90deg, #0F1F35 0%, #162D4A 100%)' }}
     >
       <div className="px-5 flex items-center h-14 gap-1">
 
@@ -213,7 +213,7 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
                 className={cn(
                   'relative flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all',
                   active
-                    ? 'bg-[#F07058] text-[#0d0d0d] font-semibold'
+                    ? 'bg-[#1E4B82] text-white font-semibold'
                     : 'text-white/60 hover:bg-white/10 hover:text-white'
                 )}
               >
@@ -240,7 +240,7 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
               className={cn(
                 'relative flex items-center justify-center size-9 rounded-lg transition-all',
                 notifOpen
-                  ? 'bg-[#F07058] text-[#0d0d0d]'
+                  ? 'bg-[#1E4B82] text-white'
                   : 'text-white/60 hover:bg-white/10 hover:text-white'
               )}
             >
@@ -257,7 +257,7 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
                 <div className="px-4 py-3 border-b border-zinc-100 flex items-center justify-between">
                   <span className="text-sm font-bold text-zinc-900">Notifications</span>
                   {notifications.some(n => !n.is_read) && (
-                    <span className="text-xs text-[#E8503A] font-semibold">Marked as read</span>
+                    <span className="text-xs text-[#1E4B82] font-semibold">Marked as read</span>
                   )}
                 </div>
                 <div className="max-h-80 overflow-y-auto">
@@ -278,7 +278,7 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
                       >
                         <div className="flex items-start gap-2.5">
                           {!n.is_read && (
-                            <span className="mt-1.5 size-1.5 rounded-full bg-[#F07058] shrink-0" />
+                            <span className="mt-1.5 size-1.5 rounded-full bg-[#2563EB] shrink-0" />
                           )}
                           <div className={cn('flex-1 min-w-0', n.is_read && 'ml-4')}>
                             <p className="text-sm font-semibold text-zinc-900 truncate">{n.title}</p>
@@ -307,7 +307,7 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
               className={cn(
                 'flex items-center justify-center size-9 rounded-lg transition-all',
                 pathname.startsWith('/admin')
-                  ? 'bg-white/25 text-white'
+                  ? 'bg-[#1E4B82] text-white'
                   : 'text-white/60 hover:bg-white/15 hover:text-white'
               )}
             >
@@ -321,13 +321,13 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
           {/* Profile dropdown */}
           <div className="relative group/profile">
             <button className="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-white/15 transition-colors">
-              <Avatar className="size-7 ring-2 ring-[#F07058]/60 shrink-0">
+              <Avatar className="size-7 ring-2 ring-[#3B82F6]/60 shrink-0">
                 {profile.avatar_url && (
                   <AvatarImage src={profile.avatar_url} alt={profile.full_name ?? ''} />
                 )}
                 <AvatarFallback
                   className="text-xs font-bold"
-                  style={{ background: 'linear-gradient(135deg, #E8503A, #F07058)', color: '#0d0d0d' }}
+                  style={{ background: 'linear-gradient(135deg, #1E4B82, #2563EB)', color: 'white' }}
                 >
                   {profile.full_name?.[0]?.toUpperCase() ?? '?'}
                 </AvatarFallback>
