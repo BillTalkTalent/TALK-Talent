@@ -20,6 +20,8 @@ interface ForumFeedProps {
   chapterTopics: FeedTopic[];
   trendingTopics: FeedTopic[];
   hasChapters: boolean;
+  /** Compact mode: shorter rows, no author/meta, for use in dashboard grid */
+  compact?: boolean;
 }
 
 function AuthorAvatar({ author }: { author: FeedTopic["author"] }) {
@@ -42,7 +44,7 @@ function AuthorAvatar({ author }: { author: FeedTopic["author"] }) {
   );
 }
 
-export default function ForumFeed({ chapterTopics, trendingTopics, hasChapters }: ForumFeedProps) {
+export default function ForumFeed({ chapterTopics, trendingTopics, hasChapters, compact = false }: ForumFeedProps) {
   const [tab, setTab] = useState<"chapters" | "trending">(
     hasChapters && chapterTopics.length > 0 ? "chapters" : "trending"
   );
@@ -123,19 +125,22 @@ export default function ForumFeed({ chapterTopics, trendingTopics, hasChapters }
         </div>
       )}
 
-      {/* Compact topic list */}
+      {/* Topic list */}
       {topics.length > 0 && (
         <ul className="divide-y divide-zinc-50">
           {topics.map((topic, i) => (
             <li key={topic.id}>
               <Link
                 href={`/forum/${topic.category?.slug}/${topic.id}`}
-                className="flex items-center gap-3 px-4 py-2.5 hover:bg-zinc-50 transition-colors group"
+                className={cn(
+                  "flex items-center gap-3 px-4 hover:bg-zinc-50 transition-colors group",
+                  compact ? "py-2" : "py-2.5"
+                )}
               >
-                {/* Hot rank badge */}
+                {/* Rank */}
                 {tab === "trending" && (
                   <span className={cn(
-                    "shrink-0 w-5 text-center text-[10px] font-black",
+                    "shrink-0 w-4 text-center text-[10px] font-black",
                     i === 0 ? "text-amber-500" :
                     i === 1 ? "text-zinc-400" :
                     i === 2 ? "text-orange-400" :
@@ -145,42 +150,48 @@ export default function ForumFeed({ chapterTopics, trendingTopics, hasChapters }
                   </span>
                 )}
 
-                {/* Author avatar */}
-                <AuthorAvatar author={topic.author} />
+                {/* Author avatar — hidden in compact mode */}
+                {!compact && <AuthorAvatar author={topic.author} />}
 
                 {/* Content */}
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-zinc-800 group-hover:text-[#8b5cf6] transition-colors leading-snug line-clamp-1">
+                  <p className={cn(
+                    "font-medium text-zinc-800 group-hover:text-[#1E4B82] transition-colors leading-snug line-clamp-1",
+                    compact ? "text-xs" : "text-sm"
+                  )}>
                     {topic.title}
                   </p>
-                  <div className="flex items-center gap-2 mt-0.5 text-[11px] text-zinc-400">
-                    <span className="truncate max-w-[100px]">{topic.author?.full_name ?? "Unknown"}</span>
-                    {topic.category && (
-                      <>
-                        <span>·</span>
-                        <span className="text-[#8b5cf6] font-medium truncate">{topic.category.name}</span>
-                      </>
-                    )}
-                    <span>·</span>
-                    <span>{formatDistanceToNow(new Date(topic.created_at), { addSuffix: true })}</span>
-                  </div>
+                  {!compact && (
+                    <div className="flex items-center gap-2 mt-0.5 text-[11px] text-zinc-400">
+                      <span className="truncate max-w-[100px]">{topic.author?.full_name ?? "Unknown"}</span>
+                      {topic.category && (
+                        <>
+                          <span>·</span>
+                          <span className="text-[#8b5cf6] font-medium truncate">{topic.category.name}</span>
+                        </>
+                      )}
+                      <span>·</span>
+                      <span>{formatDistanceToNow(new Date(topic.created_at), { addSuffix: true })}</span>
+                    </div>
+                  )}
+                  {compact && topic.category && (
+                    <p className="text-[10px] text-zinc-400 mt-0.5 truncate">{topic.category.name}</p>
+                  )}
                 </div>
 
-                {/* Stats */}
-                <div className="flex items-center gap-3 shrink-0 text-[11px] text-zinc-400">
-                  {topic.replyCount > 0 && (
-                    <span className="flex items-center gap-1 text-[#8b5cf6] font-semibold">
-                      <MessageSquare className="size-3" />
-                      {topic.replyCount}
-                    </span>
-                  )}
-                  {topic.views > 0 && (
-                    <span className="flex items-center gap-1">
-                      <Eye className="size-3" />
-                      {topic.views}
-                    </span>
-                  )}
-                </div>
+                {/* Reply count */}
+                {topic.replyCount > 0 && (
+                  <span className="flex items-center gap-1 shrink-0 text-[11px] text-zinc-400 font-medium">
+                    <MessageSquare className="size-3" />
+                    {topic.replyCount}
+                  </span>
+                )}
+                {!compact && topic.views > 0 && (
+                  <span className="flex items-center gap-1 shrink-0 text-[11px] text-zinc-400">
+                    <Eye className="size-3" />
+                    {topic.views}
+                  </span>
+                )}
               </Link>
             </li>
           ))}
