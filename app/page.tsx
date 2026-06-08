@@ -79,9 +79,26 @@ export default function LandingPage() {
             </span>
           </h1>
 
-          <p className="text-lg sm:text-xl text-white/70 max-w-2xl mx-auto mb-10 leading-relaxed">
+          <p className="text-lg sm:text-xl text-white/70 max-w-2xl mx-auto mb-8 leading-relaxed">
             TALK is a curated, invite-only network where talent acquisition leaders connect, learn, and grow together — away from the noise.
           </p>
+
+          {/* Membership stats */}
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 mb-10">
+            <div className="flex items-center gap-2">
+              <Users className="size-4" style={{ color: '#93C5FD' }} />
+              <span className="text-sm text-white/80">
+                <span className="font-black text-white">13,000+</span> members across North America
+              </span>
+            </div>
+            <span className="hidden sm:inline text-white/20">·</span>
+            <div className="flex items-center gap-2">
+              <Globe className="size-4" style={{ color: '#93C5FD' }} />
+              <span className="text-sm text-white/80">
+                <span className="font-black text-white">Growing</span> global chapters
+              </span>
+            </div>
+          </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
