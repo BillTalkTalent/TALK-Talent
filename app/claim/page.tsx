@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -22,13 +21,13 @@ export default function ClaimAccountPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
-    const supabase = createClient()
-    const origin = window.location.origin
-    // Members were imported with confirmed emails but no password.
-    // A recovery link lets them set a password and land logged-in.
-    await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${origin}/auth/reset-password?claim=1`,
-    })
+    // Send the claim email through Resend (server route generates the recovery
+    // link and emails it — no Supabase rate limit, branded template).
+    await fetch('/api/auth/claim', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    }).catch(() => {})
     // Always show success — never reveal whether an email is registered
     setSent(true)
     setLoading(false)

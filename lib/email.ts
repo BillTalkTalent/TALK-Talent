@@ -83,6 +83,24 @@ export function buildDmEmail(opts: {
   `)
 }
 
+export function buildClaimEmail(opts: {
+  toFirstName: string
+  claimUrl: string
+}): string {
+  return emailShell(`
+    <p style="margin:0 0 6px;font-size:22px;font-weight:800;color:#0F1F35;">Welcome to the new TALK 👋</p>
+    <p style="margin:0 0 20px;font-size:15px;color:#5A7090;line-height:1.6;">
+      Hi ${opts.toFirstName}, the TALK community has a brand-new home — and your account is
+      ready. Click below to set your password and get in. Your profile, posts, and history
+      have all moved with you.
+    </p>
+    ${ctaButton('Claim your account', opts.claimUrl)}
+    <p style="margin:18px 0 0;font-size:13px;color:#A0AEC0;line-height:1.6;">
+      This link is valid for 24 hours. If you didn't request it, you can safely ignore this email.
+    </p>
+  `)
+}
+
 export function buildMentorshipRequestEmail(opts: {
   toFirstName: string   // mentor's first name
   requesterName: string
