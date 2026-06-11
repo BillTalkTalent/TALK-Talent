@@ -23,10 +23,10 @@ export default function ClaimAccountPage() {
     setLoading(true)
     // Send the claim email through Resend (server route generates the recovery
     // link and emails it — no Supabase rate limit, branded template).
-    await fetch('/api/auth/claim', {
+    await fetch('/api/auth/recovery', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, mode: 'claim' }),
     }).catch(() => {})
     // Always show success — never reveal whether an email is registered
     setSent(true)
