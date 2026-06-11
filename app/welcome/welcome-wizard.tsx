@@ -106,13 +106,13 @@ export default function WelcomeWizard({ profile, chapters }: Props) {
     setSelectedChapters(prev => prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id])
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(135deg, #0d0d0d 0%, #1a1a2e 100%)' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(135deg, #0F1F35 0%, #162D4A 100%)' }}>
 
       {/* Progress bar */}
       <div className="h-1 bg-white/10">
         <div
           className="h-1 transition-all duration-500"
-          style={{ width: `${(step / 3) * 100}%`, background: 'linear-gradient(90deg, #E8503A, #F07058)' }}
+          style={{ width: `${(step / 3) * 100}%`, background: '#2563EB' }}
         />
       </div>
 
@@ -121,13 +121,13 @@ export default function WelcomeWizard({ profile, chapters }: Props) {
         {[1, 2, 3].map(s => (
           <div key={s} className="flex items-center gap-3">
             <div className={`size-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-              s < step ? 'bg-[#F07058] text-[#0d0d0d]' :
-              s === step ? 'bg-white text-[#0d0d0d]' :
+              s < step ? 'bg-[#2563EB] text-white' :
+              s === step ? 'bg-white text-white' :
               'bg-white/10 text-white/30'
             }`}>
               {s < step ? <CheckCircle2 className="size-4" /> : s}
             </div>
-            {s < 3 && <div className={`h-px w-10 transition-all ${s < step ? 'bg-[#F07058]' : 'bg-white/10'}`} />}
+            {s < 3 && <div className={`h-px w-10 transition-all ${s < step ? 'bg-[#2563EB]' : 'bg-white/10'}`} />}
           </div>
         ))}
       </div>
@@ -140,7 +140,7 @@ export default function WelcomeWizard({ profile, chapters }: Props) {
           {step === 1 && (
             <div className="space-y-6">
               <div className="text-center mb-8">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F07058]/10 border border-[#F07058]/20 text-[#F07058] text-xs font-bold mb-4">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#2563EB]/10 border border-[#2563EB]/20 text-[#2563EB] text-xs font-bold mb-4">
                   <Sparkles className="size-3" /> You&apos;re in!
                 </div>
                 <h1 className="text-3xl font-black text-white mb-2">Welcome to TALK, {firstName}!</h1>
@@ -150,16 +150,16 @@ export default function WelcomeWizard({ profile, chapters }: Props) {
               {/* Avatar upload */}
               <div className="flex flex-col items-center gap-3 mb-2">
                 <div className="relative">
-                  <Avatar className="size-20 ring-2 ring-[#F07058]/40">
+                  <Avatar className="size-20 ring-2 ring-[#2563EB]/40">
                     {avatarUrl && <AvatarImage src={avatarUrl} />}
-                    <AvatarFallback style={{ background: 'linear-gradient(135deg,#E8503A,#F07058)', color: '#0d0d0d' }}
+                    <AvatarFallback style={{ background: '#E8503A', color: 'white' }}
                       className="text-2xl font-black">
                       {fullName?.[0]?.toUpperCase() ?? '?'}
                     </AvatarFallback>
                   </Avatar>
                   <label className="absolute -bottom-1 -right-1 size-7 rounded-full flex items-center justify-center cursor-pointer transition-all hover:scale-110"
-                    style={{ background: 'linear-gradient(135deg,#E8503A,#F07058)' }}>
-                    {uploading ? <Loader2 className="size-3.5 text-[#0d0d0d] animate-spin" /> : <Camera className="size-3.5 text-[#0d0d0d]" />}
+                    style={{ background: '#E8503A' }}>
+                    {uploading ? <Loader2 className="size-3.5 text-white animate-spin" /> : <Camera className="size-3.5 text-white" />}
                     <input type="file" accept="image/*" className="sr-only" onChange={handleAvatarUpload} />
                   </label>
                 </div>
@@ -172,20 +172,20 @@ export default function WelcomeWizard({ profile, chapters }: Props) {
                   <Label className="text-xs font-semibold text-white/50">Full name</Label>
                   <Input value={fullName} onChange={e => setFullName(e.target.value)}
                     placeholder="Jane Smith"
-                    className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-[#F07058]/50" />
+                    className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-[#2563EB]/50" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-semibold text-white/50">Job title</Label>
                     <Input value={title} onChange={e => setTitle(e.target.value)}
                       placeholder="Head of Talent"
-                      className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-[#F07058]/50" />
+                      className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-[#2563EB]/50" />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs font-semibold text-white/50">Company</Label>
                     <Input value={company} onChange={e => setCompany(e.target.value)}
                       placeholder="Acme Corp"
-                      className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-[#F07058]/50" />
+                      className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-[#2563EB]/50" />
                   </div>
                 </div>
                 <div className="space-y-1.5">
@@ -195,7 +195,7 @@ export default function WelcomeWizard({ profile, chapters }: Props) {
                   <Input value={bio} onChange={e => setBio(e.target.value)}
                     placeholder="Building talent teams at fast-growing startups"
                     maxLength={160}
-                    className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-[#F07058]/50" />
+                    className="bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-[#2563EB]/50" />
                   {bio.length > 120 && (
                     <p className="text-xs text-right" style={{ color: bio.length >= 160 ? '#f87171' : 'rgba(255,255,255,0.3)' }}>
                       {160 - bio.length} characters left
@@ -208,7 +208,7 @@ export default function WelcomeWizard({ profile, chapters }: Props) {
                     <select
                       value={taLevel}
                       onChange={e => setTaLevel(e.target.value)}
-                      className="w-full border border-white/10 bg-white/5 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#F07058]/50 transition-colors"
+                      className="w-full border border-white/10 bg-white/5 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#2563EB]/50 transition-colors"
                     >
                       <option value="" disabled>Select level…</option>
                       <option value="coordinator">Coordinator</option>
@@ -223,7 +223,7 @@ export default function WelcomeWizard({ profile, chapters }: Props) {
                     <select
                       value={companySize}
                       onChange={e => setCompanySize(e.target.value)}
-                      className="w-full border border-white/10 bg-white/5 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#F07058]/50 transition-colors"
+                      className="w-full border border-white/10 bg-white/5 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#2563EB]/50 transition-colors"
                     >
                       <option value="" disabled>Select size…</option>
                       <option value="self_employed">Self-employed</option>
@@ -242,7 +242,7 @@ export default function WelcomeWizard({ profile, chapters }: Props) {
                     <select
                       value={industry}
                       onChange={e => setIndustry(e.target.value)}
-                      className="w-full border border-white/10 bg-white/5 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#F07058]/50 transition-colors"
+                      className="w-full border border-white/10 bg-white/5 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#2563EB]/50 transition-colors"
                     >
                       <option value="" disabled>Select industry…</option>
                       {["Agriculture","Arts & Media","Business Services","Civic/Government/Military","Construction & Architecture","Consumer Goods & Services","Education","Energy & Utilities","Entertainment","Finance & Insurance","Healthcare","Hospitality","Legal","Manufacturing","Non-Profit","Real Estate","Technology","Telecom","Transportation & Logistics"].map(i => (
@@ -256,8 +256,8 @@ export default function WelcomeWizard({ profile, chapters }: Props) {
               <button
                 onClick={saveStep1}
                 disabled={loading || !fullName.trim()}
-                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold text-[#0d0d0d] disabled:opacity-50 transition-all hover:opacity-90"
-                style={{ background: 'linear-gradient(135deg, #E8503A, #F07058)' }}
+                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold text-white disabled:opacity-50 transition-all hover:opacity-90"
+                style={{ background: '#E8503A' }}
               >
                 {loading ? <Loader2 className="size-4 animate-spin" /> : <>Continue <ArrowRight className="size-4" /></>}
               </button>
@@ -269,7 +269,7 @@ export default function WelcomeWizard({ profile, chapters }: Props) {
             <div className="space-y-6">
               <div className="text-center mb-8">
                 <div className="size-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(0,212,170,0.15)' }}>
-                  <Users className="size-7 text-[#F07058]" />
+                  <Users className="size-7 text-[#2563EB]" />
                 </div>
                 <h1 className="text-3xl font-black text-white mb-2">Join your chapters</h1>
                 <p className="text-white/50 text-base">Chapters are sub-groups within TALK. Pick the ones that match your focus area.</p>
@@ -285,14 +285,14 @@ export default function WelcomeWizard({ profile, chapters }: Props) {
                       onClick={() => toggleChapter(chapter.id)}
                       className={`flex items-center gap-4 p-4 rounded-2xl border text-left transition-all ${
                         selected
-                          ? 'border-[#F07058]/50 bg-[#F07058]/10'
+                          ? 'border-[#2563EB]/50 bg-[#2563EB]/10'
                           : 'border-white/10 bg-white/5 hover:bg-white/8 hover:border-white/20'
                       }`}
                     >
                       <div className={`size-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-                        selected ? 'border-[#F07058] bg-[#F07058]' : 'border-white/20'
+                        selected ? 'border-[#2563EB] bg-[#2563EB]' : 'border-white/20'
                       }`}>
-                        {selected && <CheckCircle2 className="size-3 text-[#0d0d0d]" />}
+                        {selected && <CheckCircle2 className="size-3 text-white" />}
                       </div>
                       <div>
                         <p className={`font-semibold text-sm ${selected ? 'text-white' : 'text-white/70'}`}>{chapter.name}</p>
@@ -321,8 +321,8 @@ export default function WelcomeWizard({ profile, chapters }: Props) {
                 <button
                   onClick={saveStep2}
                   disabled={loading}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-[#0d0d0d] disabled:opacity-50 transition-all hover:opacity-90"
-                  style={{ background: 'linear-gradient(135deg, #E8503A, #F07058)' }}
+                  className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-white disabled:opacity-50 transition-all hover:opacity-90"
+                  style={{ background: '#E8503A' }}
                 >
                   {loading ? <Loader2 className="size-4 animate-spin" /> : <>Continue <ArrowRight className="size-4" /></>}
                 </button>
@@ -354,7 +354,7 @@ export default function WelcomeWizard({ profile, chapters }: Props) {
                   },
                   {
                     icon: Users,
-                    color: '#F07058',
+                    color: '#2563EB',
                     title: 'Browse the member directory',
                     desc: 'See who\'s in TALK and find people worth connecting with.',
                     action: finish,

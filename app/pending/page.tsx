@@ -44,10 +44,10 @@ export default function PendingPage() {
     return (
       <div
         className="min-h-screen flex items-center justify-center"
-        style={{ background: 'linear-gradient(135deg, #0d0d0d 0%, #1a1a2e 100%)' }}
+        style={{ background: 'linear-gradient(135deg, #0F1F35 0%, #162D4A 100%)' }}
       >
         <div className="flex flex-col items-center gap-3">
-          <div className="size-8 rounded-full border-2 border-[#F07058]/30 border-t-[#F07058] animate-spin" />
+          <div className="size-8 rounded-full border-2 border-[#93C5FD]/30 border-t-[#93C5FD] animate-spin" />
           <p className="text-white/40 text-sm">Loading…</p>
         </div>
       </div>
@@ -59,16 +59,14 @@ export default function PendingPage() {
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-center p-6"
-      style={{ background: 'linear-gradient(135deg, #0d0d0d 0%, #1a1a2e 50%, #16213e 100%)' }}
+      style={{ background: 'linear-gradient(135deg, #0F1F35 0%, #162D4A 55%, #1A3A5C 100%)' }}
     >
       {/* Logo */}
-      <div className="flex items-center gap-3 mb-12">
-        <svg width="40" height="40" viewBox="0 0 34 34" fill="none">
-          <rect width="34" height="34" rx="9" fill="#F07058" />
-          <rect x="8" y="12" width="18" height="3" rx="1.5" fill="white" />
-          <rect x="8" y="18.5" width="13" height="3" rx="1.5" fill="white" />
-        </svg>
-        <span className="text-3xl font-black tracking-tight text-white">TALK</span>
+      <div className="mb-12">
+        <span style={{ fontFamily: 'var(--font-poppins), system-ui', fontWeight: 900, fontSize: '2.25rem', lineHeight: 1, letterSpacing: '-0.03em', display: 'inline-flex', alignItems: 'baseline' }}>
+          <span style={{ color: '#E8503A' }}>TA</span>
+          <span style={{ color: 'white' }}>LK</span>
+        </span>
       </div>
 
       <div className="w-full max-w-md">
@@ -108,17 +106,17 @@ export default function PendingPage() {
           /* Pending state */
           <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8 text-center space-y-6">
             {/* Animated clock icon */}
-            <div className="size-16 rounded-2xl bg-[#F07058]/10 border border-[#F07058]/20 flex items-center justify-center mx-auto">
-              <Clock className="size-8 text-[#F07058]" />
+            <div className="size-16 rounded-2xl bg-[#93C5FD]/10 border border-[#93C5FD]/20 flex items-center justify-center mx-auto">
+              <Clock className="size-8 text-[#93C5FD]" />
             </div>
 
             <div className="space-y-3">
               <h2 className="text-2xl font-bold text-white">
                 {profile?.full_name ? `Hi ${profile.full_name.split(' ')[0]}, you're in the queue!` : 'Application received!'}
               </h2>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F07058]/15 border border-[#F07058]/25">
-                <span className="size-1.5 rounded-full bg-[#F07058] animate-pulse shrink-0" />
-                <span className="text-sm font-bold text-[#F07058]">We&apos;ll review and approve within 24 hours</span>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#93C5FD]/15 border border-[#93C5FD]/25">
+                <span className="size-1.5 rounded-full bg-[#93C5FD] animate-pulse shrink-0" />
+                <span className="text-sm font-bold text-[#93C5FD]">We&apos;ll review and approve within 24 hours</span>
               </div>
               <p className="text-white/50 text-sm leading-relaxed">
                 You&apos;ll receive an email with a one-click login link as soon as you&apos;re approved.
@@ -148,7 +146,7 @@ export default function PendingPage() {
                 'Access to the full TALK community immediately',
               ].map((step, i) => (
                 <div key={i} className="flex items-start gap-2.5">
-                  <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-[#F07058]/20 text-[9px] font-black text-[#F07058]">
+                  <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-[#93C5FD]/20 text-[9px] font-black text-[#93C5FD]">
                     {i + 1}
                   </span>
                   <p className="text-xs text-white/50 leading-relaxed">{step}</p>
