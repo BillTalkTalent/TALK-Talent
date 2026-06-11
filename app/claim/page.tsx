@@ -86,7 +86,7 @@ export default function ClaimAccountPage() {
               </div>
               <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(30,75,130,0.06)', border: '1px solid rgba(30,75,130,0.18)' }}>
                 <p className="text-sm text-zinc-700 leading-relaxed">
-                  If <strong className="text-zinc-900">{email}</strong> is a TALK member, we&apos;ve sent a secure link to set your password and access your account.
+                  If{' '}<strong className="text-zinc-900">{email}</strong>{' '}is a TALK member, we&apos;ve sent a secure link to set your password and access your account.
                 </p>
               </div>
               <div className="rounded-xl border border-zinc-100 bg-white p-4 space-y-2.5">
