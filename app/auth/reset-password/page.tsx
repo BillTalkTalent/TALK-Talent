@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,7 +10,17 @@ import { toast } from 'sonner'
 import { CheckCircle2, Eye, EyeOff } from 'lucide-react'
 
 export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={null}>
+      <ResetPasswordInner />
+    </Suspense>
+  )
+}
+
+function ResetPasswordInner() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const isClaim = searchParams.get('claim') === '1'
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [loading, setLoading] = useState(false)
@@ -53,22 +63,37 @@ export default function ResetPasswordPage() {
 
   if (done) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f5fffe] p-8">
+      <div className="flex min-h-screen items-center justify-center p-8" style={{ background: '#F5F8FC' }}>
         <div className="w-full max-w-sm text-center space-y-4">
           <CheckCircle2 className="size-12 text-emerald-500 mx-auto" />
-          <h2 className="text-xl font-semibold text-zinc-900">Password updated!</h2>
-          <p className="text-sm text-zinc-500">Taking you to your dashboard…</p>
+          <h2 className="text-xl font-semibold text-zinc-900">
+            {isClaim ? "You're all set! 🎉" : 'Password updated!'}
+          </h2>
+          <p className="text-sm text-zinc-500">
+            {isClaim ? 'Welcome to TALK. Taking you in…' : 'Taking you to your dashboard…'}
+          </p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#f5fffe] p-8">
+    <div className="flex min-h-screen items-center justify-center p-8" style={{ background: '#F5F8FC' }}>
       <div className="w-full max-w-sm space-y-8">
-        <div className="space-y-1">
-          <h2 className="text-2xl font-semibold text-zinc-900">Choose a new password</h2>
-          <p className="text-sm text-zinc-500">Must be at least 8 characters.</p>
+        {/* Logo */}
+        <div className="flex justify-center">
+          <span style={{ fontFamily: 'var(--font-poppins), system-ui', fontWeight: 900, fontSize: '1.75rem', lineHeight: 1, letterSpacing: '-0.03em', display: 'inline-flex', alignItems: 'baseline' }}>
+            <span style={{ color: '#E8503A' }}>TA</span>
+            <span style={{ color: '#0F1F35' }}>LK</span>
+          </span>
+        </div>
+        <div className="space-y-1 text-center">
+          <h2 className="text-2xl font-semibold text-zinc-900">
+            {isClaim ? 'Set your password' : 'Choose a new password'}
+          </h2>
+          <p className="text-sm text-zinc-500">
+            {isClaim ? 'One step to access your TALK account. At least 8 characters.' : 'Must be at least 8 characters.'}
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -107,11 +132,11 @@ export default function ResetPasswordPage() {
           <Button
             type="submit"
             className="w-full text-white font-semibold"
-            style={{ background: 'linear-gradient(90deg, #E8503A, #F07058)' }}
+            style={{ background: '#E8503A' }}
             size="lg"
             disabled={loading || !ready}
           >
-            {loading ? 'Updating…' : !ready ? 'Verifying link…' : 'Set new password'}
+            {loading ? 'Saving…' : !ready ? 'Verifying link…' : isClaim ? 'Set password & enter' : 'Set new password'}
           </Button>
         </form>
       </div>

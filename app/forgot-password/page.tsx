@@ -27,7 +27,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#f5fffe] p-8">
+    <div className="flex min-h-screen items-center justify-center bg-[#F5F8FC] p-8">
       <div className="w-full max-w-sm space-y-8">
         <div className="space-y-1">
           <h2 className="text-2xl font-semibold text-zinc-900">Reset your password</h2>
@@ -61,7 +61,7 @@ export default function ForgotPasswordPage() {
             <Button
               type="submit"
               className="w-full text-white font-semibold"
-              style={{ background: 'linear-gradient(90deg, #E8503A, #F07058)' }}
+              style={{ background: '#E8503A' }}
               size="lg"
               disabled={loading}
             >

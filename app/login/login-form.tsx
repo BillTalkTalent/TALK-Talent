@@ -142,10 +142,22 @@ export default function LoginForm() {
             </Button>
           </form>
 
+          {/* First-time members claim banner */}
+          <div className="rounded-xl border px-4 py-3" style={{ background: 'rgba(30,75,130,0.05)', borderColor: 'rgba(30,75,130,0.15)' }}>
+            <p className="text-sm text-zinc-700">
+              <strong className="text-zinc-900">First time on the new TALK?</strong>{' '}
+              If you&apos;re an existing member,{' '}
+              <Link href="/claim" className="font-semibold hover:underline" style={{ color: '#1E4B82' }}>
+                claim your account
+              </Link>{' '}
+              to set your password.
+            </p>
+          </div>
+
           <p className="text-sm text-zinc-500 text-center">
             Don&apos;t have an account?{' '}
             <Link href="/signup" className="font-semibold text-[#1E4B82] hover:underline">
-              Sign up
+              Apply to join
             </Link>
           </p>
         </div>
