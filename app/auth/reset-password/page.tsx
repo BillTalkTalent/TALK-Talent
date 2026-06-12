@@ -9,6 +9,12 @@ import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { CheckCircle2, Eye, EyeOff } from 'lucide-react'
 
+const benefits = [
+  '13,000+ TA leaders across North America',
+  'Forums, events, jobs & vendor reviews',
+  'Your profile and history carried over',
+]
+
 export default function ResetPasswordPage() {
   return (
     <Suspense fallback={null}>
@@ -30,12 +36,9 @@ function ResetPasswordInner() {
 
   useEffect(() => {
     // Supabase puts the access token in the URL hash when redirecting here
-    // We need to wait for the session to be picked up from the hash
     const supabase = createClient()
     supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setReady(true)
-      }
+      if (event === 'PASSWORD_RECOVERY') setReady(true)
     })
   }, [])
 
@@ -61,84 +64,115 @@ function ResetPasswordInner() {
     setTimeout(() => router.push('/dashboard'), 2000)
   }
 
-  if (done) {
-    return (
-      <div className="flex min-h-screen items-center justify-center p-8" style={{ background: '#F5F8FC' }}>
-        <div className="w-full max-w-sm text-center space-y-4">
-          <CheckCircle2 className="size-12 text-emerald-500 mx-auto" />
-          <h2 className="text-xl font-semibold text-zinc-900">
-            {isClaim ? "You're all set! 🎉" : 'Password updated!'}
-          </h2>
-          <p className="text-sm text-zinc-500">
-            {isClaim ? 'Welcome to TALK. Taking you in…' : 'Taking you to your dashboard…'}
-          </p>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className="flex min-h-screen items-center justify-center p-8" style={{ background: '#F5F8FC' }}>
-      <div className="w-full max-w-sm space-y-8">
-        {/* Logo */}
-        <div className="flex justify-center">
-          <span style={{ fontFamily: 'var(--font-poppins), system-ui', fontWeight: 900, fontSize: '1.75rem', lineHeight: 1, letterSpacing: '-0.03em', display: 'inline-flex', alignItems: 'baseline' }}>
+    <div className="flex min-h-screen">
+      {/* Left panel — hidden on mobile */}
+      <div
+        className="hidden md:flex md:w-2/5 flex-col justify-between p-12"
+        style={{ background: 'linear-gradient(160deg, #0F1F35 0%, #162D4A 55%, #1A3A5C 100%)' }}
+      >
+        <div className="flex flex-col gap-3">
+          <span style={{ fontFamily: 'var(--font-poppins), system-ui', fontWeight: 900, fontSize: '2.75rem', lineHeight: 1, letterSpacing: '-0.03em', display: 'inline-flex', alignItems: 'baseline' }}>
             <span style={{ color: '#E8503A' }}>TA</span>
-            <span style={{ color: '#0F1F35' }}>LK</span>
+            <span style={{ color: 'white' }}>LK</span>
           </span>
-        </div>
-        <div className="space-y-1 text-center">
-          <h2 className="text-2xl font-semibold text-zinc-900">
-            {isClaim ? 'Set your password' : 'Choose a new password'}
-          </h2>
-          <p className="text-sm text-zinc-500">
-            {isClaim ? 'One step to access your TALK account. At least 8 characters.' : 'Must be at least 8 characters.'}
+          <p className="text-sm text-white/50 font-medium">
+            {isClaim ? 'The new home for the TALK community.' : 'The private community for TA leaders.'}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="space-y-1.5">
-            <Label htmlFor="password">New password</Label>
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPw ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={8}
-                className="pr-10"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPw(v => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
-              >
-                {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-              </button>
+        <div className="flex flex-col gap-5">
+          {benefits.map((b) => (
+            <div key={b} className="flex items-center gap-3">
+              <CheckCircle2 className="size-5 shrink-0" style={{ color: '#93C5FD' }} />
+              <span className="text-base text-white/90">{b}</span>
             </div>
+          ))}
+        </div>
+
+        <p className="text-sm text-white/35">
+          {isClaim ? 'Already a TALK member? Your account is waiting.' : 'Secure password reset for your TALK account.'}
+        </p>
+      </div>
+
+      {/* Right panel */}
+      <div className="flex flex-1 items-center justify-center p-8" style={{ background: '#F5F8FC' }}>
+        <div className="w-full max-w-sm space-y-8">
+          {/* Mobile logo */}
+          <div className="md:hidden flex justify-center">
+            <span style={{ fontFamily: 'var(--font-poppins), system-ui', fontWeight: 900, fontSize: '1.75rem', lineHeight: 1, letterSpacing: '-0.03em', display: 'inline-flex', alignItems: 'baseline' }}>
+              <span style={{ color: '#E8503A' }}>TA</span>
+              <span style={{ color: '#0F1F35' }}>LK</span>
+            </span>
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="confirm">Confirm new password</Label>
-            <Input
-              id="confirm"
-              type={showPw ? 'text' : 'password'}
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-              required
-              minLength={8}
-            />
-          </div>
-          <Button
-            type="submit"
-            className="w-full text-white font-semibold"
-            style={{ background: '#E8503A' }}
-            size="lg"
-            disabled={loading || !ready}
-          >
-            {loading ? 'Saving…' : !ready ? 'Verifying link…' : isClaim ? 'Set password & enter' : 'Set new password'}
-          </Button>
-        </form>
+
+          {done ? (
+            <div className="text-center space-y-4 py-8">
+              <CheckCircle2 className="size-12 text-emerald-500 mx-auto" />
+              <h2 className="text-xl font-semibold text-zinc-900">
+                {isClaim ? "You're all set! 🎉" : 'Password updated!'}
+              </h2>
+              <p className="text-sm text-zinc-500">
+                {isClaim ? 'Welcome to TALK. Taking you in…' : 'Taking you to your dashboard…'}
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="space-y-1">
+                <h2 className="text-2xl font-semibold text-zinc-900">
+                  {isClaim ? 'Set your password' : 'Choose a new password'}
+                </h2>
+                <p className="text-sm text-zinc-500">
+                  {isClaim ? 'One step to access your TALK account. At least 8 characters.' : 'Must be at least 8 characters.'}
+                </p>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="space-y-1.5">
+                  <Label htmlFor="password">New password</Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPw ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={8}
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPw(v => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
+                    >
+                      {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    </button>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="confirm">Confirm new password</Label>
+                  <Input
+                    id="confirm"
+                    type={showPw ? 'text' : 'password'}
+                    value={confirm}
+                    onChange={(e) => setConfirm(e.target.value)}
+                    required
+                    minLength={8}
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full text-white font-semibold"
+                  style={{ background: '#E8503A' }}
+                  size="lg"
+                  disabled={loading || !ready}
+                >
+                  {loading ? 'Saving…' : !ready ? 'Verifying link…' : isClaim ? 'Set password & enter' : 'Set new password'}
+                </Button>
+              </form>
+            </>
+          )}
+        </div>
       </div>
     </div>
   )
