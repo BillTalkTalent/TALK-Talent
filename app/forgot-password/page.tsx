@@ -30,7 +30,14 @@ export default function ForgotPasswordPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#F5F8FC] p-8">
       <div className="w-full max-w-sm space-y-8">
-        <div className="space-y-1">
+        {/* Logo */}
+        <div className="flex justify-center">
+          <span style={{ fontFamily: 'var(--font-poppins), system-ui', fontWeight: 900, fontSize: '1.75rem', lineHeight: 1, letterSpacing: '-0.03em', display: 'inline-flex', alignItems: 'baseline' }}>
+            <span style={{ color: '#E8503A' }}>TA</span>
+            <span style={{ color: '#0F1F35' }}>LK</span>
+          </span>
+        </div>
+        <div className="space-y-1 text-center">
           <h2 className="text-2xl font-semibold text-zinc-900">Reset your password</h2>
           <p className="text-sm text-zinc-500">
             Enter your email and we&apos;ll send you a reset link.
