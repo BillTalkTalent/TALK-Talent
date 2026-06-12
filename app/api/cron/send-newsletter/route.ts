@@ -49,7 +49,8 @@ export async function GET(req: NextRequest) {
       const batch = members.slice(i, i + batchSize)
       await resend.batch.send(
         batch.map((m: { email: string; full_name: string | null }) => ({
-          from: 'TALK Community <onboarding@resend.dev>',
+          from: process.env.FROM_EMAIL ?? 'TALK Community <onboarding@resend.dev>',
+          replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
           to: m.email,
           subject: newsletter.subject,
           html: buildEmailHtml(newsletter.subject, newsletter.body_html, m.full_name?.split(' ')[0] ?? 'there'),

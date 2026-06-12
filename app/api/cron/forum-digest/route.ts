@@ -129,6 +129,7 @@ export async function GET(req: Request) {
         const firstName = m.full_name?.split(' ')[0] ?? 'there'
         return {
           from,
+          replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
           to: m.email!,
           subject: `💬 ${topics!.length} new discussion${topics!.length > 1 ? 's' : ''} in TALK today`,
           html: buildDigestEmail(firstName, topics!),

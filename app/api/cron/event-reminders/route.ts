@@ -55,6 +55,7 @@ export async function GET(request: NextRequest) {
         const firstName = r.profiles.full_name?.split(' ')[0] ?? 'there'
         return {
           from,
+          replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
           to: r.profiles.email,
           subject: `Reminder: "${event.title}" is tomorrow`,
           html: buildReminderEmail(firstName, event, dateStr, locationLine, origin),

@@ -67,6 +67,7 @@ export async function POST(req: NextRequest) {
       if (mentor.email) {
         await resend.emails.send({
           from,
+          replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
           to: mentor.email,
           subject: `${requesterName} wants you as their mentor on TALK`,
           html: buildMentorshipRequestEmail({
@@ -92,6 +93,7 @@ export async function POST(req: NextRequest) {
       if (requester.email) {
         await resend.emails.send({
           from,
+          replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
           to: requester.email,
           subject: `${mentorName} accepted your mentorship request on TALK`,
           html: buildMentorshipAcceptedEmail({
@@ -116,6 +118,7 @@ export async function POST(req: NextRequest) {
       if (requester.email) {
         await resend.emails.send({
           from,
+          replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
           to: requester.email,
           subject: `Update on your mentorship request`,
           html: buildMentorshipDeclinedEmail({

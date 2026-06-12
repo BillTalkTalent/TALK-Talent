@@ -46,6 +46,7 @@ async function approveMember(id: string) {
 
       await resend.emails.send({
         from,
+        replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
         to: profile.email,
         subject: "You're in — welcome to TALK! 🎉",
         html: buildApprovalEmail(firstName, loginUrl, origin),
@@ -147,6 +148,7 @@ async function rejectMember(formData: FormData) {
       const from = process.env.FROM_EMAIL ?? 'TALK Community <onboarding@resend.dev>'
       await resend.emails.send({
         from,
+        replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
         to: profile.email,
         subject: 'Your TALK membership application',
         html: buildRejectionEmail(firstName, origin),

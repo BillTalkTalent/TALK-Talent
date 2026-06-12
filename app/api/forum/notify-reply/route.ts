@@ -98,6 +98,7 @@ export async function POST(req: NextRequest) {
           const preview = replyBody.length > 300 ? replyBody.slice(0, 297) + "…" : replyBody;
           await resend.emails.send({
             from,
+            replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
             to: recipient.email,
             subject: `${replierName} replied to a discussion on TALK`,
             html: emailShell(`

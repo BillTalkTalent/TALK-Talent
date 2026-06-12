@@ -72,6 +72,7 @@ async function sendAnnouncement(formData: FormData) {
     emails.map(email =>
       resend.emails.send({
         from,
+        replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
         to: email,
         subject: `[${chapter.name}] ${subject}`,
         html,

@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
             html: buildResetEmail({ toFirstName: firstName, resetUrl: link }),
           }
 
-    await resend.emails.send({ from, to: email, subject, html })
+    await resend.emails.send({ from, replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com', to: email, subject, html })
 
     return NextResponse.json({ ok: true })
   } catch (err) {

@@ -71,6 +71,7 @@ export async function POST(req: NextRequest) {
     const from = process.env.FROM_EMAIL ?? 'TALK Community <onboarding@resend.dev>'
     await resend.emails.send({
       from,
+      replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
       to: recipient.email,
       subject: `${senderName} sent you a message on TALK`,
       html: buildDmEmail({ toFirstName: recipientFirstName, fromName: senderName, preview, convUrl }),

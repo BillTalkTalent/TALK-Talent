@@ -41,6 +41,7 @@ export async function POST(request: Request) {
 
       await resend.emails.send({
         from,
+        replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
         to: adminEmail,
         subject: `New TALK application: ${newMember.full_name ?? newMember.email}`,
         html: buildAdminEmail(newMember, origin),
@@ -57,6 +58,7 @@ export async function POST(request: Request) {
       admins.map((admin: { email: string }) =>
         resend.emails.send({
           from,
+          replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
           to: admin.email,
           subject: `New TALK application: ${newMember.full_name ?? newMember.email}`,
           html: buildAdminEmail(newMember, origin),
