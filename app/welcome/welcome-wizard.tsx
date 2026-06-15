@@ -96,6 +96,13 @@ export default function WelcomeWizard({ profile, chapters }: Props) {
     router.push('/dashboard')
   }
 
+  // Let members skip setup and complete their profile later from /profile.
+  async function skipForNow() {
+    setLoading(true)
+    await supabase.from('profiles').update({ has_onboarded: true } as any).eq('id', profile.id) // eslint-disable-line @typescript-eslint/no-explicit-any
+    router.push('/dashboard')
+  }
+
   async function goToForum() {
     setLoading(true)
     await supabase.from('profiles').update({ has_onboarded: true } as any).eq('id', profile.id) // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -115,6 +122,19 @@ export default function WelcomeWizard({ profile, chapters }: Props) {
           style={{ width: `${(step / 3) * 100}%`, background: '#2563EB' }}
         />
       </div>
+
+      {/* Skip for now — lets testers reach the app in one click */}
+      {step < 3 && (
+        <div className="flex justify-end px-6 pt-4">
+          <button
+            onClick={skipForNow}
+            disabled={loading}
+            className="text-sm font-medium text-white/40 hover:text-white/80 transition-colors disabled:opacity-50"
+          >
+            Skip for now →
+          </button>
+        </div>
+      )}
 
       {/* Step dots */}
       <div className="flex items-center justify-center gap-3 pt-8">
