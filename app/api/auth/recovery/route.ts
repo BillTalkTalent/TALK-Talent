@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { Resend } from 'resend'
-import { buildClaimEmail, buildResetEmail } from '@/lib/email'
+import { buildClaimEmail, buildResetEmail, buildTestInviteEmail } from '@/lib/email'
 
-type Mode = 'claim' | 'reset'
+type Mode = 'claim' | 'reset' | 'relaunch'
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,9 +14,9 @@ export async function POST(req: NextRequest) {
 
     const origin = process.env.NEXT_PUBLIC_SITE_URL ?? new URL(req.url).origin
     const redirectTo =
-      mode === 'claim'
-        ? `${origin}/auth/reset-password?claim=1`
-        : `${origin}/auth/reset-password`
+      mode === 'reset'
+        ? `${origin}/auth/reset-password`
+        : `${origin}/auth/reset-password?claim=1`
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const admin = createAdminClient() as any
@@ -44,14 +44,19 @@ export async function POST(req: NextRequest) {
     const from = process.env.FROM_EMAIL ?? 'TALK Community <onboarding@resend.dev>'
 
     const { subject, html } =
-      mode === 'claim'
+      mode === 'relaunch'
         ? {
-            subject: 'Welcome to the new TALK — claim your account',
-            html: buildClaimEmail({ toFirstName: firstName, claimUrl: link }),
+            subject: 'TALK is fixed — your fresh link + what to test',
+            html: buildTestInviteEmail({ toFirstName: firstName, claimUrl: link }),
           }
-        : {
+        : mode === 'reset'
+        ? {
             subject: 'Reset your TALK password',
             html: buildResetEmail({ toFirstName: firstName, resetUrl: link }),
+          }
+        : {
+            subject: 'Welcome to the new TALK — claim your account',
+            html: buildClaimEmail({ toFirstName: firstName, claimUrl: link }),
           }
 
     await resend.emails.send({ from, replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com', to: email, subject, html })
