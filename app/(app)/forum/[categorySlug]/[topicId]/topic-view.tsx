@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import { Eye } from "lucide-react";
 import EditTopic from "./edit-topic";
 import EditReply from "./edit-reply";
+import ModeratorRemove from "./moderator-remove";
 
 function getInitials(name: string | null): string {
   if (!name) return "?";
@@ -29,6 +30,7 @@ type Reply = {
 
 interface TopicViewProps {
   topicId: string;
+  categorySlug: string;
   initialTitle: string;
   initialBody: string;
   createdAt: string;
@@ -36,10 +38,12 @@ interface TopicViewProps {
   topicAuthor: Author | null;
   replies: Reply[];
   currentUserId: string;
+  isModerator: boolean;
 }
 
 export default function TopicView({
   topicId,
+  categorySlug,
   initialTitle,
   initialBody,
   createdAt,
@@ -47,6 +51,7 @@ export default function TopicView({
   topicAuthor,
   replies: initialReplies,
   currentUserId,
+  isModerator,
 }: TopicViewProps) {
   const [title, setTitle] = useState(initialTitle);
   const [body, setBody] = useState(initialBody);
@@ -89,6 +94,17 @@ export default function TopicView({
                   initialTitle={title}
                   initialBody={body}
                   onSaved={(t, b) => { setTitle(t); setBody(b); }}
+                />
+              </>
+            )}
+            {isModerator && (
+              <>
+                <span className="text-zinc-300">·</span>
+                <ModeratorRemove
+                  table="forum_topics"
+                  id={topicId}
+                  label="post"
+                  redirectTo={`/forum/${categorySlug}`}
                 />
               </>
             )}
@@ -144,6 +160,19 @@ export default function TopicView({
                               prev.map(r => r.id === reply.id ? { ...r, body: b } : r)
                             )
                           }
+                          onDeleted={() =>
+                            setReplies(prev => prev.filter(r => r.id !== reply.id))
+                          }
+                        />
+                      </>
+                    )}
+                    {!isReplyAuthor && isModerator && (
+                      <>
+                        <span className="text-zinc-300">·</span>
+                        <ModeratorRemove
+                          table="forum_replies"
+                          id={reply.id}
+                          label="reply"
                           onDeleted={() =>
                             setReplies(prev => prev.filter(r => r.id !== reply.id))
                           }

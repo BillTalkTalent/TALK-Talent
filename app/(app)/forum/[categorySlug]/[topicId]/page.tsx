@@ -32,6 +32,13 @@ export default async function TopicPage({
 
   const topic = topicResult.data;
 
+  // Is the viewer a moderator (admin or board member)?
+  const { data: viewerProfile } = user
+    ? await supabase.from("profiles").select("role").eq("id", user.id).single()
+    : { data: null };
+  const isModerator =
+    viewerProfile?.role === "admin" || viewerProfile?.role === "board_member";
+
   // Increment view count (fire-and-forget, use admin client to bypass RLS)
   createAdminClient()
     .from("forum_topics")
@@ -74,6 +81,8 @@ export default async function TopicPage({
       {/* Topic + replies (client component handles edit state) */}
       <TopicView
         topicId={topicId}
+        categorySlug={categorySlug}
+        isModerator={isModerator}
         initialTitle={topic.title}
         initialBody={topic.body}
         createdAt={topic.created_at}
