@@ -18,6 +18,7 @@ import {
   BookOpen,
   GraduationCap,
   Bell,
+  Megaphone,
 } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
@@ -297,6 +298,21 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
               </div>
             )}
           </div>
+
+          {(profile.role === 'admin' || profile.role === 'board_member') && (
+            <Link
+              href="/announcements/new"
+              title="Post Announcement"
+              className={cn(
+                'flex items-center justify-center size-9 rounded-lg transition-all',
+                pathname.startsWith('/announcements')
+                  ? 'bg-[#1E4B82] text-white'
+                  : 'text-white/60 hover:bg-white/15 hover:text-white'
+              )}
+            >
+              <Megaphone className="size-4" />
+            </Link>
+          )}
 
           {profile.role === 'admin' && (
             <Link
