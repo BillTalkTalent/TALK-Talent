@@ -19,6 +19,8 @@ import {
   GraduationCap,
   Bell,
   Megaphone,
+  MoreHorizontal,
+  ChevronDown,
 } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
@@ -42,16 +44,19 @@ interface AppTopNavProps {
 }
 
 const mainNav = [
-  { href: '/dashboard', label: 'Home',       icon: Home },
-  { href: '/members',   label: 'Members',    icon: Users },
-  { href: '/events',    label: 'Events',     icon: Calendar },
-  { href: '/forum',     label: 'Forums',     icon: MessageSquare },
-  { href: '/messages',  label: 'Chats',      icon: MessagesSquare },
-  { href: '/careers',   label: 'Careers',    icon: Briefcase },
-  { href: '/polls',     label: 'Polls',      icon: BarChart2 },
-  { href: '/chapters',  label: 'Chapters',   icon: BookOpen },
-  { href: '/vendors',   label: 'Vendors',    icon: Building2 },
-  { href: '/mentorship',label: 'Mentorship', icon: GraduationCap },
+  { href: '/dashboard', label: 'Home',     icon: Home },
+  { href: '/members',   label: 'Members',  icon: Users },
+  { href: '/chapters',  label: 'Chapters', icon: BookOpen },
+  { href: '/events',    label: 'Events',   icon: Calendar },
+  { href: '/forum',     label: 'Forums',   icon: MessageSquare },
+  { href: '/careers',   label: 'Careers',  icon: Briefcase },
+  { href: '/vendors',   label: 'Vendors',  icon: Building2 },
+]
+
+// Lower-traffic destinations, tucked under a "More" dropdown to keep the row short.
+const moreNav = [
+  { href: '/polls',      label: 'Polls',      icon: BarChart2 },
+  { href: '/mentorship', label: 'Mentorship', icon: GraduationCap },
 ]
 
 
@@ -204,7 +209,6 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
         <nav className="flex items-center gap-0.5 flex-1 overflow-x-auto scrollbar-none">
           {mainNav.map(({ href, label, icon: Icon }) => {
             const active = pathname === href || pathname.startsWith(href + '/')
-            const isMessages = href === '/messages'
             return (
               <Link
                 key={href}
@@ -218,18 +222,60 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
               >
                 <Icon className="size-4 shrink-0" />
                 {label}
-                {isMessages && unreadCount > 0 && (
-                  <span className="min-w-[16px] h-4 flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-black px-1 leading-none">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
-                )}
               </Link>
             )
           })}
+
+          {/* More dropdown — lower-traffic destinations */}
+          <div className="relative group/more">
+            <button
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all',
+                moreNav.some(({ href }) => pathname === href || pathname.startsWith(href + '/'))
+                  ? 'bg-[#1E4B82] text-white font-semibold'
+                  : 'text-white/60 hover:bg-white/10 hover:text-white'
+              )}
+            >
+              <MoreHorizontal className="size-4 shrink-0" />
+              More
+              <ChevronDown className="size-3 shrink-0" />
+            </button>
+            <div className="absolute left-0 top-full mt-1 w-44 rounded-xl bg-white shadow-lg border border-zinc-100 py-1 opacity-0 invisible group-hover/more:opacity-100 group-hover/more:visible transition-all z-50">
+              {moreNav.map(({ href, label, icon: Icon }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className="flex items-center gap-2.5 px-3.5 py-2 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
+                >
+                  <Icon className="size-4 text-zinc-400" />
+                  {label}
+                </Link>
+              ))}
+            </div>
+          </div>
         </nav>
 
-        {/* ── Right-side controls: bell + admin + profile ── */}
+        {/* ── Right-side controls: messages + bell + admin + profile ── */}
         <div className="flex items-center gap-1 ml-3 shrink-0">
+
+          {/* Direct messages */}
+          <Link
+            href="/messages"
+            title="Messages"
+            className={cn(
+              'relative flex items-center justify-center size-9 rounded-lg transition-all',
+              pathname.startsWith('/messages')
+                ? 'bg-[#1E4B82] text-white'
+                : 'text-white/60 hover:bg-white/10 hover:text-white'
+            )}
+          >
+            <MessagesSquare className="size-4" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-black px-1 leading-none">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </Link>
 
           {/* Notification bell */}
           <div className="relative" ref={notifRef}>
