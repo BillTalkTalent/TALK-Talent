@@ -29,8 +29,11 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // Public routes that don't need auth
-  const publicRoutes = ["/login", "/signup", "/auth/callback", "/auth/reset-password", "/forgot-password", "/mockup", "/pending"];
+  // Public routes that don't need auth.
+  // /claim + /api/auth = logged-out claim & password-reset flow (must be public,
+  // or new members get bounced to /login before they can claim).
+  // /api/notify-admin-signup is called from the public signup page.
+  const publicRoutes = ["/login", "/signup", "/claim", "/auth/callback", "/auth/reset-password", "/forgot-password", "/mockup", "/pending", "/api/auth", "/api/notify-admin-signup"];
   if (publicRoutes.some((r) => pathname.startsWith(r))) {
     return supabaseResponse;
   }
