@@ -9,6 +9,47 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      announcements: {
+        Row: {
+          id: string;
+          title: string;
+          body: string;
+          variant: 'info' | 'success' | 'warning';
+          cta_label: string | null;
+          cta_href: string | null;
+          is_active: boolean;
+          created_by: string | null;
+          created_at: string;
+          expires_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          body: string;
+          variant?: 'info' | 'success' | 'warning';
+          cta_label?: string | null;
+          cta_href?: string | null;
+          is_active?: boolean;
+          created_by?: string | null;
+          expires_at?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["announcements"]["Insert"]>;
+        Relationships: [];
+      };
+      announcement_dismissals: {
+        Row: {
+          announcement_id: string;
+          user_id: string;
+          dismissed_at: string;
+        };
+        Insert: {
+          announcement_id: string;
+          user_id: string;
+          dismissed_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["announcement_dismissals"]["Insert"]>;
+        Relationships: [];
+      };
       profiles: {
         Row: {
           id: string;

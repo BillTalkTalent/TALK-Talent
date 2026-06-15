@@ -15,6 +15,7 @@ import {
   Briefcase,
   BarChart2,
   BookOpen,
+  Megaphone,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -87,23 +88,37 @@ export default function AppSidebar({ profile }: AppSidebarProps) {
           )
         })}
 
-        {profile.role === 'admin' && (
+        {(profile.role === 'admin' || profile.role === 'board_member') && (
           <>
             <div className="pt-3 pb-1 px-3">
-              <p className="text-[10px] font-semibold text-indigo-500 uppercase tracking-widest">Admin</p>
+              <p className="text-[10px] font-semibold text-indigo-500 uppercase tracking-widest">Manage</p>
             </div>
             <Link
-              href="/admin"
+              href="/announcements/new"
               className={cn(
                 'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150',
-                pathname.startsWith('/admin')
+                pathname.startsWith('/announcements')
                   ? 'bg-white text-indigo-900 shadow-sm'
                   : 'text-indigo-300 hover:bg-white/10 hover:text-white'
               )}
             >
-              <Settings className={cn('size-4 flex-shrink-0', pathname.startsWith('/admin') ? 'text-indigo-600' : '')} />
-              Admin Panel
+              <Megaphone className={cn('size-4 flex-shrink-0', pathname.startsWith('/announcements') ? 'text-indigo-600' : '')} />
+              Post Announcement
             </Link>
+            {profile.role === 'admin' && (
+              <Link
+                href="/admin"
+                className={cn(
+                  'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150',
+                  pathname.startsWith('/admin')
+                    ? 'bg-white text-indigo-900 shadow-sm'
+                    : 'text-indigo-300 hover:bg-white/10 hover:text-white'
+                )}
+              >
+                <Settings className={cn('size-4 flex-shrink-0', pathname.startsWith('/admin') ? 'text-indigo-600' : '')} />
+                Admin Panel
+              </Link>
+            )}
           </>
         )}
       </nav>

@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import GettingStartedCard from "@/components/getting-started-card";
 import ForumFeed, { type FeedTopic } from "@/components/forum-feed";
+import AnnouncementBanner, { type Announcement } from "@/components/announcement-banner";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -49,6 +50,8 @@ export default async function DashboardPage() {
     allPollVotesResult,
     myPollVotesResult,
     unreadNotificationsResult,
+    announcementsResult,
+    myDismissalsResult,
   ] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", user?.id ?? "").single(),
     supabase
@@ -132,9 +135,37 @@ export default async function DashboardPage() {
       .select("id", { count: "exact", head: true })
       .eq("user_id", user?.id ?? "")
       .eq("is_read", false),
+    // Active announcements (newest first); we filter expired + dismissed below
+    supabase
+      .from("announcements")
+      .select("id, title, body, variant, cta_label, cta_href, expires_at")
+      .eq("is_active", true)
+      .order("created_at", { ascending: false }),
+    // Which announcements the current user has already dismissed
+    supabase
+      .from("announcement_dismissals")
+      .select("announcement_id")
+      .eq("user_id", user?.id ?? ""),
   ]);
 
   const unreadCount = unreadNotificationsResult.count ?? 0;
+
+  // Announcements: drop expired and anything this member dismissed
+  const dismissedIds = new Set(
+    (myDismissalsResult.data ?? []).map((d) => d.announcement_id)
+  );
+  const now = Date.now();
+  const announcements: Announcement[] = (announcementsResult.data ?? [])
+    .filter((a) => !dismissedIds.has(a.id))
+    .filter((a) => !a.expires_at || new Date(a.expires_at).getTime() > now)
+    .map((a) => ({
+      id: a.id,
+      title: a.title,
+      body: a.body,
+      variant: a.variant,
+      cta_label: a.cta_label,
+      cta_href: a.cta_href,
+    }));
 
   // Build reply count map
   const replyCounts: Record<string, number> = {};
@@ -307,6 +338,11 @@ export default async function DashboardPage() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
+
+      {/* Admin-posted announcements */}
+      {announcements.map((a) => (
+        <AnnouncementBanner key={a.id} announcement={a} />
+      ))}
 
       {unreadCount > 0 && (
         <Link
