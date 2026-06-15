@@ -70,6 +70,45 @@ export function quoteBlock(text: string): string {
 
 // ─── Pre-built email payloads ──────────────────────────────────────────────
 
+export function buildTestInviteEmail(opts: {
+  toFirstName: string
+  claimUrl: string
+}): string {
+  const goals = [
+    'Set your password and finish the quick welcome setup (or skip it)',
+    'Complete your profile — add a photo, title, and a short bio',
+    'Browse the <strong style="color:#0F1F35;">Member Directory</strong> and connect with someone',
+    'Read a thread in the <strong style="color:#0F1F35;">Forums</strong> and post a reply',
+    'Check out <strong style="color:#0F1F35;">Careers</strong> (jobs + members open to work) and <strong style="color:#0F1F35;">Vendors</strong>',
+    'Send a direct message to another member',
+  ]
+  const list = goals.map(g =>
+    `<tr><td style="padding:6px 0;font-size:14px;color:#374151;line-height:1.6;">
+       <span style="color:#E8503A;font-weight:800;">&bull;</span>&nbsp;&nbsp;${g}
+     </td></tr>`
+  ).join('')
+
+  return emailShell(`
+    <p style="margin:0 0 6px;font-size:22px;font-weight:800;color:#0F1F35;">We're back — sorry for the hiccup 👋</p>
+    <p style="margin:0 0 18px;font-size:15px;color:#5A7090;line-height:1.6;">
+      Hi ${opts.toFirstName}, a small glitch was stopping people from setting their password earlier today —
+      it's now fixed. Here's a fresh link to claim your TALK account and jump in.
+    </p>
+    ${ctaButton('Claim your account', opts.claimUrl)}
+    <p style="margin:26px 0 8px;font-size:13px;font-weight:700;color:#0F1F35;text-transform:uppercase;letter-spacing:0.04em;">
+      Once you're in, here's what would help us most
+    </p>
+    <table cellpadding="0" cellspacing="0" style="width:100%;">${list}</table>
+    <p style="margin:18px 0 0;font-size:14px;color:#5A7090;line-height:1.6;">
+      Found something confusing or broken? Just hit reply — we read every message.
+      Thanks for helping us shape the new TALK.
+    </p>
+    <p style="margin:14px 0 0;font-size:13px;color:#A0AEC0;line-height:1.6;">
+      This link is valid for 24 hours. If you didn't expect it, you can ignore this email.
+    </p>
+  `)
+}
+
 export function buildDmEmail(opts: {
   toFirstName: string
   fromName: string
