@@ -40,21 +40,27 @@ export default async function InvitePage({
         </div>
       </div>
 
-      {/* Success banner */}
-      {sent === "true" && (
+      {/* Success banner — message depends on what happened */}
+      {sent && (
         <div
           className="rounded-2xl p-4 flex items-center gap-3 text-white"
           style={{ background: "linear-gradient(135deg, #E8503A, #F07058)" }}
         >
           <CheckCircle2 className="size-5 shrink-0" />
-          <p className="text-sm font-semibold">Added! They&apos;re now in the Pending Approvals queue — approve them in the Admin panel and they&apos;ll get a login link by email.</p>
+          <p className="text-sm font-semibold">
+            {sent === "claim_sent"
+              ? "Done! They already had a TALK account — we emailed them a claim link to set a password and jump straight in. No approval needed."
+              : sent === "already_active"
+              ? "They're already an active member — they can just log in at any time. Nothing else to do."
+              : "Added! They're new, so they're in your Pending Approvals queue — approve them in the Admin panel and they'll get a login link by email."}
+          </p>
         </div>
       )}
 
       {/* Invite form */}
       <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm p-6">
         <p className="text-sm text-zinc-600 mb-5 leading-relaxed">
-          Know a TA leader who&apos;d be a great fit for TALK? Add them here — they&apos;ll appear in your Admin &rarr; Pending Approvals queue. Once you approve them, they get a branded email with a one-click login link.
+          Add any TA leader by email and TALK figures out the rest: if they&apos;re an existing community member, they get a branded link to claim their account and jump straight in; if they&apos;re brand new, they land in your Admin &rarr; Pending Approvals queue for a quick review.
         </p>
         <InviteForm inviterId={user.id} />
       </div>

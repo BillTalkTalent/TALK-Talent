@@ -34,7 +34,7 @@ export default function InviteForm({ inviterId }: { inviterId: string }) {
         return;
       }
 
-      router.push("/invite?sent=true");
+      router.push(`/invite?sent=${data.outcome ?? "queued"}`);
       router.refresh();
     });
   }
