@@ -35,11 +35,28 @@ function ResetPasswordInner() {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    // Supabase puts the access token in the URL hash when redirecting here
+    // Supabase puts the access token in the URL hash and establishes a session.
+    // The PASSWORD_RECOVERY event can fire BEFORE this listener attaches (race),
+    // so we enable the form as soon as a session exists — via the event, OR a
+    // session-bearing state change, OR by polling getSession as a safety net.
     const supabase = createClient()
-    supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') setReady(true)
+
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY' || session) setReady(true)
     })
+
+    let tries = 0
+    const poll = setInterval(async () => {
+      tries++
+      const { data } = await supabase.auth.getSession()
+      if (data.session) { setReady(true); clearInterval(poll) }
+      if (tries >= 12) clearInterval(poll) // give up after ~6s
+    }, 500)
+
+    return () => {
+      sub.subscription.unsubscribe()
+      clearInterval(poll)
+    }
   }, [])
 
   async function handleSubmit(e: React.FormEvent) {
