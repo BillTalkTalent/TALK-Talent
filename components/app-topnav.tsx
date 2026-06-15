@@ -358,6 +358,9 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
               <Link href="/registrations" className="flex items-center gap-2.5 px-3.5 py-2 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors">
                 My Registrations
               </Link>
+              <Link href="/invite" className="flex items-center gap-2.5 px-3.5 py-2 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors">
+                Invite a Member
+              </Link>
             </div>
           </div>
 

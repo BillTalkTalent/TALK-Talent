@@ -9,6 +9,7 @@ export async function POST(req: NextRequest) {
 
   const { email, name, message, inviterId } = await req.json();
   if (!email) return NextResponse.json({ error: "Email is required" }, { status: 400 });
+  const cleanEmail = String(email).toLowerCase().trim();
 
   // Check they haven't already invited this email
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -17,7 +18,7 @@ export async function POST(req: NextRequest) {
     .from("invitations")
     .select("id")
     .eq("inviter_id", user.id)
-    .eq("email", email.toLowerCase())
+    .eq("email", cleanEmail)
     .maybeSingle();
 
   if (existing) {
@@ -27,31 +28,38 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Always use the canonical production URL — never the request origin,
-  // which could be localhost if someone triggers this from a local dev environment.
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://talk-talent.vercel.app";
-
-  // Send invite via Supabase Auth (uses Supabase's built-in email)
+  // Create the account directly (email pre-confirmed, no password). The profile
+  // trigger sets status = 'pending', so the invitee lands in the admin "Pending
+  // Approvals" queue. Approving them there sends the branded magic-link login
+  // email via Resend. We deliberately do NOT use Supabase's built-in invite
+  // email — it's rate-limited (~3/hr), unbranded, and skips the approval gate.
   const admin = createAdminClient();
-  const { error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
-    data: {
+  const { error: createError } = await admin.auth.admin.createUser({
+    email: cleanEmail,
+    email_confirm: true,
+    user_metadata: {
+      full_name: name ?? null,
       invited_by: user.id,
-      invitee_name: name ?? null,
     },
-    redirectTo: `${siteUrl}/auth/callback?next=/dashboard`,
   });
 
-  if (inviteError && !inviteError.message.includes("already been registered")) {
-    console.error("inviteUserByEmail error:", inviteError);
-    return NextResponse.json({ error: inviteError.message }, { status: 500 });
+  if (createError) {
+    if (/already.*registered|already.*exists/i.test(createError.message)) {
+      return NextResponse.json(
+        { error: "That email already has a TALK account." },
+        { status: 400 }
+      );
+    }
+    console.error("invite createUser error:", createError);
+    return NextResponse.json({ error: createError.message }, { status: 500 });
   }
 
-  // Record the invite in the database
+  // Record the invite so it shows in the inviter's history.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const adminDb = admin as any;
   await adminDb.from("invitations").insert({
     inviter_id: inviterId,
-    email: email.toLowerCase(),
+    email: cleanEmail,
     name: name ?? null,
     message: message ?? null,
     status: "sent",

@@ -47,14 +47,14 @@ export default async function InvitePage({
           style={{ background: "linear-gradient(135deg, #E8503A, #F07058)" }}
         >
           <CheckCircle2 className="size-5 shrink-0" />
-          <p className="text-sm font-semibold">Invite sent! They&apos;ll receive an email to join TALK.</p>
+          <p className="text-sm font-semibold">Added! They&apos;re now in the Pending Approvals queue — approve them in the Admin panel and they&apos;ll get a login link by email.</p>
         </div>
       )}
 
       {/* Invite form */}
       <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm p-6">
         <p className="text-sm text-zinc-600 mb-5 leading-relaxed">
-          Know a TA leader who&apos;d be a great fit for TALK? Send them a personal invite — they&apos;ll get an email with a link to sign up and join the community.
+          Know a TA leader who&apos;d be a great fit for TALK? Add them here — they&apos;ll appear in your Admin &rarr; Pending Approvals queue. Once you approve them, they get a branded email with a one-click login link.
         </p>
         <InviteForm inviterId={user.id} />
       </div>
