@@ -35,32 +35,25 @@ function ResetPasswordInner() {
   const [ready, setReady] = useState(false)
   const [linkError, setLinkError] = useState<string | null>(null)
 
+  // Does this visit carry an admin-generated one-time token_hash?
+  const hasTokenHash = !!searchParams.get('token_hash')
+
   useEffect(() => {
-    const supabase = createClient()
-    let cancelled = false
-
-    // Preferred path: admin-generated links (claim/reset) carry a one-time
-    // token_hash. Verifying it here establishes the session WITHOUT needing a
-    // PKCE code_verifier — so it works on any device/browser the recipient
-    // opens the email on. (The old hash/implicit assumption silently failed
-    // under the client's default PKCE flow, stranding users on "Verifying link…".)
-    const tokenHash = searchParams.get('token_hash')
-    const otpType = (searchParams.get('type') ?? 'recovery') as
-      | 'recovery' | 'invite' | 'magiclink' | 'email' | 'signup'
-
-    if (tokenHash) {
-      supabase.auth.verifyOtp({ type: otpType, token_hash: tokenHash }).then(({ error }) => {
-        if (cancelled) return
-        if (error) {
-          setLinkError('This link has expired or already been used. Ask for a fresh one and you’ll be right in.')
-        } else {
-          setReady(true)
-        }
-      })
-      return () => { cancelled = true }
+    // IMPORTANT: when there's a token_hash we do NOT verify it on page load.
+    // Corporate email scanners (Microsoft Safe Links, Mimecast, Proofpoint)
+    // "detonate" links in a JS-running sandbox before the human clicks — and
+    // since the token is single-use, verifying on load lets the robot burn it,
+    // leaving the real person with a dead link. Instead we show the form right
+    // away and verify the token only when they submit (scanners don't fill and
+    // submit forms). This works on any device and needs no PKCE code_verifier.
+    if (hasTokenHash) {
+      setReady(true)
+      return
     }
 
-    // Fallback: a session already exists, or an implicit/hash-style link.
+    // Fallback (no token): a session already exists, or an implicit/hash link.
+    const supabase = createClient()
+    let cancelled = false
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY' || session) setReady(true)
     })
@@ -80,7 +73,7 @@ function ResetPasswordInner() {
       sub.subscription.unsubscribe()
       clearInterval(poll)
     }
-  }, [searchParams])
+  }, [hasTokenHash])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -94,6 +87,22 @@ function ResetPasswordInner() {
     }
     setLoading(true)
     const supabase = createClient()
+
+    // Consume the one-time token NOW (the human's deliberate submit), not on
+    // page load — so email scanners that pre-open the link can't burn it first.
+    const tokenHash = searchParams.get('token_hash')
+    if (tokenHash) {
+      const otpType = (searchParams.get('type') ?? 'recovery') as
+        | 'recovery' | 'invite' | 'magiclink' | 'email' | 'signup'
+      const { error: verifyError } = await supabase.auth.verifyOtp({ type: otpType, token_hash: tokenHash })
+      if (verifyError) {
+        setLinkError('This link has expired or already been used. Ask for a fresh one and you’ll be right in.')
+        toast.error('Link expired — request a fresh one.')
+        setLoading(false)
+        return
+      }
+    }
+
     const { error } = await supabase.auth.updateUser({ password })
     if (error) {
       toast.error(error.message)
@@ -101,7 +110,7 @@ function ResetPasswordInner() {
       return
     }
     setDone(true)
-    setTimeout(() => router.push('/dashboard'), 2000)
+    setTimeout(() => router.push('/dashboard'), 1500)
   }
 
   return (
