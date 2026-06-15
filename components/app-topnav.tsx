@@ -68,6 +68,8 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
   const [notifOpen, setNotifOpen] = useState(false)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const notifRef = useRef<HTMLDivElement>(null)
+  const [moreOpen, setMoreOpen] = useState(false)
+  const moreRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const supabase = createClient()
@@ -117,6 +119,11 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
     if (pathname.startsWith('/messages')) setUnreadCount(0)
   }, [pathname])
 
+  // Close the More menu whenever the route changes
+  useEffect(() => {
+    setMoreOpen(false)
+  }, [pathname])
+
   // Notifications: load unread count + subscribe to new ones
   useEffect(() => {
     const supabase = createClient()
@@ -146,6 +153,9 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
     function handle(e: MouseEvent) {
       if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
         setNotifOpen(false)
+      }
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) {
+        setMoreOpen(false)
       }
     }
     document.addEventListener('mousedown', handle)
@@ -205,8 +215,8 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
           </span>
         </Link>
 
-        {/* ── Main nav ── */}
-        <nav className="flex items-center gap-0.5 flex-1 overflow-x-auto scrollbar-none">
+        {/* ── Main nav (links only; scrolls on narrow screens) ── */}
+        <nav className="flex items-center gap-0.5 min-w-0 overflow-x-auto scrollbar-none">
           {mainNav.map(({ href, label, icon: Icon }) => {
             const active = pathname === href || pathname.startsWith(href + '/')
             return (
@@ -225,26 +235,33 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
               </Link>
             )
           })}
+        </nav>
 
-          {/* More dropdown — lower-traffic destinations */}
-          <div className="relative group/more">
-            <button
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all',
-                moreNav.some(({ href }) => pathname === href || pathname.startsWith(href + '/'))
-                  ? 'bg-[#1E4B82] text-white font-semibold'
-                  : 'text-white/60 hover:bg-white/10 hover:text-white'
-              )}
-            >
-              <MoreHorizontal className="size-4 shrink-0" />
-              More
-              <ChevronDown className="size-3 shrink-0" />
-            </button>
-            <div className="absolute left-0 top-full mt-1 w-44 rounded-xl bg-white shadow-lg border border-zinc-100 py-1 opacity-0 invisible group-hover/more:opacity-100 group-hover/more:visible transition-all z-50">
+        {/* More menu — rendered OUTSIDE the scrollable nav so its panel isn't
+            clipped by the nav's overflow; click to toggle. */}
+        <div className="relative shrink-0" ref={moreRef}>
+          <button
+            type="button"
+            onClick={() => setMoreOpen((o) => !o)}
+            aria-expanded={moreOpen}
+            className={cn(
+              'flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all',
+              moreOpen || moreNav.some(({ href }) => pathname === href || pathname.startsWith(href + '/'))
+                ? 'bg-[#1E4B82] text-white font-semibold'
+                : 'text-white/60 hover:bg-white/10 hover:text-white'
+            )}
+          >
+            <MoreHorizontal className="size-4 shrink-0" />
+            More
+            <ChevronDown className={cn('size-3 shrink-0 transition-transform', moreOpen && 'rotate-180')} />
+          </button>
+          {moreOpen && (
+            <div className="absolute left-0 top-full mt-1 w-44 rounded-xl bg-white shadow-lg border border-zinc-100 py-1 z-50">
               {moreNav.map(({ href, label, icon: Icon }) => (
                 <Link
                   key={href}
                   href={href}
+                  onClick={() => setMoreOpen(false)}
                   className="flex items-center gap-2.5 px-3.5 py-2 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
                 >
                   <Icon className="size-4 text-zinc-400" />
@@ -252,11 +269,11 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
                 </Link>
               ))}
             </div>
-          </div>
-        </nav>
+          )}
+        </div>
 
         {/* ── Right-side controls: messages + bell + admin + profile ── */}
-        <div className="flex items-center gap-1 ml-3 shrink-0">
+        <div className="flex items-center gap-1 ml-auto pl-3 shrink-0">
 
           {/* Direct messages */}
           <Link
