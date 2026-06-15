@@ -33,31 +33,54 @@ function ResetPasswordInner() {
   const [done, setDone] = useState(false)
   const [showPw, setShowPw] = useState(false)
   const [ready, setReady] = useState(false)
+  const [linkError, setLinkError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Supabase puts the access token in the URL hash and establishes a session.
-    // The PASSWORD_RECOVERY event can fire BEFORE this listener attaches (race),
-    // so we enable the form as soon as a session exists — via the event, OR a
-    // session-bearing state change, OR by polling getSession as a safety net.
     const supabase = createClient()
+    let cancelled = false
 
+    // Preferred path: admin-generated links (claim/reset) carry a one-time
+    // token_hash. Verifying it here establishes the session WITHOUT needing a
+    // PKCE code_verifier — so it works on any device/browser the recipient
+    // opens the email on. (The old hash/implicit assumption silently failed
+    // under the client's default PKCE flow, stranding users on "Verifying link…".)
+    const tokenHash = searchParams.get('token_hash')
+    const otpType = (searchParams.get('type') ?? 'recovery') as
+      | 'recovery' | 'invite' | 'magiclink' | 'email' | 'signup'
+
+    if (tokenHash) {
+      supabase.auth.verifyOtp({ type: otpType, token_hash: tokenHash }).then(({ error }) => {
+        if (cancelled) return
+        if (error) {
+          setLinkError('This link has expired or already been used. Ask for a fresh one and you’ll be right in.')
+        } else {
+          setReady(true)
+        }
+      })
+      return () => { cancelled = true }
+    }
+
+    // Fallback: a session already exists, or an implicit/hash-style link.
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY' || session) setReady(true)
     })
-
     let tries = 0
     const poll = setInterval(async () => {
       tries++
       const { data } = await supabase.auth.getSession()
       if (data.session) { setReady(true); clearInterval(poll) }
-      if (tries >= 12) clearInterval(poll) // give up after ~6s
+      if (tries >= 12) {
+        clearInterval(poll)
+        if (!cancelled) setLinkError(prev => prev ?? 'We couldn’t verify this link. Ask for a fresh one and try again.')
+      }
     }, 500)
 
     return () => {
+      cancelled = true
       sub.subscription.unsubscribe()
       clearInterval(poll)
     }
-  }, [])
+  }, [searchParams])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -144,6 +167,12 @@ function ResetPasswordInner() {
                 </p>
               </div>
 
+              {linkError && (
+                <div className="rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
+                  {linkError}
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-1.5">
                   <Label htmlFor="password">New password</Label>
@@ -182,9 +211,9 @@ function ResetPasswordInner() {
                   className="w-full text-white font-semibold"
                   style={{ background: '#E8503A' }}
                   size="lg"
-                  disabled={loading || !ready}
+                  disabled={loading || !ready || !!linkError}
                 >
-                  {loading ? 'Saving…' : !ready ? 'Verifying link…' : isClaim ? 'Set password & enter' : 'Set new password'}
+                  {loading ? 'Saving…' : linkError ? 'Link expired' : !ready ? 'Verifying link…' : isClaim ? 'Set password & enter' : 'Set new password'}
                 </Button>
               </form>
             </>

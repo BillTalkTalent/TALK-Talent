@@ -48,6 +48,11 @@ export async function POST(req: NextRequest) {
         existing?.user_metadata?.full_name ?? name ?? null;
       const firstName = fullName?.split(" ")[0] ?? "there";
 
+      // Link to our page with the one-time token_hash (verified client-side via
+      // verifyOtp) — robust across devices and against link-prefetching scanners,
+      // unlike Supabase's PKCE action_link.
+      const claimUrl = `${redirectTo}&token_hash=${linkData.properties.hashed_token}&type=recovery`;
+
       const resend = new Resend(process.env.RESEND_API_KEY);
       const from = process.env.FROM_EMAIL ?? "TALK Community <onboarding@resend.dev>";
       await resend.emails.send({
@@ -55,7 +60,7 @@ export async function POST(req: NextRequest) {
         replyTo: process.env.REPLY_TO_EMAIL ?? "bill@talktalent.com",
         to: cleanEmail,
         subject: "Welcome to the new TALK — claim your account",
-        html: buildClaimEmail({ toFirstName: firstName, claimUrl: linkData.properties.action_link }),
+        html: buildClaimEmail({ toFirstName: firstName, claimUrl }),
       });
       outcome = "claim_sent";
     }

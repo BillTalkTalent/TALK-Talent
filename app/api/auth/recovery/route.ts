@@ -35,7 +35,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true })
     }
 
-    const link: string = data.properties.action_link
+    // Point the email at OUR page carrying the one-time token_hash, rather than
+    // Supabase's /verify action_link. Our page verifies it client-side via
+    // verifyOtp, which works without a PKCE code_verifier (any device) and isn't
+    // burned by email-security scanners that fetch links without running JS.
+    const tokenHash: string = data.properties.hashed_token
+    const link = `${redirectTo}${redirectTo.includes('?') ? '&' : '?'}token_hash=${tokenHash}&type=recovery`
     const fullName: string | null =
       data.user?.user_metadata?.full_name ?? data.user?.user_metadata?.name ?? null
     const firstName = fullName?.split(' ')[0] ?? 'there'
