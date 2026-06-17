@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { Resend } from 'resend'
-import { buildClaimEmail, buildResetEmail, buildTestInviteEmail } from '@/lib/email'
+import { buildClaimEmail, buildResetEmail, buildTestInviteEmail, buildCheckinEmail } from '@/lib/email'
 
-type Mode = 'claim' | 'reset' | 'relaunch'
+type Mode = 'claim' | 'reset' | 'relaunch' | 'checkin'
 
 export async function POST(req: NextRequest) {
   try {
@@ -49,7 +49,12 @@ export async function POST(req: NextRequest) {
     const from = process.env.FROM_EMAIL ?? 'TALK Community <onboarding@resend.dev>'
 
     const { subject, html } =
-      mode === 'relaunch'
+      mode === 'checkin'
+        ? {
+            subject: 'Quick midweek check-in — and your login’s sorted',
+            html: buildCheckinEmail({ toFirstName: firstName, claimUrl: link }),
+          }
+        : mode === 'relaunch'
         ? {
             subject: 'TALK is fixed — your fresh link + what to test',
             html: buildTestInviteEmail({ toFirstName: firstName, claimUrl: link }),

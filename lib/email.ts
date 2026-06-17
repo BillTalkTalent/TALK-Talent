@@ -109,6 +109,54 @@ export function buildTestInviteEmail(opts: {
   `)
 }
 
+export function buildCheckinEmail(opts: {
+  toFirstName: string
+  claimUrl: string
+}): string {
+  const goals = [
+    'Finish your profile — add a photo, title, and a short bio',
+    'Browse the <strong style="color:#0F1F35;">Member Directory</strong> and connect with someone',
+    'Read a thread in the <strong style="color:#0F1F35;">Forums</strong> and post a reply',
+    'Take a look at <strong style="color:#0F1F35;">Careers</strong> (jobs + folks open to work) and <strong style="color:#0F1F35;">Vendors</strong>',
+    'Send a direct message to another member',
+  ]
+  const list = goals.map(g =>
+    `<tr><td style="padding:6px 0;font-size:14px;color:#374151;line-height:1.6;">
+       <span style="color:#E8503A;font-weight:800;">&bull;</span>&nbsp;&nbsp;${g}
+     </td></tr>`
+  ).join('')
+
+  return emailShell(`
+    <p style="margin:0 0 6px;font-size:22px;font-weight:800;color:#0F1F35;">Quick midweek check-in 👋</p>
+    <p style="margin:0 0 14px;font-size:15px;color:#5A7090;line-height:1.6;">
+      Hi ${opts.toFirstName}, thanks again for being in the very first group inside the new TALK.
+      A quick midweek note — plus an honest word on the login bumps.
+    </p>
+    <p style="margin:0 0 14px;font-size:15px;color:#5A7090;line-height:1.6;">
+      Some of you hit snags getting logged in earlier this week. That was on me — a couple of
+      behind-the-scenes issues in sign-in. They're fixed now, and I've confirmed people getting in
+      cleanly, including from corporate inboxes.
+    </p>
+    <p style="margin:0 0 4px;font-size:15px;color:#5A7090;line-height:1.6;">
+      If you haven't gotten in yet, your login link is right here — click below, set a password, and
+      you're in. It's good for 24 hours; if it expires, just hit reply and I'll send a fresh one.
+    </p>
+    ${ctaButton('Get into TALK', opts.claimUrl)}
+    <p style="margin:26px 0 8px;font-size:13px;font-weight:700;color:#0F1F35;text-transform:uppercase;letter-spacing:0.04em;">
+      Once you're in, the things that'd help me most
+    </p>
+    <table cellpadding="0" cellspacing="0" style="width:100%;">${list}</table>
+    <p style="margin:18px 0 0;font-size:14px;color:#5A7090;line-height:1.6;">
+      No rush and no pressure — even 10 minutes of poking around is genuinely useful. And if anything
+      feels clunky or breaks, just tell me. That's exactly what this phase is for.
+    </p>
+    <p style="margin:14px 0 0;font-size:15px;color:#5A7090;line-height:1.6;">
+      Thank you — truly. Your eyes on this before I open it to the full community make all the difference.
+      <br><br>Bill
+    </p>
+  `)
+}
+
 export function buildDmEmail(opts: {
   toFirstName: string
   fromName: string
