@@ -208,6 +208,79 @@ export function buildResetEmail(opts: {
   `)
 }
 
+// ─── Plain-text counterparts (multipart text/plain improves deliverability) ──
+
+export function buildClaimText(o: { toFirstName: string; claimUrl: string }): string {
+  return `Welcome to the new TALK
+
+Hi ${o.toFirstName}, the TALK community has a brand-new home — and your account is ready. Open the link below to set your password and get in. Your profile, posts, and history have all moved with you.
+
+${o.claimUrl}
+
+This link is valid for 24 hours. If you didn't request it, you can safely ignore this email.
+
+— TALK Talent Community`
+}
+
+export function buildResetText(o: { toFirstName: string; resetUrl: string }): string {
+  return `Reset your password
+
+Hi ${o.toFirstName}, a request was made to reset your TALK password. Open the link below to choose a new one.
+
+${o.resetUrl}
+
+This link is valid for 24 hours. If you didn't request this, you can safely ignore this email.
+
+— TALK Talent Community`
+}
+
+export function buildTestInviteText(o: { toFirstName: string; claimUrl: string }): string {
+  return `We're back — sorry for the hiccup
+
+Hi ${o.toFirstName}, a small glitch was stopping people from setting their password earlier — it's now fixed. Here's a fresh link to claim your TALK account and jump in.
+
+${o.claimUrl}
+
+Once you're in, here's what would help most:
+- Set your password and finish the quick welcome setup
+- Complete your profile (photo, title, bio)
+- Browse the Member Directory and connect with someone
+- Read a thread in the Forums and post a reply
+- Check out Careers and Vendors
+- Send a direct message to another member
+
+Found something confusing or broken? Just hit reply.
+
+This link is valid for 24 hours.
+
+— Bill`
+}
+
+export function buildCheckinText(o: { toFirstName: string; claimUrl: string }): string {
+  return `Quick midweek check-in
+
+Hi ${o.toFirstName}, thanks again for being in the very first group inside the new TALK. A quick midweek note — plus an honest word on the login bumps.
+
+Some of you hit snags getting logged in earlier this week. That was on me — a couple of behind-the-scenes issues in sign-in. They're fixed now, and I've confirmed people getting in cleanly, including from corporate inboxes.
+
+If you haven't gotten in yet, your login link is right here — open it, set a password, and you're in. It's good for 24 hours; if it expires, just hit reply and I'll send a fresh one.
+
+${o.claimUrl}
+
+Once you're in, the things that'd help me most:
+- Finish your profile (photo, title, short bio)
+- Browse the Member Directory and connect with someone
+- Read a thread in the Forums and post a reply
+- Take a look at Careers (jobs + folks open to work) and Vendors
+- Send a direct message to another member
+
+No rush and no pressure — even 10 minutes of poking around is genuinely useful. And if anything feels clunky or breaks, just tell me. That's exactly what this phase is for.
+
+Thank you — truly. Your eyes on this before I open it to the full community make all the difference.
+
+Bill`
+}
+
 export function buildMentorshipRequestEmail(opts: {
   toFirstName: string   // mentor's first name
   requesterName: string

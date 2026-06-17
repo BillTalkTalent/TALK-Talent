@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { Resend } from 'resend'
-import { buildClaimEmail, buildResetEmail, buildTestInviteEmail, buildCheckinEmail } from '@/lib/email'
+import {
+  buildClaimEmail, buildResetEmail, buildTestInviteEmail, buildCheckinEmail,
+  buildClaimText, buildResetText, buildTestInviteText, buildCheckinText,
+} from '@/lib/email'
 
 type Mode = 'claim' | 'reset' | 'relaunch' | 'checkin'
 
@@ -48,28 +51,32 @@ export async function POST(req: NextRequest) {
     const resend = new Resend(process.env.RESEND_API_KEY)
     const from = process.env.FROM_EMAIL ?? 'TALK Community <onboarding@resend.dev>'
 
-    const { subject, html } =
+    const { subject, html, text } =
       mode === 'checkin'
         ? {
             subject: 'Quick midweek check-in — and your login’s sorted',
             html: buildCheckinEmail({ toFirstName: firstName, claimUrl: link }),
+            text: buildCheckinText({ toFirstName: firstName, claimUrl: link }),
           }
         : mode === 'relaunch'
         ? {
             subject: 'TALK is fixed — your fresh link + what to test',
             html: buildTestInviteEmail({ toFirstName: firstName, claimUrl: link }),
+            text: buildTestInviteText({ toFirstName: firstName, claimUrl: link }),
           }
         : mode === 'reset'
         ? {
             subject: 'Reset your TALK password',
             html: buildResetEmail({ toFirstName: firstName, resetUrl: link }),
+            text: buildResetText({ toFirstName: firstName, resetUrl: link }),
           }
         : {
             subject: 'Welcome to the new TALK — claim your account',
             html: buildClaimEmail({ toFirstName: firstName, claimUrl: link }),
+            text: buildClaimText({ toFirstName: firstName, claimUrl: link }),
           }
 
-    await resend.emails.send({ from, replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com', to: email, subject, html })
+    await resend.emails.send({ from, replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com', to: email, subject, html, text })
 
     return NextResponse.json({ ok: true })
   } catch (err) {

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Resend } from "resend";
-import { buildClaimEmail } from "@/lib/email";
+import { buildClaimEmail, buildClaimText } from "@/lib/email";
 
 // "Add a beta tester" — one action that does the right thing automatically:
 //   • already a member, never claimed (dormant) → email them a branded claim link
@@ -61,6 +61,7 @@ export async function POST(req: NextRequest) {
         to: cleanEmail,
         subject: "Welcome to the new TALK — claim your account",
         html: buildClaimEmail({ toFirstName: firstName, claimUrl }),
+        text: buildClaimText({ toFirstName: firstName, claimUrl }),
       });
       outcome = "claim_sent";
     }
