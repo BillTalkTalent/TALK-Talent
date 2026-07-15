@@ -7,8 +7,8 @@ export default function LegalShell({
   effective,
   children,
 }: {
-  title: string;
-  effective: string;
+  title?: string;
+  effective?: string;
   children: ReactNode;
 }) {
   return (
@@ -36,9 +36,9 @@ export default function LegalShell({
 
       <main className="max-w-3xl mx-auto px-6 py-12">
         <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-7 md:p-12">
-          <h1 className="text-3xl font-bold text-[#0F1F35]">{title}</h1>
-          <p className="text-sm text-zinc-500 mt-2">Last updated: {effective}</p>
-          <div className="mt-8 space-y-2">{children}</div>
+          {title && <h1 className="text-3xl font-bold text-[#0F1F35]">{title}</h1>}
+          {effective && <p className="text-sm text-zinc-500 mt-2">Last updated: {effective}</p>}
+          <div className={title ? "mt-8 space-y-2" : ""}>{children}</div>
         </div>
         <p className="text-center text-xs text-zinc-400 mt-8">
           <Link href="/privacy" className="hover:text-zinc-600">Privacy</Link>
