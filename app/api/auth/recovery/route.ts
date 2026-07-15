@@ -14,15 +14,36 @@ export async function POST(req: NextRequest) {
     if (!email || typeof email !== 'string') {
       return NextResponse.json({ error: 'Email required' }, { status: 400 })
     }
+    const email0 = email.toLowerCase().trim()
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const admin = createAdminClient() as any
+
+    // Rate limit: cap claim/reset emails to 2 per address per 5 minutes (anti-bombing).
+    // Keyed per-email so it never throttles the bulk migration wave (each member once).
+    // Fails OPEN if the tracking table isn't present yet, so it can't break sends.
+    try {
+      const since = new Date(Date.now() - 5 * 60_000).toISOString()
+      const { count } = await admin.from('recovery_attempts')
+        .select('id', { count: 'exact', head: true })
+        .eq('email', email0).gte('created_at', since)
+      if ((count ?? 0) >= 2) {
+        return NextResponse.json(
+          { error: 'Too many requests for this email. Please try again in a few minutes.' },
+          { status: 429 }
+        )
+      }
+      const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() || null
+      await admin.from('recovery_attempts').insert({ ip, email: email0 })
+    } catch {
+      /* table missing or transient error — fail open and allow the send */
+    }
 
     const origin = process.env.NEXT_PUBLIC_SITE_URL ?? new URL(req.url).origin
     const redirectTo =
       mode === 'reset'
         ? `${origin}/auth/reset-password`
         : `${origin}/auth/reset-password?claim=1`
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const admin = createAdminClient() as any
 
     // Generate a recovery link WITHOUT Supabase sending it — we send via Resend.
     // Works for imported members (confirmed email, no password yet) and returning users.
