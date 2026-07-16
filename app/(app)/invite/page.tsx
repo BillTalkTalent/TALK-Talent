@@ -49,10 +49,10 @@ export default async function InvitePage({
           <CheckCircle2 className="size-5 shrink-0" />
           <p className="text-sm font-semibold">
             {sent === "claim_sent"
-              ? "Done! They already had a TALK account — we emailed them a claim link to set a password and jump straight in. No approval needed."
+              ? "They're already a TALK member — we've emailed them a link to jump straight in."
               : sent === "already_active"
-              ? "They're already an active member — they can just log in at any time. Nothing else to do."
-              : "Added! They're new, so they're in your Pending Approvals queue — approve them in the Admin panel and they'll get a login link by email."}
+              ? "They're already an active member — nothing else needed."
+              : "Thanks! Your invite's in — we'll review them and send an invitation to join TALK."}
           </p>
         </div>
       )}
@@ -60,7 +60,7 @@ export default async function InvitePage({
       {/* Invite form */}
       <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm p-6">
         <p className="text-sm text-zinc-600 mb-5 leading-relaxed">
-          Add any TA leader by email and TALK figures out the rest: if they&apos;re an existing community member, they get a branded link to claim their account and jump straight in; if they&apos;re brand new, they land in your Admin &rarr; Pending Approvals queue for a quick review.
+          Know a TA leader who should be part of TALK Talent? Invite them using the form below!
         </p>
         <InviteForm inviterId={user.id} />
       </div>
