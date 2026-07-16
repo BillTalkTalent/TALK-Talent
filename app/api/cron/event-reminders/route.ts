@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   const admin = createAdminClient()
   const resend = new Resend(process.env.RESEND_API_KEY)
   const from = process.env.FROM_EMAIL ?? 'TALK Community <onboarding@resend.dev>'
-  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://talk-talent.vercel.app'
+  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
 
   // Find events happening in the next 24–25 hours
   const now = new Date()

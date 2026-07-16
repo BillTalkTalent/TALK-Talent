@@ -2,7 +2,7 @@
  * Shared email template helpers — navy brand, consistent across all notifications.
  */
 
-const ORIGIN = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://talk-talent.vercel.app'
+const ORIGIN = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
 
 /** Wrap any content block in the standard TALK email shell */
 export function emailShell(body: string): string {

@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
 
     const senderName = sender?.full_name ?? 'A TALK member'
     const recipientFirstName = recipient.full_name?.split(' ')[0] ?? 'there'
-    const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://talk-talent.vercel.app'
+    const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
     const convUrl = `${origin}/messages`
     const preview = messageContent.length > 200 ? messageContent.slice(0, 197) + '…' : messageContent
 

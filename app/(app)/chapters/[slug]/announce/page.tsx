@@ -49,7 +49,7 @@ async function sendAnnouncement(formData: FormData) {
   if (emails.length === 0) return
 
   const resend = new Resend(process.env.RESEND_API_KEY)
-  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://talk-talent.vercel.app'
+  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
   const from = process.env.FROM_EMAIL ?? 'TALK Community <onboarding@resend.dev>'
 
   const html = `

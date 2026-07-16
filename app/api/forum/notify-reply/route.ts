@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
       .single();
 
     const replierName = replierProfile?.full_name ?? "A community member";
-    const origin = process.env.NEXT_PUBLIC_SITE_URL ?? "https://talk-talent.vercel.app";
+    const origin = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.talktalent.com";
     const topicUrl = `${origin}/forum/${categorySlug ?? ""}/${topicId}`;
     const relativeLink = `/forum/${categorySlug ?? ""}/${topicId}`;
     const truncatedPreview = replyBody.length > 100 ? replyBody.slice(0, 97) + "…" : replyBody;

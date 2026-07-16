@@ -90,6 +90,19 @@ export default function LoginForm() {
             <p className="text-sm text-zinc-500">Sign in to your TALK account</p>
           </div>
 
+          {/* Migration notice — every existing member's account moved here */}
+          <div className="rounded-xl border px-4 py-3.5" style={{ background: 'rgba(232,80,58,0.06)', borderColor: 'rgba(232,80,58,0.28)' }}>
+            <p className="text-sm font-semibold text-[#0F1F35]">👋 Welcome to the new TALK</p>
+            <p className="text-sm text-zinc-600 mt-1 leading-relaxed">
+              Were you a member of the old TALK site?{' '}
+              <strong className="text-zinc-800">Your account has moved here — no need to sign up again.</strong>{' '}
+              <Link href="/claim" className="font-semibold hover:underline" style={{ color: '#E8503A' }}>
+                Claim your account →
+              </Link>{' '}
+              to set a password. Your profile, chapters, and history came with you.
+            </p>
+          </div>
+
           {linkExpired && (
             <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
               <AlertTriangle className="size-4 text-amber-500 shrink-0 mt-0.5" />

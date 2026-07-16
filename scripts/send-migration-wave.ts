@@ -47,7 +47,7 @@ const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!
 const RESEND_API_KEY   = process.env.RESEND_API_KEY!
 const FROM_EMAIL       = process.env.FROM_EMAIL ?? 'TALK Community <hello@talktalent.com>'
 const REPLY_TO_EMAIL   = process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com'
-const SITE_ORIGIN      = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://talk-talent.vercel.app'
+const SITE_ORIGIN      = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
 const REDIRECT_TO      = `${SITE_ORIGIN}/auth/reset-password?claim=1`
 
 const argWave  = process.argv.find(a => a.startsWith('--wave='))

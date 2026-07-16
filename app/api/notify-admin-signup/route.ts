@@ -36,7 +36,7 @@ export async function POST(request: Request) {
       if (!adminEmail) return NextResponse.json({ ok: true });
 
       const resend = new Resend(process.env.RESEND_API_KEY);
-      const origin = process.env.NEXT_PUBLIC_SITE_URL ?? "https://talk-talent.vercel.app";
+      const origin = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.talktalent.com";
       const from = process.env.FROM_EMAIL ?? "TALK Community <onboarding@resend.dev>";
 
       await resend.emails.send({
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     }
 
     const resend = new Resend(process.env.RESEND_API_KEY);
-    const origin = process.env.NEXT_PUBLIC_SITE_URL ?? "https://talk-talent.vercel.app";
+    const origin = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.talktalent.com";
     const from = process.env.FROM_EMAIL ?? "TALK Community <onboarding@resend.dev>";
 
     await Promise.allSettled(

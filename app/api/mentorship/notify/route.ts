@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 
     if (!request) return NextResponse.json({ error: 'Request not found' }, { status: 404 })
 
-    const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://talk-talent.vercel.app'
+    const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
     const requestUrl = `${origin}/mentorship/requests`
     const resend = new Resend(process.env.RESEND_API_KEY)
     const from = process.env.FROM_EMAIL ?? 'TALK Community <onboarding@resend.dev>'

@@ -14,7 +14,7 @@ export async function GET(req: Request) {
 
   const supabase = createAdminClient()
   const resend = new Resend(process.env.RESEND_API_KEY)
-  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://talk-talent.vercel.app'
+  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
   const from = process.env.FROM_EMAIL ?? 'TALK Community <onboarding@resend.dev>'
 
   // Find all topics posted in the last 24 hours
