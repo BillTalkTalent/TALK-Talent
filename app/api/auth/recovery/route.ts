@@ -46,16 +46,25 @@ export async function POST(req: NextRequest) {
         : `${origin}/auth/reset-password?claim=1`
 
     // Generate a recovery link WITHOUT Supabase sending it — we send via Resend.
-    // Works for imported members (confirmed email, no password yet) and returning users.
-    const { data, error } = await admin.auth.admin.generateLink({
-      type: 'recovery',
-      email,
-      options: { redirectTo },
-    })
-
-    // If the email isn't a member, Supabase errors — swallow it and still return
-    // success so we never leak who is or isn't a member.
-    if (error || !data?.properties?.action_link) {
+    // Resolve the account by the entered email first; if that isn't a login email,
+    // fall back to the member_email_aliases index (their professional/personal
+    // address on file) so members who forget which email they used still get in.
+    // The link is always sent to the address they entered.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async function resolveLink(addr: string): Promise<any | null> {
+      const r = await admin.auth.admin.generateLink({ type: 'recovery', email: addr, options: { redirectTo } })
+      return (!r.error && r.data?.properties?.action_link) ? r.data : null
+    }
+    let data = await resolveLink(email0)
+    if (!data) {
+      try {
+        const { data: alias } = await admin
+          .from('member_email_aliases').select('primary_email').eq('alias_email', email0).maybeSingle()
+        if (alias?.primary_email) data = await resolveLink(alias.primary_email)
+      } catch { /* alias table not present yet — ignore and fall through */ }
+    }
+    // No account for any known address — return success anyway (never leak membership).
+    if (!data) {
       return NextResponse.json({ ok: true })
     }
 
@@ -97,7 +106,7 @@ export async function POST(req: NextRequest) {
             text: buildClaimText({ toFirstName: firstName, claimUrl: link }),
           }
 
-    await resend.emails.send({ from, replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com', to: email, subject, html, text })
+    await resend.emails.send({ from, replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com', to: email0, subject, html, text })
 
     return NextResponse.json({ ok: true })
   } catch (err) {

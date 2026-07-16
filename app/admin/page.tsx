@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Users, Clock, Calendar, Building2 } from 'lucide-react'
 import { Resend } from 'resend'
+import AdminMemberSearch from '@/components/admin-member-search'
 
 async function approveMember(id: string) {
   'use server'
@@ -246,6 +247,9 @@ export default async function AdminPage() {
           </Card>
         ))}
       </div>
+
+      {/* Find a member & send their claim link */}
+      <AdminMemberSearch />
 
       {/* Pending approvals */}
       <Card>
