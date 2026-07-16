@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { format, formatDistanceToNow } from "date-fns";
+import { formatInZone } from "@/lib/timezone";
 import {
   Users,
   CalendarDays,
@@ -440,7 +441,10 @@ export default async function DashboardPage() {
               </div>
             ) : (
               upcomingEvents.map((event) => {
-                const eventDate = new Date(event.event_date);
+                const tz = (event as unknown as { timezone?: string }).timezone || "America/New_York";
+                const moLabel = formatInZone(event.event_date, tz, { weekday: undefined, year: undefined, month: "short", day: undefined, hour: undefined, minute: undefined, timeZoneName: undefined });
+                const dayLabel = formatInZone(event.event_date, tz, { weekday: undefined, year: undefined, month: undefined, day: "numeric", hour: undefined, minute: undefined, timeZoneName: undefined });
+                const timeLabel = formatInZone(event.event_date, tz, { weekday: undefined, year: undefined, month: undefined, day: undefined, hour: "numeric", minute: "2-digit" });
                 const rsvpCount = rsvpCountMap[event.id] ?? 0;
                 return (
                   <Link
@@ -451,10 +455,10 @@ export default async function DashboardPage() {
                     <div className="flex w-11 shrink-0 flex-col items-center justify-center rounded-xl py-2 text-indigo-700"
                       style={{background: "linear-gradient(135deg, #eef2ff, #e0e7ff)"}}>
                       <span className="text-[10px] font-bold uppercase tracking-wide leading-none text-[#f97316]">
-                        {format(eventDate, "MMM")}
+                        {moLabel}
                       </span>
                       <span className="text-xl font-black leading-tight">
-                        {format(eventDate, "d")}
+                        {dayLabel}
                       </span>
                     </div>
                     <div className="min-w-0 flex-1">
@@ -475,7 +479,7 @@ export default async function DashboardPage() {
                           <><MapPin className="size-3" /> {event.location ?? "TBD"}</>
                         )}
                         <span className="mx-1">·</span>
-                        {format(eventDate, "h:mm a")}
+                        {timeLabel}
                       </p>
                     </div>
                     {rsvpCount > 0 && (

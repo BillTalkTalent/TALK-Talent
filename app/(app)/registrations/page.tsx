@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { format } from "date-fns";
+import { formatInZone } from "@/lib/timezone";
 import { CreditCard, CalendarDays, Monitor, ExternalLink, Receipt } from "lucide-react";
 import { formatPrice } from "@/lib/format-price";
 
@@ -15,6 +15,7 @@ type Registration = {
     id: string;
     title: string;
     event_date: string;
+    timezone: string | null;
     is_virtual: boolean;
     virtual_url: string | null;
     image_url: string | null;
@@ -34,7 +35,7 @@ export default async function RegistrationsPage() {
     .from("event_registrations")
     .select(`
       id, status, amount_paid, currency, created_at,
-      event:events (id, title, event_date, is_virtual, virtual_url, image_url, location)
+      event:events (id, title, event_date, timezone, is_virtual, virtual_url, image_url, location)
     `)
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
@@ -137,7 +138,10 @@ export default async function RegistrationsPage() {
                     {event && (
                       <p className="text-xs text-zinc-500 flex items-center gap-1.5">
                         <CalendarDays className="size-3" />
-                        {format(new Date(event.event_date), "EEE, MMM d, yyyy · h:mm a")}
+                        {formatInZone(event.event_date, event.timezone || "America/New_York", {
+                          weekday: "short", month: "short", day: "numeric", year: "numeric",
+                          hour: "numeric", minute: "2-digit",
+                        })}
                         {isPast && (
                           <span className="text-zinc-400 bg-zinc-100 px-1.5 py-0.5 rounded-full text-[10px] font-medium ml-1">
                             Past

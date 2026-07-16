@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { Resend } from 'resend'
-import { format } from 'date-fns'
+import { formatInZone } from '@/lib/timezone'
 
 export async function GET(request: NextRequest) {
   const secret = request.headers.get('authorization')?.replace('Bearer ', '')
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
   const db = admin as any
   const { data: events } = await db
     .from('events')
-    .select('id, title, event_date, location, is_virtual, virtual_url')
+    .select('id, title, event_date, timezone, location, is_virtual, virtual_url')
     .eq('status', 'published')
     .gte('event_date', in24h.toISOString())
     .lte('event_date', in25h.toISOString())
@@ -44,8 +44,10 @@ export async function GET(request: NextRequest) {
 
     if (!rsvps || rsvps.length === 0) continue
 
-    const eventDate = new Date(event.event_date)
-    const dateStr = format(eventDate, "EEEE, MMMM d 'at' h:mm a")
+    const dateStr = formatInZone(event.event_date, event.timezone || 'America/New_York', {
+      weekday: 'long', month: 'long', day: 'numeric',
+      hour: 'numeric', minute: '2-digit',
+    })
     const locationLine = event.is_virtual ? 'Virtual event' : (event.location ?? 'Location TBD')
 
     // Send in batches of 50
