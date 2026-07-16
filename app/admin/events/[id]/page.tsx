@@ -26,7 +26,8 @@ async function updateEvent(id: string, formData: FormData) {
     title: formData.get('title') as string,
     description: (formData.get('description') as string) || null,
     location: (formData.get('location') as string) || null,
-    is_virtual: formData.get('is_virtual') === 'on',
+    event_type: (formData.get('event_type') as string) || 'in_person',
+    is_virtual: ((formData.get('event_type') as string) || 'in_person') !== 'in_person',
     virtual_url: (formData.get('virtual_url') as string) || null,
     // Interpret the naive datetime-local inputs in the chosen zone → UTC.
     event_date: zonedWallTimeToUTC(startDate, timezone).toISOString(),
@@ -131,9 +132,15 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
               </select>
             </div>
 
-            <div className="flex items-center gap-2 sm:col-span-2">
-              <input type="checkbox" id="is_virtual" name="is_virtual" defaultChecked={event.is_virtual} className="size-4 rounded border-zinc-300" />
-              <Label htmlFor="is_virtual" className="cursor-pointer">Virtual event</Label>
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="event_type">Format *</Label>
+              <select id="event_type" name="event_type" required
+                defaultValue={event.event_type === 'hybrid' ? 'hybrid' : event.is_virtual ? 'webinar' : 'in_person'}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                <option value="in_person">📍 In person</option>
+                <option value="webinar">🎥 Virtual</option>
+                <option value="hybrid">🔀 Hybrid</option>
+              </select>
             </div>
 
             <div className="sm:col-span-2 rounded-xl border border-zinc-200 p-4 space-y-3">

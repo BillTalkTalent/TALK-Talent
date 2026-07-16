@@ -71,13 +71,23 @@ function EventWhen({ event }: { event: PaidEvent }) {
   );
 }
 
-function EventTypeBadge({ type }: { type?: string }) {
-  const map: Record<string, { label: string; className: string }> = {
-    webinar: { label: '🎥 Webinar', className: 'bg-teal-50 text-teal-700 border border-teal-200' },
+// Resolve an event's format from is_virtual + event_type. is_virtual is the
+// field the forms actually set, so it wins; event_type only distinguishes
+// hybrid. (Older rows have event_type stuck at its 'in_person' default even
+// when is_virtual is true — this keeps the badge honest regardless.)
+function eventFormat(isVirtual?: boolean, eventType?: string): 'virtual' | 'hybrid' | 'in_person' {
+  if (eventType === 'hybrid') return 'hybrid'
+  if (isVirtual || eventType === 'webinar') return 'virtual'
+  return 'in_person'
+}
+
+function EventTypeBadge({ isVirtual, eventType }: { isVirtual?: boolean; eventType?: string }) {
+  const map = {
+    virtual: { label: '🎥 Virtual', className: 'bg-teal-50 text-teal-700 border border-teal-200' },
     hybrid: { label: '🔀 Hybrid', className: 'bg-purple-50 text-purple-700 border border-purple-200' },
     in_person: { label: '📍 In Person', className: 'bg-blue-50 text-blue-700 border border-blue-200' },
   }
-  const c = map[type ?? 'in_person'] ?? map.in_person
+  const c = map[eventFormat(isVirtual, eventType)]
   return <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${c.className}`}>{c.label}</span>
 }
 
@@ -311,7 +321,7 @@ export default function EventDetailPage() {
               <h1 className="text-2xl font-bold text-zinc-900">{event.title}</h1>
               <div className="mt-2">
                 {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                <EventTypeBadge type={(event as any)?.event_type} />
+                <EventTypeBadge isVirtual={event.is_virtual} eventType={(event as any)?.event_type} />
               </div>
             </div>
             <div className="flex gap-2 flex-wrap shrink-0">

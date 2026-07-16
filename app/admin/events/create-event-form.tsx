@@ -89,12 +89,16 @@ export default function CreateEventForm() {
         ? Math.round(parseFloat(priceStr) * 100)
         : null;
 
+      const eventType = (fd.get("event_type") as string) || "in_person";
+      const isVirtual = eventType !== "in_person"; // virtual + hybrid have a link
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: insertError } = await (supabase as any).from("events").insert({
         title: fd.get("title") as string,
         description: (fd.get("description") as string) || null,
         location: (fd.get("location") as string) || null,
-        is_virtual: (fd.get("is_virtual") as string) === "on",
+        event_type: eventType,
+        is_virtual: isVirtual,
         virtual_url: (fd.get("virtual_url") as string) || null,
         event_date: eventDateUtc,
         end_date: endDateUtc,
@@ -238,10 +242,23 @@ export default function CreateEventForm() {
         </select>
       </div>
 
-      {/* Virtual checkbox */}
-      <div className="flex items-center gap-2 sm:col-span-2">
-        <input type="checkbox" id="is_virtual" name="is_virtual" className="size-4 rounded border-zinc-300" />
-        <Label htmlFor="is_virtual" className="cursor-pointer">Virtual event</Label>
+      {/* Format — in person / virtual / hybrid */}
+      <div className="space-y-2 sm:col-span-2">
+        <Label htmlFor="event_type">Format *</Label>
+        <select
+          id="event_type"
+          name="event_type"
+          defaultValue="in_person"
+          required
+          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        >
+          <option value="in_person">📍 In person</option>
+          <option value="webinar">🎥 Virtual</option>
+          <option value="hybrid">🔀 Hybrid</option>
+        </select>
+        <p className="text-xs text-zinc-400">
+          Virtual and hybrid events show the virtual link; in-person and hybrid show the location.
+        </p>
       </div>
 
       {/* Paid event toggle */}
