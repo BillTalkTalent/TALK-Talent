@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ArrowLeft, DollarSign } from 'lucide-react'
 import Link from 'next/link'
-import { format } from 'date-fns'
+import { TIME_ZONES, zonedWallTimeToUTC, utcToZonedInputValue } from '@/lib/timezone'
 
 async function updateEvent(id: string, formData: FormData) {
   'use server'
@@ -16,7 +16,9 @@ async function updateEvent(id: string, formData: FormData) {
   const isPaid = formData.get('is_paid') === 'on'
   const priceStr = formData.get('price') as string
   const priceCents = isPaid && priceStr ? Math.round(parseFloat(priceStr) * 100) : null
+  const startDate = formData.get('event_date') as string
   const endDate = formData.get('end_date') as string
+  const timezone = (formData.get('timezone') as string) || 'America/New_York'
   const maxAttendees = formData.get('max_attendees') as string
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -26,8 +28,10 @@ async function updateEvent(id: string, formData: FormData) {
     location: (formData.get('location') as string) || null,
     is_virtual: formData.get('is_virtual') === 'on',
     virtual_url: (formData.get('virtual_url') as string) || null,
-    event_date: formData.get('event_date') as string,
-    end_date: endDate || null,
+    // Interpret the naive datetime-local inputs in the chosen zone → UTC.
+    event_date: zonedWallTimeToUTC(startDate, timezone).toISOString(),
+    end_date: endDate ? zonedWallTimeToUTC(endDate, timezone).toISOString() : null,
+    timezone,
     max_attendees: maxAttendees ? parseInt(maxAttendees, 10) : null,
     status: formData.get('status') as string,
     is_paid: isPaid,
@@ -46,11 +50,10 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
   const { data: event } = await (supabase as any).from('events').select('*').eq('id', id).single()
   if (!event) notFound()
 
-  // Format dates for datetime-local input (strip seconds/ms)
-  const toLocalInput = (iso: string | null) => {
-    if (!iso) return ''
-    return iso.slice(0, 16) // "YYYY-MM-DDTHH:mm"
-  }
+  // Pre-fill datetime-local inputs with the event's wall-clock time in its own
+  // timezone (not raw UTC), so editing round-trips correctly.
+  const eventTz = event.timezone || 'America/New_York'
+  const toLocalInput = (iso: string | null) => (iso ? utcToZonedInputValue(iso, eventTz) : '')
 
   const priceDollars = event.price ? (event.price / 100).toFixed(2) : ''
 
@@ -101,6 +104,17 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
             <div className="space-y-2">
               <Label htmlFor="end_date">End Date &amp; Time</Label>
               <Input id="end_date" name="end_date" type="datetime-local" defaultValue={toLocalInput(event.end_date)} />
+            </div>
+
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="timezone">Time Zone *</Label>
+              <select id="timezone" name="timezone" defaultValue={eventTz} required
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                {TIME_ZONES.map((tz) => (
+                  <option key={tz.value} value={tz.value}>{tz.label}</option>
+                ))}
+              </select>
+              <p className="text-xs text-zinc-400">Start/end times are in this zone. Members also see their own local time.</p>
             </div>
 
             <div className="space-y-2">

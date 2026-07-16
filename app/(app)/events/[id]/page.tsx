@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
+import { formatInZone, localZone } from "@/lib/timezone";
 import {
   CalendarDays,
   MapPin,
@@ -32,6 +33,43 @@ type PaidEvent = Event & {
 };
 
 type RegistrationStatus = "none" | "pending" | "completed" | "refunded" | "cancelled";
+
+// Shows the event time in its own timezone (with label) plus the viewer's
+// local equivalent when their zone differs — so anyone can schedule correctly.
+function EventWhen({ event }: { event: PaidEvent }) {
+  const tz = event.timezone || "America/New_York";
+  const start = formatInZone(event.event_date, tz, {
+    weekday: "long", month: "long", day: "numeric", year: "numeric",
+    hour: "numeric", minute: "2-digit",
+  });
+  const end = event.end_date
+    ? formatInZone(event.end_date, tz, {
+        weekday: undefined, year: undefined, month: undefined, day: undefined,
+        hour: "numeric", minute: "2-digit",
+      })
+    : null;
+
+  const viewer = localZone();
+  const showLocal = viewer !== tz;
+  const localStart = showLocal
+    ? formatInZone(event.event_date, viewer, {
+        weekday: "short", year: undefined, month: "short", day: "numeric",
+        hour: "numeric", minute: "2-digit",
+      })
+    : null;
+
+  return (
+    <span className="flex flex-col gap-0.5">
+      <span className="flex items-center gap-1.5">
+        <CalendarDays className="size-4" />
+        {start}{end ? ` – ${end}` : ""}
+      </span>
+      {localStart && (
+        <span className="pl-[22px] text-xs text-zinc-400">Your time: {localStart}</span>
+      )}
+    </span>
+  );
+}
 
 function EventTypeBadge({ type }: { type?: string }) {
   const map: Record<string, { label: string; className: string }> = {
@@ -301,11 +339,7 @@ export default function EventDetailPage() {
           </div>
 
           <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <CalendarDays className="size-4" />
-              {format(new Date(event.event_date), "EEEE, MMMM d, yyyy · h:mm a")}
-              {event.end_date && ` – ${format(new Date(event.end_date), "h:mm a")}`}
-            </span>
+            <EventWhen event={event} />
             <span className="flex items-center gap-1.5">
               {event.is_virtual ? (
                 <><Monitor className="size-4" /> Virtual event</>

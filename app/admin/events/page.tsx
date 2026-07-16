@@ -1,5 +1,5 @@
 import { revalidatePath } from 'next/cache'
-import { format } from 'date-fns'
+import { formatInZone } from '@/lib/timezone'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Badge } from '@/components/ui/badge'
@@ -72,8 +72,10 @@ export default async function AdminEventsPage() {
                         {event.is_virtual && <Badge variant="outline">Virtual</Badge>}
                       </div>
                       <p className="text-sm text-zinc-500">
-                        {format(new Date(event.event_date), 'PPp')}
-                        {event.end_date && ` – ${format(new Date(event.end_date), 'PPp')}`}
+                        {formatInZone(event.event_date, event.timezone || 'America/New_York', {
+                          weekday: undefined, month: 'short', day: 'numeric', year: 'numeric',
+                          hour: 'numeric', minute: '2-digit',
+                        })}
                       </p>
                       {event.location && (
                         <p className="text-xs text-zinc-400">{event.location}</p>

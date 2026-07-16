@@ -136,6 +136,7 @@ export type Database = {
           image_url: string | null;
           organizer_id: string | null;
           status: "draft" | "published" | "cancelled";
+          timezone: string;
           created_at: string;
           updated_at: string;
         };
@@ -152,6 +153,7 @@ export type Database = {
           image_url?: string | null;
           organizer_id?: string | null;
           status?: "draft" | "published" | "cancelled";
+          timezone?: string;
         };
         Update: Partial<Database["public"]["Tables"]["events"]["Insert"]>;
         Relationships: [

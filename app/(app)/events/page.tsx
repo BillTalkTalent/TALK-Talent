@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { format } from "date-fns";
 import { CalendarDays, MapPin, Monitor, Users, CreditCard } from "lucide-react";
+import { formatInZone } from "@/lib/timezone";
 import type { Event } from "@/lib/supabase/types";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format-price";
@@ -26,7 +26,16 @@ async function getAttendeeCountMap(
 }
 
 function EventCard({ event, attendeeCount }: { event: PaidEvent; attendeeCount: number }) {
-  const eventDate = new Date(event.event_date);
+  const tz = event.timezone || "America/New_York";
+  const dateLabel = formatInZone(event.event_date, tz, {
+    weekday: undefined, month: "short", day: "numeric", year: "numeric",
+    hour: undefined, minute: undefined, timeZoneName: undefined,
+  });
+  // Time with zone label, e.g. "2:00 PM EDT"
+  const timeLabel = formatInZone(event.event_date, tz, {
+    weekday: undefined, year: undefined, month: undefined, day: undefined,
+    hour: "numeric", minute: "2-digit",
+  });
   return (
     <Link href={`/events/${event.id}`}>
       <div className="group rounded-2xl bg-white border border-zinc-100 shadow-sm hover:shadow-md hover:border-[#f97316] transition-all overflow-hidden cursor-pointer h-full flex flex-col">
@@ -47,7 +56,7 @@ function EventCard({ event, attendeeCount }: { event: PaidEvent; attendeeCount: 
           <div className="flex items-center justify-between mb-3">
             <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#ea580c] bg-[#f97316]/10 border border-[#f97316]/20 px-2.5 py-1 rounded-full">
               <CalendarDays className="size-3" />
-              {format(eventDate, "MMM d, yyyy")}
+              {dateLabel}
             </span>
             <div className="flex items-center gap-1.5">
               {event.is_paid && event.price != null && (
@@ -82,9 +91,9 @@ function EventCard({ event, attendeeCount }: { event: PaidEvent; attendeeCount: 
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-zinc-50">
             <span className="flex items-center gap-1.5 text-xs text-zinc-400">
               {event.is_virtual ? (
-                <><Monitor className="size-3" /> Virtual · {format(eventDate, "h:mm a")}</>
+                <><Monitor className="size-3" /> Virtual · {timeLabel}</>
               ) : (
-                <><MapPin className="size-3" /> {event.location ?? "TBD"} · {format(eventDate, "h:mm a")}</>
+                <><MapPin className="size-3" /> {event.location ?? "TBD"} · {timeLabel}</>
               )}
             </span>
             <span className="flex items-center gap-1 text-xs font-medium text-zinc-500">

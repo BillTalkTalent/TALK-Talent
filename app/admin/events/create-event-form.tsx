@@ -7,6 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ImageIcon, Upload, X, Loader2, DollarSign } from "lucide-react";
+import { TIME_ZONES, zonedWallTimeToUTC, localZone } from "@/lib/timezone";
+
+// Default the picker to the organizer's own browser zone when it's one we list,
+// otherwise Eastern.
+const DEFAULT_TZ = (() => {
+  const z = localZone();
+  return TIME_ZONES.some((t) => t.value === z) ? z : "America/New_York";
+})();
 
 export default function CreateEventForm() {
   const router = useRouter();
@@ -66,7 +74,13 @@ export default function CreateEventForm() {
 
       const eventDate = fd.get("event_date") as string;
       const endDate = fd.get("end_date") as string;
+      const timezone = (fd.get("timezone") as string) || DEFAULT_TZ;
       const maxAttendees = fd.get("max_attendees") as string;
+
+      // The datetime-local inputs are naive wall-clock times. Interpret them in
+      // the selected event timezone and store the correct UTC instant.
+      const eventDateUtc = zonedWallTimeToUTC(eventDate, timezone).toISOString();
+      const endDateUtc = endDate ? zonedWallTimeToUTC(endDate, timezone).toISOString() : null;
       const priceStr = fd.get("price") as string;
       const paidFlag = (fd.get("is_paid") as string) === "on";
 
@@ -82,8 +96,9 @@ export default function CreateEventForm() {
         location: (fd.get("location") as string) || null,
         is_virtual: (fd.get("is_virtual") as string) === "on",
         virtual_url: (fd.get("virtual_url") as string) || null,
-        event_date: eventDate,
-        end_date: endDate || null,
+        event_date: eventDateUtc,
+        end_date: endDateUtc,
+        timezone,
         max_attendees: maxAttendees ? parseInt(maxAttendees, 10) : null,
         status:
           ((fd.get("status") as string) as "draft" | "published" | "cancelled") ||
@@ -182,6 +197,26 @@ export default function CreateEventForm() {
       <div className="space-y-2">
         <Label htmlFor="end_date">End Date &amp; Time</Label>
         <Input id="end_date" name="end_date" type="datetime-local" />
+      </div>
+
+      {/* Timezone — the zone the start/end times are entered in */}
+      <div className="space-y-2 sm:col-span-2">
+        <Label htmlFor="timezone">Time Zone *</Label>
+        <select
+          id="timezone"
+          name="timezone"
+          defaultValue={DEFAULT_TZ}
+          required
+          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        >
+          {TIME_ZONES.map((tz) => (
+            <option key={tz.value} value={tz.value}>{tz.label}</option>
+          ))}
+        </select>
+        <p className="text-xs text-zinc-400">
+          Enter the start and end times in this zone. Members see the event in this
+          zone plus their own local time.
+        </p>
       </div>
 
       {/* Max attendees / Status */}
