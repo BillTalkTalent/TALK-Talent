@@ -309,7 +309,10 @@ export default async function AdminPage() {
       </Card>
 
       {/* Quick links */}
-      <div className="flex gap-3">
+      <div className="flex gap-3 flex-wrap">
+        <Button variant="outline" size="sm" render={<Link href="/admin/email" />}>
+          Email Members
+        </Button>
         <Button variant="outline" size="sm" render={<Link href="/admin/members" />}>
           Manage Members
         </Button>

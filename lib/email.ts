@@ -4,8 +4,9 @@
 
 const ORIGIN = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
 
-/** Wrap any content block in the standard TALK email shell */
-export function emailShell(body: string): string {
+/** Wrap any content block in the standard TALK email shell.
+ *  Pass `unsubscribeUrl` for bulk/community mail (CAN-SPAM requires it). */
+export function emailShell(body: string, unsubscribeUrl?: string): string {
   // NOTE: email clients strip CSS gradients — use SOLID colors only.
   // Navy background matches the site; the white "LK" is now visible on navy.
   return `<!DOCTYPE html>
@@ -32,7 +33,7 @@ export function emailShell(body: string): string {
           <hr style="border:none;border-top:1px solid #EDF2F7;margin:28px 0 20px;">
           <p style="margin:0;font-size:12px;color:#A0AEC0;line-height:1.6;">
             You're receiving this from the TALK Talent Community.<br>
-            <a href="${ORIGIN}/notifications/settings" style="color:#5A7090;">Manage notifications</a>
+            <a href="${ORIGIN}/notifications/settings" style="color:#5A7090;">Manage notifications</a>${unsubscribeUrl ? `&nbsp;&nbsp;·&nbsp;&nbsp;<a href="${unsubscribeUrl}" style="color:#5A7090;">Unsubscribe</a>` : ''}
           </p>
         </td></tr>
 
@@ -66,6 +67,35 @@ export function quoteBlock(text: string): string {
   return `<div style="border-left:3px solid #E8503A;padding:12px 16px;background:#F8FAFC;border-radius:0 8px 8px 0;margin:16px 0;">
     <p style="margin:0;font-size:14px;color:#374151;line-height:1.7;">${safe}</p>
   </div>`
+}
+
+/** Convert an admin's plain-text message into safe HTML paragraphs. */
+function textToParagraphs(text: string): string {
+  const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  return text
+    .trim()
+    .split(/\n{2,}/)
+    .map(
+      (p) =>
+        `<p style="margin:0 0 16px;font-size:15px;color:#374151;line-height:1.7;">${esc(p).replace(/\n/g, '<br>')}</p>`,
+    )
+    .join('')
+}
+
+// ─── Bulk "Email Members" composer (admin broadcast) ───────────────────────
+
+/** HTML broadcast: admin's message in the branded shell, with unsubscribe. */
+export function buildBulkEmail(opts: { bodyText: string; unsubscribeUrl: string }): string {
+  return emailShell(textToParagraphs(opts.bodyText), opts.unsubscribeUrl)
+}
+
+/** Plain-text counterpart (multipart improves deliverability). */
+export function buildBulkText(opts: { bodyText: string; unsubscribeUrl: string }): string {
+  return `${opts.bodyText.trim()}
+
+— TALK Talent Community
+
+Unsubscribe: ${opts.unsubscribeUrl}`
 }
 
 // ─── Pre-built email payloads ──────────────────────────────────────────────
