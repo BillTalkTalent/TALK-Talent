@@ -32,15 +32,48 @@ async function reactivateMember(id: string) {
   revalidatePath('/admin/members')
 }
 
-export default async function AdminMembersPage() {
+const PAGE_SIZE = 50
+
+export default async function AdminMembersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; page?: string }>
+}) {
+  const sp = await searchParams
+  const q = (sp.q ?? '').trim()
+  const pageNum = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
+  const fromRow = (pageNum - 1) * PAGE_SIZE
+
   const supabase = await createClient()
 
-  const [{ data: members }, { data: rejectedMembers }] = await Promise.all([
+  // Server-side search across the full roster (client-side filtering only ever
+  // saw the capped first page, which is why members past the newest ~1k — like
+  // early-provisioned accounts — were invisible).
+  let membersQuery = supabase
+    .from('profiles')
+    .select('*', { count: 'exact' })
+    .eq('status', 'approved')
+  if (q) {
+    // Strip characters that would break PostgREST's or() filter grammar.
+    const like = `%${q.replace(/[,()*]/g, ' ').trim()}%`
+    membersQuery = membersQuery.or(
+      `full_name.ilike.${like},email.ilike.${like},company.ilike.${like},title.ilike.${like}`,
+    )
+  }
+
+  const [
+    { data: members, count },
+    { count: totalApproved },
+    { count: onboardedCount },
+    { data: rejectedMembers },
+  ] = await Promise.all([
+    membersQuery.order('created_at', { ascending: false }).range(fromRow, fromRow + PAGE_SIZE - 1),
+    supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
     supabase
       .from('profiles')
-      .select('*')
+      .select('id', { count: 'exact', head: true })
       .eq('status', 'approved')
-      .order('created_at', { ascending: false }),
+      .eq('has_onboarded', true),
     supabase
       .from('profiles')
       .select('*')
@@ -49,17 +82,31 @@ export default async function AdminMembersPage() {
       .limit(50),
   ])
 
+  const resultCount = count ?? 0
+  const totalPages = Math.max(1, Math.ceil(resultCount / PAGE_SIZE))
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>
+          <CardTitle className="flex items-center gap-2">
             Active Members
-            <Badge variant="secondary" className="ml-2">{(members ?? []).length}</Badge>
+            <Badge variant="secondary" className="ml-1">{(totalApproved ?? 0).toLocaleString()}</Badge>
+            <span className="text-xs font-normal text-zinc-400">
+              {(onboardedCount ?? 0).toLocaleString()} have set up their profile
+            </span>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <MembersTable members={members ?? []} setRole={setRole} suspendMember={suspendMember} />
+          <MembersTable
+            members={members ?? []}
+            setRole={setRole}
+            suspendMember={suspendMember}
+            query={q}
+            page={pageNum}
+            totalPages={totalPages}
+            resultCount={resultCount}
+          />
         </CardContent>
       </Card>
 

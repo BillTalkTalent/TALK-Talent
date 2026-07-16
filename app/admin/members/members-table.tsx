@@ -1,10 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { format } from 'date-fns'
 import { Input } from '@/components/ui/input'
 import type { Profile } from '@/lib/supabase/types'
-import { Shield, Star, User, ChevronDown, Trash2 } from 'lucide-react'
+import { Shield, Star, User, ChevronDown, Trash2, Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 type Role = 'member' | 'board_member' | 'admin'
@@ -13,6 +14,10 @@ interface MembersTableProps {
   members: Profile[]
   setRole: (id: string, role: Role) => Promise<void>
   suspendMember: (id: string) => Promise<void>
+  query: string
+  page: number
+  totalPages: number
+  resultCount: number
 }
 
 const ROLES: { value: Role; label: string; icon: typeof User; color: string }[] = [
@@ -70,29 +75,60 @@ function RoleDropdown({ member, setRole }: { member: Profile; setRole: (id: stri
   )
 }
 
-export default function MembersTable({ members, setRole, suspendMember }: MembersTableProps) {
-  const [search, setSearch] = useState('')
-  const [confirmId, setConfirmId] = useState<string | null>(null)
+function pageHref(query: string, page: number) {
+  const params = new URLSearchParams()
+  if (query) params.set('q', query)
+  if (page > 1) params.set('page', String(page))
+  const qs = params.toString()
+  return `/admin/members${qs ? `?${qs}` : ''}`
+}
 
-  const filtered = members.filter((m) => {
-    const q = search.toLowerCase()
-    return (
-      !q ||
-      m.full_name?.toLowerCase().includes(q) ||
-      m.email.toLowerCase().includes(q) ||
-      m.company?.toLowerCase().includes(q) ||
-      m.title?.toLowerCase().includes(q)
-    )
-  })
+export default function MembersTable({
+  members,
+  setRole,
+  suspendMember,
+  query,
+  page,
+  totalPages,
+  resultCount,
+}: MembersTableProps) {
+  const [confirmId, setConfirmId] = useState<string | null>(null)
 
   return (
     <div className="space-y-4">
-      <Input
-        placeholder="Search by name, email, company…"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="max-w-xs"
-      />
+      {/* Server-side search — submitting navigates to ?q=… and searches the
+          full roster, not just the current page. */}
+      <form action="/admin/members" className="flex items-center gap-2">
+        <div className="relative max-w-xs w-full">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-zinc-400" />
+          <Input
+            name="q"
+            defaultValue={query}
+            placeholder="Search by name, email, company…"
+            className="pl-8"
+          />
+        </div>
+        <button
+          type="submit"
+          className="text-sm font-medium px-3 py-2 rounded-lg bg-zinc-900 text-white hover:bg-zinc-800 transition-colors"
+        >
+          Search
+        </button>
+        {query && (
+          <Link href="/admin/members" className="text-sm text-zinc-500 hover:text-zinc-800">
+            Clear
+          </Link>
+        )}
+      </form>
+
+      <p className="text-xs text-zinc-400">
+        {query ? (
+          <>{resultCount.toLocaleString()} result{resultCount === 1 ? '' : 's'} for &ldquo;{query}&rdquo;</>
+        ) : (
+          <>{resultCount.toLocaleString()} members · showing page {page} of {totalPages}</>
+        )}
+      </p>
+
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -107,10 +143,10 @@ export default function MembersTable({ members, setRole, suspendMember }: Member
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-50">
-            {filtered.length === 0 ? (
+            {members.length === 0 ? (
               <tr><td colSpan={7} className="py-8 text-center text-zinc-400">No members found.</td></tr>
             ) : (
-              filtered.map((member) => (
+              members.map((member) => (
                 <tr key={member.id} className="hover:bg-zinc-50/50 transition-colors">
                   <td className="py-3 pr-4 pl-3 font-medium text-zinc-900">{member.full_name}</td>
                   <td className="py-3 pr-4 text-zinc-500 text-xs">{member.email}</td>
@@ -148,6 +184,39 @@ export default function MembersTable({ members, setRole, suspendMember }: Member
           </tbody>
         </table>
       </div>
+
+      {/* Pagination — hidden while searching (results are typically one page) */}
+      {!query && totalPages > 1 && (
+        <div className="flex items-center justify-between pt-1">
+          <span className="text-xs text-zinc-400">Page {page} of {totalPages}</span>
+          <div className="flex items-center gap-2">
+            {page > 1 ? (
+              <Link
+                href={pageHref(query, page - 1)}
+                className="flex items-center gap-1 text-sm px-3 py-1.5 rounded-lg border border-zinc-200 hover:bg-zinc-50 transition-colors"
+              >
+                <ChevronLeft className="size-4" /> Prev
+              </Link>
+            ) : (
+              <span className="flex items-center gap-1 text-sm px-3 py-1.5 rounded-lg border border-zinc-100 text-zinc-300">
+                <ChevronLeft className="size-4" /> Prev
+              </span>
+            )}
+            {page < totalPages ? (
+              <Link
+                href={pageHref(query, page + 1)}
+                className="flex items-center gap-1 text-sm px-3 py-1.5 rounded-lg border border-zinc-200 hover:bg-zinc-50 transition-colors"
+              >
+                Next <ChevronRight className="size-4" />
+              </Link>
+            ) : (
+              <span className="flex items-center gap-1 text-sm px-3 py-1.5 rounded-lg border border-zinc-100 text-zinc-300">
+                Next <ChevronRight className="size-4" />
+              </span>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
