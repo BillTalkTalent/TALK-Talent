@@ -67,6 +67,14 @@ export default function LandingPage() {
             </span>
           </div>
 
+          {/* Migrated-member notice — every existing member's account moved here */}
+          <div className="mb-8 mx-auto max-w-2xl rounded-2xl border px-6 py-4" style={{ background: 'rgba(255,255,255,0.06)', borderColor: `${N.red}66` }}>
+            <p className="text-base text-white/90 leading-relaxed">
+              👋 <strong className="text-white">Coming from the old TALK site?</strong> Your account has already moved here — no need to re-register.{' '}
+              <Link href="/claim" className="font-bold underline underline-offset-2" style={{ color: '#F0997B' }}>Claim your account →</Link>
+            </p>
+          </div>
+
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-xs font-bold mb-8 tracking-wide uppercase" style={{ borderColor: `${N.navyMid}50`, background: `${N.navyMid}20`, color: '#93C5FD' }}>
             <span className="size-1.5 rounded-full bg-blue-400 animate-pulse" />
             Now accepting applications
