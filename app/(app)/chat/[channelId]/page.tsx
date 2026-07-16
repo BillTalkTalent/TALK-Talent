@@ -98,12 +98,23 @@ export default function ChatChannelPage() {
         },
         async (payload) => {
           const newMsg = payload.new as ChatMessage;
+          // Skip if we already have it (e.g. our own optimistic insert).
+          let already = false;
+          setMessages((prev) => {
+            already = prev.some((m) => m.id === newMsg.id);
+            return prev;
+          });
+          if (already) return;
           const { data: profile } = await supabase
             .from("profiles")
             .select("*")
             .eq("id", newMsg.user_id ?? "")
             .single();
-          setMessages((prev) => [...prev, { ...newMsg, profiles: profile ?? null }]);
+          setMessages((prev) =>
+            prev.some((m) => m.id === newMsg.id)
+              ? prev
+              : [...prev, { ...newMsg, profiles: profile ?? null }],
+          );
         }
       )
       .subscribe();
@@ -116,14 +127,29 @@ export default function ChatChannelPage() {
   const sendMessage = async () => {
     if (!draft.trim() || !currentUser) return;
     setSending(true);
-
-    await supabase.from("chat_messages").insert({
-      channel_id: params.channelId,
-      user_id: currentUser.id,
-      content: draft.trim(),
-    });
-
+    const content = draft.trim();
     setDraft("");
+
+    // Insert and append the saved row immediately, so the sender always sees
+    // their message without waiting on (or depending on) realtime.
+    const { data, error } = await supabase
+      .from("chat_messages")
+      .insert({
+        channel_id: params.channelId,
+        user_id: currentUser.id,
+        content,
+      })
+      .select("*, profiles(*)")
+      .single();
+
+    if (error) {
+      // Put the text back so it isn't lost.
+      setDraft(content);
+    } else if (data) {
+      setMessages((prev) =>
+        prev.some((m) => m.id === data.id) ? prev : [...prev, data as MessageWithProfile],
+      );
+    }
     setSending(false);
   };
 
