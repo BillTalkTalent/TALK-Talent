@@ -162,12 +162,18 @@ export default function MessagesPage() {
 
       if (existing) return existing.id;
 
-      const { data: created } = await supabase
+      // The table enforces a canonical ordering (participant_a < participant_b),
+      // so order the pair before inserting — otherwise the CHECK constraint
+      // rejects the row whenever my id sorts after theirs, and the DM silently
+      // fails to open.
+      const [a, b] = myId < otherId ? [myId, otherId] : [otherId, myId];
+      const { data: created, error } = await supabase
         .from("dm_conversations")
-        .insert({ participant_a: myId, participant_b: otherId })
+        .insert({ participant_a: a, participant_b: b })
         .select()
         .single();
 
+      if (error) console.error("Failed to create DM conversation:", error.message);
       return created?.id ?? null;
     },
     [supabase]
