@@ -281,14 +281,14 @@ export default function MessagesPage() {
 
   if (loading) {
     return (
-      <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
+      <div className="flex h-full items-center justify-center">
         <p className="text-muted-foreground text-sm">Loading messages...</p>
       </div>
     );
   }
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
+    <div className="flex h-full min-h-0 overflow-hidden">
       {/* Conversation list */}
       <aside className="w-64 shrink-0 border-r flex flex-col">
         <div className="p-3 border-b">

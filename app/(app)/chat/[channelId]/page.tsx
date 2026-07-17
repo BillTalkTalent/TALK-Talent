@@ -185,7 +185,7 @@ export default function ChatChannelPage() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
+    <div className="flex h-full min-h-0 overflow-hidden">
       {/* Channel sidebar */}
       <aside className="w-56 shrink-0 border-r flex flex-col">
         <div className="p-3 border-b">
