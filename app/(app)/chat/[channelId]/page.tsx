@@ -124,6 +124,30 @@ export default function ChatChannelPage() {
     };
   }, [params.channelId, supabase]);
 
+  // Reliable fallback: poll for new messages every few seconds and merge in
+  // anything we don't already have. Realtime postgres_changes silently drops
+  // events for the authed user when the socket authorizes as anon against the
+  // approved-members RLS policy, so we don't depend on it alone. Dedup by id
+  // keeps this harmless when realtime *does* deliver.
+  useEffect(() => {
+    const poll = async () => {
+      const { data } = await supabase
+        .from("chat_messages")
+        .select("*, profiles(*)")
+        .eq("channel_id", params.channelId)
+        .order("created_at", { ascending: true })
+        .limit(50);
+      if (!data) return;
+      setMessages((prev) => {
+        const ids = new Set(prev.map((m) => m.id));
+        const fresh = (data as MessageWithProfile[]).filter((m) => !ids.has(m.id));
+        return fresh.length ? [...prev, ...fresh] : prev;
+      });
+    };
+    const interval = setInterval(poll, 4000);
+    return () => clearInterval(interval);
+  }, [params.channelId, supabase]);
+
   const sendMessage = async () => {
     if (!draft.trim() || !currentUser) return;
     setSending(true);
