@@ -35,7 +35,7 @@ export default async function PollsPage() {
 
   const { data: pollsRaw } = await supabase
     .from("polls")
-    .select("*, profiles(full_name), poll_options(*), poll_votes(*)")
+    .select("*, profiles(full_name), poll_options(*), poll_votes(option_id)")
     .order("created_at", { ascending: false });
 
   const polls = (pollsRaw ?? []) as unknown as PollWithRelations[];

@@ -529,14 +529,16 @@ export type Database = {
           id: string;
           poll_id: string;
           option_id: string;
-          user_id: string;
+          user_id: string | null;
+          is_anonymous: boolean;
           created_at: string;
         };
         Insert: {
           id?: string;
           poll_id: string;
           option_id: string;
-          user_id: string;
+          user_id?: string | null;
+          is_anonymous?: boolean;
         };
         Update: Partial<Database["public"]["Tables"]["poll_votes"]["Insert"]>;
         Relationships: [];

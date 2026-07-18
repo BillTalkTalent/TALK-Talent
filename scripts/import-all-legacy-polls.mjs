@@ -86,7 +86,7 @@ function ageToDate(age) {
 
 const now = Date.now()
 let mappedCreators = 0
-const summary = { polls: 0, options: 0, comments: 0, emptyPolls: 0, noCreator: 0 }
+const summary = { polls: 0, options: 0, votes: 0, comments: 0, emptyPolls: 0, noCreator: 0 }
 console.log(`${pollMap.size} polls in export${DRY ? ' (DRY RUN)' : ''}\n`)
 
 if (!DRY) {
@@ -124,8 +124,18 @@ for (const [, opts] of pollMap) {
   summary.polls++
 
   const optRows = opts.map((o, i) => ({ poll_id: poll.id, text: (o.text || '').trim(), sort_order: i, legacy_vote_count: parseInt(o.selections_count) || 0 }))
-  const { error: oe } = await s.from('poll_options').insert(optRows)
-  if (oe) console.log(`  ✗ options for ${a.int_id}: ${oe.message}`); else summary.options += optRows.length
+  const { data: insertedOpts, error: oe } = await s.from('poll_options').insert(optRows).select('id, legacy_vote_count')
+  if (oe) { console.log(`  ✗ options for ${a.int_id}: ${oe.message}`); continue }
+  summary.options += insertedOpts.length
+
+  // Anonymous vote rows: one per counted selection, user_id NULL (never pinned
+  // to a real member) so the poll has genuine poll_votes records.
+  const voteRows = []
+  for (const io of insertedOpts) for (let k = 0; k < (io.legacy_vote_count || 0); k++) voteRows.push({ poll_id: poll.id, option_id: io.id, user_id: null, is_anonymous: true })
+  for (let i = 0; i < voteRows.length; i += 500) {
+    const { error: ve } = await s.from('poll_votes').insert(voteRows.slice(i, i + 500))
+    if (ve) console.log(`  ✗ votes for ${a.int_id}: ${ve.message}`); else summary.votes += Math.min(500, voteRows.length - i)
+  }
 
   const cmts = commentsByLegacyId.get(a.int_id) || []
   for (const c of cmts) {
@@ -140,5 +150,5 @@ for (const [, opts] of pollMap) {
 }
 
 console.log(`\nDone${DRY ? ' (dry)' : ''}.`)
-console.log(`  polls: ${summary.polls} | options: ${summary.options} | comments re-attached: ${summary.comments}`)
+console.log(`  polls: ${summary.polls} | options: ${summary.options} | anon votes: ${summary.votes} | comments re-attached: ${summary.comments}`)
 console.log(`  creators mapped to a profile: ${mappedCreators} | unmapped (by "Unknown"): ${summary.noCreator} | empty(0-vote) polls: ${summary.emptyPolls}`)
