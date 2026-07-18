@@ -1,0 +1,176 @@
+{
+  "_note": "Scraped from legacy.talktalent.com/polls (custom platform, no export/API). Closed polls carry aggregate results (legacy_vote_count derived from displayed % x total). The one active poll (John Anderson MSP) had its breakdown hidden, so it is imported as a fresh live poll. Comment dates are relative on legacy ('5 months ago'); we approximate created_at.",
+  "polls": [
+    {
+      "legacy_id": null,
+      "author_name": "John Anderson",
+      "question": "How frequently does your MSP provider perform a staffing supplier business review?",
+      "is_multiple_choice": false,
+      "status": "active",
+      "total_votes": 5,
+      "results_available": false,
+      "options": ["Monthly", "Quarterly", "Annually", "Never"],
+      "comments": []
+    },
+    {
+      "legacy_id": "561",
+      "author_name": "Bill Fanning",
+      "question": "Which statement best describes what you want help with right now? (select all that apply)",
+      "is_multiple_choice": true,
+      "status": "closed",
+      "total_votes": 27,
+      "results_available": true,
+      "options": [
+        { "text": "Avoiding bad or biased hiring decisions", "votes": 9 },
+        { "text": "Helping interviewers ask better, more consistent questions", "votes": 13 },
+        { "text": "Making clearer, more confident hiring decisions", "votes": 12 },
+        { "text": "Reducing time spent managing interviews", "votes": 11 },
+        { "text": "Replacing messy DIY interview process with one shared system", "votes": 4 },
+        { "text": "Other? Comment below!", "votes": 3 }
+      ],
+      "comments": [
+        { "author_name": "Dawn Leip", "content": "Overcoming unrealistic expectations", "age": "5 months ago" },
+        { "author_name": "Tammy Leisses", "content": "Considerations for diversifying our recruiting tech stack, being mindful of how to remain agile, do more with less, and avoid becoming too reliant on any one platform", "age": "6 months ago" },
+        { "author_name": "Courtney Hanchey", "content": "Employer Branding when it comes to global Series B start-ups and getting internal stakeholder buy-in.", "age": "6 months ago" }
+      ]
+    },
+    {
+      "legacy_id": "559",
+      "author_name": "Bill Fanning",
+      "question": "Do you prefer the daily updates on TA News as a Forum Post, or is the weekly update in the newsletter more effective?",
+      "is_multiple_choice": false,
+      "status": "closed",
+      "total_votes": 13,
+      "results_available": true,
+      "options": [
+        { "text": "Daily Updates", "votes": 0 },
+        { "text": "Weekly Update", "votes": 13 }
+      ],
+      "comments": [
+        { "author_name": "Bill Fanning", "content": "I have created an AI agent that develops news stories for TALK - it can be delivered either method - last week I tested daily, and the newsletter has a news section as well. Is there a version that works better for you?", "age": "7 months ago" }
+      ]
+    },
+    {
+      "legacy_id": null,
+      "author_name": "Bill Fanning",
+      "question": "Would you trust AI to lead first-round interviews? (select all that apply)",
+      "is_multiple_choice": true,
+      "status": "closed",
+      "total_votes": 21,
+      "results_available": true,
+      "options": [
+        { "text": "No, interviews should always be live", "votes": 11 },
+        { "text": "Maybe, depends on the role", "votes": 7 },
+        { "text": "Already doing it (or planning to)", "votes": 2 },
+        { "text": "Yes, if it’s structured and fair", "votes": 2 }
+      ],
+      "comments": []
+    },
+    {
+      "legacy_id": "555",
+      "author_name": "Bill Fanning",
+      "question": "TALK is planning local events this Fall. What timeframe would be the most interesting and convenient for you? (select all that apply)",
+      "is_multiple_choice": true,
+      "status": "closed",
+      "total_votes": 13,
+      "results_available": true,
+      "options": [
+        { "text": "Dinner Sessions", "votes": 5 },
+        { "text": "Lunch Sessions", "votes": 5 },
+        { "text": "Morning Sessions", "votes": 5 },
+        { "text": "Eventing Cocktail Party", "votes": 4 }
+      ],
+      "comments": [
+        { "author_name": "Ivo van der Kleij", "content": "Specifically, Friday mornings", "age": "a year ago" }
+      ]
+    },
+    {
+      "legacy_id": null,
+      "author_name": "Dan Chindemi",
+      "question": "Does your organization utilize temporary/contingent labor, if so, how are external workers managed today?",
+      "is_multiple_choice": false,
+      "status": "closed",
+      "total_votes": 14,
+      "results_available": true,
+      "options": [
+        { "text": "Currently have an MSP/VMS in place today", "votes": 8 },
+        { "text": "Managing via spreadsheets, emails, etc", "votes": 5 },
+        { "text": "Unmanaged - no visibility into headcount or spend", "votes": 1 },
+        { "text": "Considering bringing in an MSP and/or VMS", "votes": 0 }
+      ],
+      "comments": []
+    },
+    {
+      "legacy_id": null,
+      "author_name": "Bill Fanning",
+      "question": "What is the hardest part of running interviews today? (select all that apply)",
+      "is_multiple_choice": true,
+      "status": "closed",
+      "total_votes": 30,
+      "results_available": true,
+      "options": [
+        { "text": "Chasing hiring managers for feedback", "votes": 24 },
+        { "text": "Too many tools + manual coordination", "votes": 8 },
+        { "text": "Interview quality varies too much by interviewer", "votes": 7 },
+        { "text": "Defending hiring decisions internally", "votes": 4 },
+        { "text": "Hard to compare candidates objectively", "votes": 4 },
+        { "text": "Other? Comment below!", "votes": 0 }
+      ],
+      "comments": []
+    },
+    {
+      "legacy_id": "558",
+      "author_name": "Bill Fanning",
+      "question": "IN 2026 Planning, what are you prioritizing?",
+      "is_multiple_choice": false,
+      "status": "closed",
+      "total_votes": 12,
+      "results_available": true,
+      "options": [
+        { "text": "Redesigning your recruiting tech stack and process", "votes": 7 },
+        { "text": "Deeping internal mobility to reduce external hiring needs?", "votes": 3 },
+        { "text": "Hiring for new skills in an AI-Transformation", "votes": 2 }
+      ],
+      "comments": [
+        { "author_name": "Bill Fanning", "content": "Don't see an answer that fits you? Drop it in the comments below!", "age": "8 months ago" }
+      ]
+    },
+    {
+      "legacy_id": null,
+      "author_name": "Kelly Tobin",
+      "question": "Who is using (or has used) an ATS that you would recommend for mid to large size companies? Which ATS do you rank World Class? Please comment. (select all that apply)",
+      "is_multiple_choice": true,
+      "status": "closed",
+      "total_votes": 16,
+      "results_available": true,
+      "options": [
+        { "text": "Greenhouse", "votes": 5 },
+        { "text": "Workday", "votes": 4 },
+        { "text": "JazzHR", "votes": 3 },
+        { "text": "SAP Success Factors", "votes": 3 },
+        { "text": "iCIMS", "votes": 3 },
+        { "text": "SmartRecruiters", "votes": 2 },
+        { "text": "Jobvite", "votes": 1 },
+        { "text": "Lever", "votes": 0 },
+        { "text": "Oracle Recruiting Cloud", "votes": 0 }
+      ],
+      "comments": []
+    },
+    {
+      "legacy_id": null,
+      "author_name": "Brin McCagg",
+      "question": "Where do you manage your contingent workforce?",
+      "is_multiple_choice": false,
+      "status": "closed",
+      "total_votes": 58,
+      "results_available": true,
+      "options": [
+        { "text": "Talent Acquisition / HR", "votes": 36 },
+        { "text": "MSP / RPO", "votes": 8 },
+        { "text": "Hiring Managers", "votes": 7 },
+        { "text": "Procurment", "votes": 7 }
+      ],
+      "comments": []
+    }
+  ]
+}

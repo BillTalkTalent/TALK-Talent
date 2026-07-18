@@ -76,10 +76,14 @@ export default async function PollsPage() {
       ) : (
         <div className="space-y-4">
           {polls.map((poll) => {
-            const totalVotes = poll.poll_votes.length;
+            // Migrated polls carry aggregate tallies instead of individual votes.
+            const isLegacy = poll.is_legacy && poll.poll_options.some((o) => o.legacy_vote_count != null);
+            const totalVotes = isLegacy ? (poll.legacy_total_votes ?? 0) : poll.poll_votes.length;
             const votesPerOption = poll.poll_options.map((opt) => ({
               ...opt,
-              count: poll.poll_votes.filter((v) => v.option_id === opt.id).length,
+              count: isLegacy
+                ? (opt.legacy_vote_count ?? 0)
+                : poll.poll_votes.filter((v) => v.option_id === opt.id).length,
             }));
             const sorted = [...votesPerOption].sort((a, b) => b.count - a.count);
             const topOptions = sorted.slice(0, 3);

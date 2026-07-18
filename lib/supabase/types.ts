@@ -475,6 +475,9 @@ export type Database = {
           closes_at: string | null;
           is_multiple_choice: boolean;
           status: 'active' | 'closed';
+          is_legacy: boolean;
+          legacy_id: string | null;
+          legacy_total_votes: number | null;
           created_at: string;
         };
         Insert: {
@@ -502,6 +505,7 @@ export type Database = {
           poll_id: string;
           text: string;
           sort_order: number;
+          legacy_vote_count: number | null;
         };
         Insert: {
           id?: string;
@@ -535,6 +539,28 @@ export type Database = {
           user_id: string;
         };
         Update: Partial<Database["public"]["Tables"]["poll_votes"]["Insert"]>;
+        Relationships: [];
+      };
+      poll_comments: {
+        Row: {
+          id: string;
+          poll_id: string;
+          user_id: string | null;
+          author_name: string | null;
+          content: string;
+          is_legacy: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          poll_id: string;
+          user_id?: string | null;
+          author_name?: string | null;
+          content: string;
+          is_legacy?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["poll_comments"]["Insert"]>;
         Relationships: [];
       };
       chapters: {
@@ -576,6 +602,7 @@ export type JobPost = Database["public"]["Tables"]["job_posts"]["Row"];
 export type Poll = Database["public"]["Tables"]["polls"]["Row"];
 export type PollOption = Database["public"]["Tables"]["poll_options"]["Row"];
 export type PollVote = Database["public"]["Tables"]["poll_votes"]["Row"];
+export type PollComment = Database["public"]["Tables"]["poll_comments"]["Row"];
 export type Chapter = Database["public"]["Tables"]["chapters"]["Row"];
 export type ChapterMembership = Database["public"]["Tables"]["chapter_memberships"]["Row"];
 
