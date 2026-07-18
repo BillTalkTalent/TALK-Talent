@@ -55,7 +55,8 @@ export default function PollDetailPage() {
       supabase
         .from("poll_votes")
         .select("*")
-        .eq("poll_id", params.id),
+        .eq("poll_id", params.id)
+        .eq("is_anonymous", false),
       supabase
         .from("poll_comments")
         .select("*, profiles(full_name)")

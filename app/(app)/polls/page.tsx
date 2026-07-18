@@ -35,7 +35,10 @@ export default async function PollsPage() {
 
   const { data: pollsRaw } = await supabase
     .from("polls")
+    // Only real member votes are needed for counting; legacy polls render from
+    // legacy_vote_count, so exclude the thousands of anonymous migration rows.
     .select("*, profiles(full_name), poll_options(*), poll_votes(option_id)")
+    .eq("poll_votes.is_anonymous", false)
     .order("created_at", { ascending: false });
 
   const polls = (pollsRaw ?? []) as unknown as PollWithRelations[];
