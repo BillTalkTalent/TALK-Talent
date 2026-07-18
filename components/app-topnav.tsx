@@ -49,14 +49,14 @@ const mainNav = [
   { href: '/chapters',  label: 'Chapters', icon: BookOpen },
   { href: '/events',    label: 'Events',   icon: Calendar },
   { href: '/forum',     label: 'Forums',   icon: MessageSquare },
-  { href: '/careers',   label: 'Careers',  icon: Briefcase },
-  { href: '/vendors',   label: 'Vendors',  icon: Building2 },
+  { href: '/careers',    label: 'Careers',    icon: Briefcase },
+  { href: '/mentorship', label: 'Mentorship', icon: GraduationCap },
 ]
 
 // Lower-traffic destinations, tucked under a "More" dropdown to keep the row short.
 const moreNav = [
-  { href: '/polls',      label: 'Polls',      icon: BarChart2 },
-  { href: '/mentorship', label: 'Mentorship', icon: GraduationCap },
+  { href: '/polls',    label: 'Polls',    icon: BarChart2 },
+  { href: '/vendors',  label: 'Vendors',  icon: Building2 },
 ]
 
 
