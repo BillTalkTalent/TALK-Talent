@@ -7,33 +7,42 @@ import { toast } from 'sonner'
 interface Prefs {
   email_forum_topics: boolean
   email_forum_replies: boolean
+  email_poll_comments: boolean
   email_events: boolean
   email_digest: boolean
   email_chapter_announcements: boolean
   push_forum_topics: boolean
   push_forum_replies: boolean
+  push_poll_comments: boolean
+  push_poll_votes: boolean
   push_events: boolean
 }
 
 const DEFAULTS: Prefs = {
   email_forum_topics: true,
   email_forum_replies: true,
+  email_poll_comments: true,
   email_events: true,
   email_digest: false,
   email_chapter_announcements: true,
   push_forum_topics: true,
   push_forum_replies: true,
+  push_poll_comments: true,
+  push_poll_votes: true,
   push_events: true,
 }
 
 const ROWS: { key: keyof Prefs; label: string; section: 'email' | 'push' }[] = [
   { key: 'email_forum_topics', label: 'New forum topics', section: 'email' },
   { key: 'email_forum_replies', label: 'Replies to your topics', section: 'email' },
+  { key: 'email_poll_comments', label: 'Comments on your polls', section: 'email' },
   { key: 'email_events', label: 'Upcoming events', section: 'email' },
   { key: 'email_chapter_announcements', label: 'Chapter announcements', section: 'email' },
   { key: 'email_digest', label: 'Weekly digest', section: 'email' },
   { key: 'push_forum_topics', label: 'New forum topics', section: 'push' },
   { key: 'push_forum_replies', label: 'Replies to your topics', section: 'push' },
+  { key: 'push_poll_comments', label: 'Comments on your polls', section: 'push' },
+  { key: 'push_poll_votes', label: 'Votes on your polls', section: 'push' },
   { key: 'push_events', label: 'Upcoming events', section: 'push' },
 ]
 

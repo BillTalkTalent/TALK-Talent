@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Resend } from "resend";
 import { emailShell, ctaButton, quoteBlock } from "@/lib/email";
+import { loadPrefs, wants } from "@/lib/notification-prefs";
 
 export async function POST(req: NextRequest) {
   try {
@@ -76,25 +77,28 @@ export async function POST(req: NextRequest) {
     const from = process.env.FROM_EMAIL ?? "TALK Community <onboarding@resend.dev>";
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const adminDb = createAdminClient() as any;
+    const prefs = await loadPrefs(adminDb, notifyIds);
 
-    // Insert in-app notifications + send emails to all recipients
+    // Insert in-app notifications + send emails (respecting each recipient's prefs)
     await Promise.allSettled(
       (recipientProfiles ?? []).map(async (recipient) => {
         const firstName = recipient.full_name?.split(" ")[0] ?? "there";
 
         // In-app notification — use admin client (service role) since RLS
         // restricts who can insert into notifications
-        await adminDb.from("notifications").insert({
-          user_id: recipient.id,
-          type: "forum_reply",
-          title: notifTitle,
-          body: truncatedPreview,
-          link: relativeLink,
-          is_read: false,
-        });
+        if (wants(prefs, recipient.id, "push_forum_replies")) {
+          await adminDb.from("notifications").insert({
+            user_id: recipient.id,
+            type: "forum_reply",
+            title: notifTitle,
+            body: truncatedPreview,
+            link: relativeLink,
+            is_read: false,
+          });
+        }
 
-        // Email (only if they have an email)
-        if (recipient.email) {
+        // Email (only if they have an email and haven't opted out)
+        if (recipient.email && wants(prefs, recipient.id, "email_forum_replies")) {
           const preview = replyBody.length > 300 ? replyBody.slice(0, 297) + "…" : replyBody;
           await resend.emails.send({
             from,

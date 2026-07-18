@@ -104,8 +104,15 @@ export default function PollDetailPage() {
     if (error) {
       toast.error("Failed to post comment.");
     } else {
+      const body = commentDraft.trim();
       setCommentDraft("");
       await fetchData();
+      // Alert the poll creator + prior commenters (fire-and-forget).
+      fetch("/api/polls/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pollId: params.id, kind: "comment", commentBody: body }),
+      }).catch(() => {});
     }
     setPostingComment(false);
   }
@@ -146,6 +153,12 @@ export default function PollDetailPage() {
 
     toast.success("Vote submitted!");
     await fetchData();
+    // Nudge the poll creator that there's new activity (fire-and-forget).
+    fetch("/api/polls/notify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pollId: poll.id, kind: "vote" }),
+    }).catch(() => {});
     setVoting(false);
   }
 
