@@ -53,7 +53,11 @@ export default function NewsletterForm({
   const [showScheduler, setShowScheduler] = useState(false)
   const [loading, setLoading] = useState<'save' | 'send' | 'schedule' | null>(null)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null)
-  const [activeSponsor, setActiveSponsor] = useState<{ name: string; offer: string | null; expires_at: string } | null>(null)
+  type ActiveSponsor = {
+    name: string; logo_url: string | null; url: string | null; blurb: string | null
+    offer: string | null; offer_url: string | null; offer_cta: string | null; expires_at: string
+  }
+  const [activeSponsor, setActiveSponsor] = useState<ActiveSponsor | null>(null)
   const [skipSponsor, setSkipSponsor] = useState(false)
 
   useEffect(() => {
@@ -61,12 +65,14 @@ export default function NewsletterForm({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ;(createClient() as any)
       .from('newsletter_sponsors')
-      .select('name, offer, expires_at')
+      .select('name, logo_url, url, blurb, offer, offer_url, offer_cta, expires_at')
       .gte('expires_at', today)
       .order('created_at', { ascending: false })
       .limit(1)
-      .then(({ data }: { data: { name: string; offer: string | null; expires_at: string }[] | null }) => setActiveSponsor(data?.[0] ?? null))
+      .then(({ data }: { data: ActiveSponsor[] | null }) => setActiveSponsor(data?.[0] ?? null))
   }, [])
+
+  const showSponsor = activeSponsor && !skipSponsor
 
   const showToast = (type: 'success' | 'error', msg: string) => {
     setToast({ type, msg })
@@ -266,6 +272,25 @@ export default function NewsletterForm({
                   </div>
                   <p className="text-white/60 text-sm">{subject || 'Your newsletter subject'}</p>
                 </div>
+                {/* Sponsor masthead */}
+                {showSponsor && (
+                  <div className="bg-white px-8 pt-5 pb-1">
+                    <div className="rounded-xl border border-zinc-100 bg-zinc-50 px-6 py-5 text-center">
+                      <p className="text-[10px] font-black uppercase tracking-[0.14em] text-zinc-400 mb-3">Presented by</p>
+                      {activeSponsor!.logo_url
+                        // eslint-disable-next-line @next/next/no-img-element
+                        ? <img src={activeSponsor!.logo_url} alt={activeSponsor!.name} className="mx-auto max-h-11 w-auto mb-2 object-contain" />
+                        : null}
+                      <p className={`font-extrabold text-zinc-900 ${activeSponsor!.logo_url ? 'text-sm' : 'text-lg'}`}>{activeSponsor!.name}</p>
+                      {activeSponsor!.blurb && <p className="text-[13px] text-zinc-500 mt-1.5">{activeSponsor!.blurb}</p>}
+                      {activeSponsor!.offer
+                        ? <p className="text-xs font-bold text-[#E8503A] mt-3">🎁 Special offer for TALK members below ↓</p>
+                        : activeSponsor!.url
+                        ? <p className="mt-3"><span className="text-xs font-bold text-[#0F1F35] border-b-2 border-[#E8503A] pb-px">Learn more →</span></p>
+                        : null}
+                    </div>
+                  </div>
+                )}
                 {/* Sections */}
                 <div className="bg-white px-8 py-6 space-y-6">
                   <p className="text-zinc-600 text-sm">Hi there,</p>
@@ -283,6 +308,20 @@ export default function NewsletterForm({
                     </div>
                   ))}
                 </div>
+                {/* Sponsor special-offer callout */}
+                {showSponsor && activeSponsor!.offer && (
+                  <div className="bg-white px-8 pb-6">
+                    <div className="rounded-2xl bg-[#0F1F35] px-6 py-6 text-center">
+                      <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#F07058] mb-2.5">Special offer · {activeSponsor!.name}</p>
+                      <p className="text-white font-bold text-base leading-snug">{activeSponsor!.offer}</p>
+                      <div className="mt-4">
+                        <span className="inline-block bg-[#E8503A] text-white text-sm font-bold px-6 py-2.5 rounded-lg">
+                          {activeSponsor!.offer_cta?.trim() || 'Claim offer'} →
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {/* Footer */}
                 <div className="bg-zinc-50 px-8 py-5 text-center border-t border-zinc-100">
                   <p className="text-xs text-zinc-400">You&apos;re receiving this as a TALK community member.</p>
