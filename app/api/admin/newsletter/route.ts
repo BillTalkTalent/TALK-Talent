@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { Resend } from 'resend'
+import { sendNewsletter } from '@/lib/newsletter-send'
+
+// Sending to the full ~13k list runs in throttled batches — give it room.
+export const maxDuration = 300
 
 const SECTION_META: Record<string, { label: string; color: string }> = {
   talk_news:            { label: 'TALK News',             color: '#E8503A' },
@@ -30,7 +33,7 @@ function compileSectionsToHtml(sections: Record<string, string>): string {
     }).join('\n')
 }
 
-function buildEmailHtml(subject: string, sections: Record<string, string>, memberName: string): string {
+function buildEmailHtml(subject: string, sections: Record<string, string>, memberName: string, unsubscribeUrl: string): string {
   const sectionsHtml = compileSectionsToHtml(sections)
   return `<!DOCTYPE html>
 <html>
@@ -89,6 +92,7 @@ function buildEmailHtml(subject: string, sections: Record<string, string>, membe
   <tr><td style="background:#f9fafb;border-top:1px solid #f3f4f6;border-radius:0 0 16px 16px;padding:24px 36px;text-align:center;">
     <p style="margin:0;color:#9ca3af;font-size:12px;line-height:1.6;">You're receiving this as a TALK community member.</p>
     <p style="margin:6px 0 0;color:#9ca3af;font-size:12px;">© ${new Date().getFullYear()} TALK Community · For TA Leaders</p>
+    <p style="margin:10px 0 0;color:#9ca3af;font-size:12px;"><a href="${unsubscribeUrl}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a></p>
   </td></tr>
 
 </table>
@@ -136,37 +140,19 @@ export async function POST(req: NextRequest) {
   }
 
   // === SEND ===
-  const resendKey = process.env.RESEND_API_KEY
-  if (!resendKey) return NextResponse.json({ error: 'RESEND_API_KEY not configured' }, { status: 500 })
+  if (!process.env.RESEND_API_KEY) return NextResponse.json({ error: 'RESEND_API_KEY not configured' }, { status: 500 })
 
-  const { data: members } = await adminDb
-    .from('profiles')
-    .select('email, full_name')
-    .eq('status', 'approved')
+  // Reaches all approved members (paginated), skips unsubscribes, throttled,
+  // with a working unsubscribe link in every email.
+  const { sent, skipped, total } = await sendNewsletter(
+    adminDb,
+    subject,
+    (firstName, unsubscribeUrl) => buildEmailHtml(subject, sections ?? {}, firstName, unsubscribeUrl),
+  )
 
-  if (!members || members.length === 0) {
-    return NextResponse.json({ error: 'No members found' }, { status: 400 })
-  }
-
-  const resend = new Resend(resendKey)
-  const batchSize = 50
-  let sent = 0
-
-  for (let i = 0; i < members.length; i += batchSize) {
-    const batch = members.slice(i, i + batchSize)
-    await resend.batch.send(
-      batch.map((m: { email: string; full_name: string | null }) => ({
-        from: process.env.FROM_EMAIL ?? 'TALK Community <onboarding@resend.dev>',
-        replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
-        to: m.email,
-        subject,
-        html: buildEmailHtml(subject, sections ?? {}, m.full_name?.split(' ')[0] ?? 'there'),
-      }))
-    )
-    sent += batch.length
-  }
+  if (total === 0) return NextResponse.json({ error: 'No eligible members found' }, { status: 400 })
 
   await adminDb.from('newsletters').update({ recipient_count: sent }).eq('id', newsletterId)
 
-  return NextResponse.json({ success: true, recipientCount: sent })
+  return NextResponse.json({ success: true, recipientCount: sent, skipped })
 }

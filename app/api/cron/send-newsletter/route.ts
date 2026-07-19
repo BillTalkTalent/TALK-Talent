@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { Resend } from 'resend'
+import { sendNewsletter } from '@/lib/newsletter-send'
+
+export const maxDuration = 300
 
 export async function GET(req: NextRequest) {
   // Verify cron secret
@@ -27,37 +29,17 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ message: 'No newsletters to send' })
   }
 
-  const resendKey = process.env.RESEND_API_KEY
-  if (!resendKey) return NextResponse.json({ error: 'RESEND_API_KEY not set' }, { status: 500 })
-
-  const resend = new Resend(resendKey)
-
-  const { data: members } = await adminDb
-    .from('profiles')
-    .select('email, full_name')
-    .eq('status', 'approved')
-
-  if (!members || members.length === 0) {
-    return NextResponse.json({ message: 'No members' })
-  }
+  if (!process.env.RESEND_API_KEY) return NextResponse.json({ error: 'RESEND_API_KEY not set' }, { status: 500 })
 
   const results = []
   for (const newsletter of newsletters) {
-    const batchSize = 50
-    let sent = 0
-    for (let i = 0; i < members.length; i += batchSize) {
-      const batch = members.slice(i, i + batchSize)
-      await resend.batch.send(
-        batch.map((m: { email: string; full_name: string | null }) => ({
-          from: process.env.FROM_EMAIL ?? 'TALK Community <onboarding@resend.dev>',
-          replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
-          to: m.email,
-          subject: newsletter.subject,
-          html: buildEmailHtml(newsletter.subject, newsletter.body_html, m.full_name?.split(' ')[0] ?? 'there'),
-        }))
-      )
-      sent += batch.length
-    }
+    // Reaches all approved members (paginated), skips unsubscribes, throttled,
+    // with a working unsubscribe link in every email.
+    const { sent } = await sendNewsletter(
+      adminDb,
+      newsletter.subject,
+      (firstName, unsubscribeUrl) => buildEmailHtml(newsletter.subject, newsletter.body_html, firstName, unsubscribeUrl),
+    )
     await adminDb.from('newsletters').update({
       status: 'sent',
       sent_at: new Date().toISOString(),
@@ -69,7 +51,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ sent: results })
 }
 
-function buildEmailHtml(subject: string, bodyHtml: string, memberName: string) {
+function buildEmailHtml(subject: string, bodyHtml: string, memberName: string, unsubscribeUrl: string) {
   return `<!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
@@ -101,6 +83,7 @@ function buildEmailHtml(subject: string, bodyHtml: string, memberName: string) {
   <tr><td style="background:#f9fafb;border-top:1px solid #f3f4f6;border-radius:0 0 16px 16px;padding:20px 36px;text-align:center;">
     <p style="margin:0;color:#9ca3af;font-size:12px;">You're receiving this as a TALK community member.</p>
     <p style="margin:6px 0 0;color:#9ca3af;font-size:12px;">© ${new Date().getFullYear()} TALK Community</p>
+    <p style="margin:10px 0 0;color:#9ca3af;font-size:12px;"><a href="${unsubscribeUrl}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a></p>
   </td></tr>
 </table>
 </td></tr>
