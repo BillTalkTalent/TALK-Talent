@@ -43,14 +43,22 @@ export default async function AdminNewsletterPage() {
           <h1 className="text-xl font-bold text-zinc-900">Newsletter</h1>
           <p className="text-sm text-zinc-500 mt-0.5">Write, preview and send your weekly community newsletter</p>
         </div>
-        <Link
-          href="/admin/newsletter/new"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white hover:opacity-90 transition-opacity"
-          style={{ background: 'linear-gradient(135deg, #E8503A, #F07058)', color: '#0d0d0d' }}
-        >
-          <Plus className="size-4" />
-          Write new edition
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/newsletter/sponsors"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-zinc-700 border border-zinc-200 hover:bg-zinc-50 transition-colors"
+          >
+            Sponsors
+          </Link>
+          <Link
+            href="/admin/newsletter/new"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white hover:opacity-90 transition-opacity"
+            style={{ background: 'linear-gradient(135deg, #E8503A, #F07058)', color: '#0d0d0d' }}
+          >
+            <Plus className="size-4" />
+            Write new edition
+          </Link>
+        </div>
       </div>
 
       {/* Stats */}

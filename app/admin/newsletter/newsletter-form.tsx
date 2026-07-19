@@ -1,15 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import {
   Send, Save, Clock, Eye, EyeOff, Loader2,
   Calendar, ChevronDown, ChevronUp, Newspaper,
-  Star, Globe, Briefcase, Building2
+  Star, Globe, Briefcase, Megaphone
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { createClient } from '@/lib/supabase/client'
 
 const NewsletterEditor = dynamic(() => import('@/components/newsletter-editor'), { ssr: false })
 
@@ -18,7 +19,6 @@ const SECTIONS = [
   { key: 'member_highlight',   label: 'Member Highlight',     icon: Star,       color: '#f59e0b', desc: 'Spotlight a member — their story, role, or advice' },
   { key: 'industry_news',      label: 'Industry News',        icon: Globe,      color: '#3b82f6', desc: "TA trends, research, and what's happening out there" },
   { key: 'career_opportunities', label: 'Career Opportunities', icon: Briefcase, color: '#8b5cf6', desc: 'Curated jobs and opportunities worth sharing' },
-  { key: 'vendor_highlight',   label: 'Vendor Highlight',     icon: Building2,  color: '#ec4899', desc: 'A trusted tool or partner the community should know about' },
 ] as const
 
 type SectionKey = typeof SECTIONS[number]['key']
@@ -53,6 +53,20 @@ export default function NewsletterForm({
   const [showScheduler, setShowScheduler] = useState(false)
   const [loading, setLoading] = useState<'save' | 'send' | 'schedule' | null>(null)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null)
+  const [activeSponsor, setActiveSponsor] = useState<{ name: string; position: string; expires_at: string } | null>(null)
+  const [skipSponsor, setSkipSponsor] = useState(false)
+
+  useEffect(() => {
+    const today = new Date().toISOString().slice(0, 10)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(createClient() as any)
+      .from('newsletter_sponsors')
+      .select('name, position, expires_at')
+      .gte('expires_at', today)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .then(({ data }: { data: { name: string; position: string; expires_at: string }[] | null }) => setActiveSponsor(data?.[0] ?? null))
+  }, [])
 
   const showToast = (type: 'success' | 'error', msg: string) => {
     setToast({ type, msg })
@@ -72,7 +86,7 @@ export default function NewsletterForm({
     const res = await fetch('/api/admin/newsletter', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, subject, previewText, sections, action: 'save' }),
+      body: JSON.stringify({ id, subject, previewText, sections, skipSponsor, action: 'save' }),
     })
     const data = await res.json()
     setLoading(null)
@@ -89,7 +103,7 @@ export default function NewsletterForm({
     const res = await fetch('/api/admin/newsletter', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, subject, previewText, sections, action: 'send' }),
+      body: JSON.stringify({ id, subject, previewText, sections, skipSponsor, action: 'send' }),
     })
     const data = await res.json()
     setLoading(null)
@@ -106,7 +120,7 @@ export default function NewsletterForm({
     const res = await fetch('/api/admin/newsletter', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, subject, previewText, sections, action: 'schedule', scheduledFor }),
+      body: JSON.stringify({ id, subject, previewText, sections, skipSponsor, action: 'schedule', scheduledFor }),
     })
     const data = await res.json()
     setLoading(null)
@@ -154,6 +168,30 @@ export default function NewsletterForm({
             onChange={e => setPreviewText(e.target.value)}
             placeholder="Here's what's happening in the TALK community this week…"
           />
+        </div>
+      </div>
+
+      {/* Sponsor banner */}
+      <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm px-6 py-4 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <Megaphone className="size-4 text-zinc-400 shrink-0" />
+          {activeSponsor ? (
+            <p className="text-sm text-zinc-700 truncate">
+              Sponsored by <strong className="text-zinc-900">{activeSponsor.name}</strong>
+              <span className="text-zinc-400"> · appears at {activeSponsor.position} · runs until {activeSponsor.expires_at}</span>
+            </p>
+          ) : (
+            <p className="text-sm text-zinc-400">No active sponsor.</p>
+          )}
+        </div>
+        <div className="flex items-center gap-3 shrink-0">
+          {activeSponsor && (
+            <label className="flex items-center gap-1.5 text-xs text-zinc-500 cursor-pointer">
+              <input type="checkbox" checked={skipSponsor} onChange={e => setSkipSponsor(e.target.checked)} className="size-3.5" />
+              Skip for this edition
+            </label>
+          )}
+          <a href="/admin/newsletter/sponsors" className="text-xs font-semibold text-[#E8503A] hover:underline whitespace-nowrap">Manage sponsors →</a>
         </div>
       </div>
 

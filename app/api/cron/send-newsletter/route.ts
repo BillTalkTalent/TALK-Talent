@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendNewsletter } from '@/lib/newsletter-send'
+import { getActiveSponsor, buildSponsorBand } from '@/lib/newsletter-sponsor'
 
 export const maxDuration = 300
 
@@ -33,12 +34,17 @@ export async function GET(req: NextRequest) {
 
   const results = []
   for (const newsletter of newsletters) {
+    const sponsor = newsletter.skip_sponsor ? null : await getActiveSponsor(adminDb)
+    const band = sponsor ? buildSponsorBand(sponsor) : ''
+    const sponsorTop = sponsor?.position === 'top' ? band : ''
+    const sponsorBottom = sponsor?.position === 'bottom' ? band : ''
+
     // Reaches all approved members (paginated), skips unsubscribes, throttled,
     // with a working unsubscribe link in every email.
     const { sent } = await sendNewsletter(
       adminDb,
       newsletter.subject,
-      (firstName, unsubscribeUrl) => buildEmailHtml(newsletter.subject, newsletter.body_html, firstName, unsubscribeUrl),
+      (firstName, unsubscribeUrl) => buildEmailHtml(newsletter.subject, newsletter.body_html, firstName, unsubscribeUrl, sponsorTop, sponsorBottom),
     )
     await adminDb.from('newsletters').update({
       status: 'sent',
@@ -51,7 +57,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ sent: results })
 }
 
-function buildEmailHtml(subject: string, bodyHtml: string, memberName: string, unsubscribeUrl: string) {
+function buildEmailHtml(subject: string, bodyHtml: string, memberName: string, unsubscribeUrl: string, sponsorTop = '', sponsorBottom = '') {
   return `<!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
@@ -74,12 +80,14 @@ function buildEmailHtml(subject: string, bodyHtml: string, memberName: string, u
     <span style="color:#fff;font-size:20px;font-weight:900;">TALK</span>
     <p style="margin:8px 0 0;color:rgba(255,255,255,0.5);font-size:13px;">${subject}</p>
   </td></tr>
+  ${sponsorTop}
   <tr><td style="background:#fff;padding:32px 36px 0;">
     <p style="margin:0 0 24px;color:#374151;font-size:15px;">Hi ${memberName},</p>
   </td></tr>
   <tr><td style="background:#fff;padding:0 36px 32px;">
     <div class="prose">${bodyHtml}</div>
   </td></tr>
+  ${sponsorBottom}
   <tr><td style="background:#f9fafb;border-top:1px solid #f3f4f6;border-radius:0 0 16px 16px;padding:20px 36px;text-align:center;">
     <p style="margin:0;color:#9ca3af;font-size:12px;">You're receiving this as a TALK community member.</p>
     <p style="margin:6px 0 0;color:#9ca3af;font-size:12px;">© ${new Date().getFullYear()} TALK Community</p>

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendNewsletter } from '@/lib/newsletter-send'
+import { getActiveSponsor, buildSponsorBand } from '@/lib/newsletter-sponsor'
 
 // Sending to the full ~13k list runs in throttled batches — give it room.
 export const maxDuration = 300
@@ -11,10 +12,9 @@ const SECTION_META: Record<string, { label: string; color: string }> = {
   member_highlight:     { label: 'Member Highlight',      color: '#f59e0b' },
   industry_news:        { label: 'Industry News',         color: '#3b82f6' },
   career_opportunities: { label: 'Career Opportunities',  color: '#8b5cf6' },
-  vendor_highlight:     { label: 'Vendor Highlight',      color: '#ec4899' },
 }
 
-const SECTION_ORDER = ['talk_news', 'member_highlight', 'industry_news', 'career_opportunities', 'vendor_highlight']
+const SECTION_ORDER = ['talk_news', 'member_highlight', 'industry_news', 'career_opportunities']
 
 // Make editor <img> tags render well in email clients: absolute-only URLs are
 // already produced (Supabase public URLs), just add responsive inline styles.
@@ -39,7 +39,7 @@ function compileSectionsToHtml(sections: Record<string, string>): string {
     }).join('\n')
 }
 
-function buildEmailHtml(subject: string, sections: Record<string, string>, memberName: string, unsubscribeUrl: string): string {
+function buildEmailHtml(subject: string, sections: Record<string, string>, memberName: string, unsubscribeUrl: string, sponsorTop = '', sponsorBottom = ''): string {
   const sectionsHtml = compileSectionsToHtml(sections)
   return `<!DOCTYPE html>
 <html>
@@ -82,6 +82,8 @@ function buildEmailHtml(subject: string, sections: Record<string, string>, membe
     <p style="margin:10px 0 0;color:rgba(255,255,255,0.5);font-size:13px;line-height:1.4;">${subject}</p>
   </td></tr>
 
+  ${sponsorTop}
+
   <!-- Greeting -->
   <tr><td style="background:#fff;padding:32px 36px 8px;">
     <p style="color:#374151;font-size:15px;line-height:1.6;">Hi ${memberName},</p>
@@ -93,6 +95,8 @@ function buildEmailHtml(subject: string, sections: Record<string, string>, membe
   <tr><td style="background:#fff;padding:0 36px 32px;">
     ${sectionsHtml}
   </td></tr>
+
+  ${sponsorBottom}
 
   <!-- Footer -->
   <tr><td style="background:#f9fafb;border-top:1px solid #f3f4f6;border-radius:0 0 16px 16px;padding:24px 36px;text-align:center;">
@@ -116,7 +120,7 @@ export async function POST(req: NextRequest) {
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (profile?.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const { id, subject, previewText, sections, action, scheduledFor } = await req.json()
+  const { id, subject, previewText, sections, action, scheduledFor, skipSponsor } = await req.json()
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const adminDb = createAdminClient() as any
@@ -128,6 +132,7 @@ export async function POST(req: NextRequest) {
     preview_text: previewText ?? null,
     body_html: bodyHtml,
     sections_json: sections ?? {},
+    skip_sponsor: !!skipSponsor,
     created_by: user.id,
     ...(action === 'schedule' ? { status: 'scheduled', scheduled_for: scheduledFor } : {}),
     ...(action === 'send' ? { status: 'sent', sent_at: new Date().toISOString() } : {}),
@@ -148,12 +153,18 @@ export async function POST(req: NextRequest) {
   // === SEND ===
   if (!process.env.RESEND_API_KEY) return NextResponse.json({ error: 'RESEND_API_KEY not configured' }, { status: 500 })
 
+  // Auto-include the active sponsor's callout (unless this edition opts out).
+  const sponsor = skipSponsor ? null : await getActiveSponsor(adminDb)
+  const band = sponsor ? buildSponsorBand(sponsor) : ''
+  const sponsorTop = sponsor?.position === 'top' ? band : ''
+  const sponsorBottom = sponsor?.position === 'bottom' ? band : ''
+
   // Reaches all approved members (paginated), skips unsubscribes, throttled,
   // with a working unsubscribe link in every email.
   const { sent, skipped, total } = await sendNewsletter(
     adminDb,
     subject,
-    (firstName, unsubscribeUrl) => buildEmailHtml(subject, sections ?? {}, firstName, unsubscribeUrl),
+    (firstName, unsubscribeUrl) => buildEmailHtml(subject, sections ?? {}, firstName, unsubscribeUrl, sponsorTop, sponsorBottom),
   )
 
   if (total === 0) return NextResponse.json({ error: 'No eligible members found' }, { status: 400 })
