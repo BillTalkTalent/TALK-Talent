@@ -53,7 +53,7 @@ export default function NewsletterForm({
   const [showScheduler, setShowScheduler] = useState(false)
   const [loading, setLoading] = useState<'save' | 'send' | 'schedule' | null>(null)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null)
-  const [activeSponsor, setActiveSponsor] = useState<{ name: string; position: string; expires_at: string } | null>(null)
+  const [activeSponsor, setActiveSponsor] = useState<{ name: string; offer: string | null; expires_at: string } | null>(null)
   const [skipSponsor, setSkipSponsor] = useState(false)
 
   useEffect(() => {
@@ -61,11 +61,11 @@ export default function NewsletterForm({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ;(createClient() as any)
       .from('newsletter_sponsors')
-      .select('name, position, expires_at')
+      .select('name, offer, expires_at')
       .gte('expires_at', today)
       .order('created_at', { ascending: false })
       .limit(1)
-      .then(({ data }: { data: { name: string; position: string; expires_at: string }[] | null }) => setActiveSponsor(data?.[0] ?? null))
+      .then(({ data }: { data: { name: string; offer: string | null; expires_at: string }[] | null }) => setActiveSponsor(data?.[0] ?? null))
   }, [])
 
   const showToast = (type: 'success' | 'error', msg: string) => {
@@ -178,7 +178,7 @@ export default function NewsletterForm({
           {activeSponsor ? (
             <p className="text-sm text-zinc-700 truncate">
               Sponsored by <strong className="text-zinc-900">{activeSponsor.name}</strong>
-              <span className="text-zinc-400"> · appears at {activeSponsor.position} · runs until {activeSponsor.expires_at}</span>
+              <span className="text-zinc-400"> · top masthead{activeSponsor.offer ? ' + bottom offer' : ''} · runs until {activeSponsor.expires_at}</span>
             </p>
           ) : (
             <p className="text-sm text-zinc-400">No active sponsor.</p>

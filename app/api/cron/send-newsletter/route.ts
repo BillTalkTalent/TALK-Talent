@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendNewsletter } from '@/lib/newsletter-send'
-import { getActiveSponsor, buildSponsorBand } from '@/lib/newsletter-sponsor'
+import { getActiveSponsor, buildSponsorTop, buildSponsorBottom } from '@/lib/newsletter-sponsor'
 
 export const maxDuration = 300
 
@@ -35,9 +35,8 @@ export async function GET(req: NextRequest) {
   const results = []
   for (const newsletter of newsletters) {
     const sponsor = newsletter.skip_sponsor ? null : await getActiveSponsor(adminDb)
-    const band = sponsor ? buildSponsorBand(sponsor) : ''
-    const sponsorTop = sponsor?.position === 'top' ? band : ''
-    const sponsorBottom = sponsor?.position === 'bottom' ? band : ''
+    const sponsorTop = sponsor ? buildSponsorTop(sponsor) : ''
+    const sponsorBottom = sponsor ? buildSponsorBottom(sponsor) : ''
 
     // Reaches all approved members (paginated), skips unsubscribes, throttled,
     // with a working unsubscribe link in every email.

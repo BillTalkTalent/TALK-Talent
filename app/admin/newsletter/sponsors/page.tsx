@@ -25,7 +25,9 @@ async function addSponsor(fd: FormData) {
     logo_url: (fd.get('logo_url') as string) || null,
     url: (fd.get('url') as string) || null,
     blurb: (fd.get('blurb') as string) || null,
-    position: (fd.get('position') as string) || 'top',
+    offer: (fd.get('offer') as string)?.trim() || null,
+    offer_url: (fd.get('offer_url') as string) || null,
+    offer_cta: (fd.get('offer_cta') as string)?.trim() || null,
     expires_at: fd.get('expires_at') as string,
   })
   revalidatePath('/admin/newsletter/sponsors')
@@ -60,7 +62,8 @@ export default async function SponsorsPage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-zinc-900">Newsletter Sponsors</h1>
         <p className="text-sm text-zinc-500">
-          The active sponsor&apos;s callout is automatically added to every newsletter you send until its run-until date.
+          The active sponsor gets a &ldquo;Presented by&rdquo; masthead at the top of every newsletter — plus a
+          &ldquo;Special offer&rdquo; callout at the bottom if you add one — automatically, until its run-until date.
           One sponsor runs at a time (the newest un-expired one).
         </p>
       </div>
@@ -77,7 +80,7 @@ export default async function SponsorsPage() {
             <p className="text-sm text-zinc-500">No sponsors yet.</p>
           ) : (
             <ul className="divide-y divide-zinc-100">
-              {sponsors.map((s: { id: string; name: string; logo_url: string | null; position: string; expires_at: string }) => {
+              {sponsors.map((s: { id: string; name: string; logo_url: string | null; offer: string | null; expires_at: string }) => {
                 const expired = s.expires_at < today
                 const isActive = s.id === activeId
                 return (
@@ -89,7 +92,7 @@ export default async function SponsorsPage() {
                       )}
                       <div className="min-w-0">
                         <p className="font-medium text-zinc-900 truncate">{s.name}</p>
-                        <p className="text-xs text-zinc-400">{s.position} · runs until {s.expires_at}</p>
+                        <p className="text-xs text-zinc-400">runs until {s.expires_at}{s.offer ? ' · has offer' : ''}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">

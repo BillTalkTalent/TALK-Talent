@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendNewsletter } from '@/lib/newsletter-send'
-import { getActiveSponsor, buildSponsorBand } from '@/lib/newsletter-sponsor'
+import { getActiveSponsor, buildSponsorTop, buildSponsorBottom } from '@/lib/newsletter-sponsor'
 
 // Sending to the full ~13k list runs in throttled batches — give it room.
 export const maxDuration = 300
@@ -153,11 +153,11 @@ export async function POST(req: NextRequest) {
   // === SEND ===
   if (!process.env.RESEND_API_KEY) return NextResponse.json({ error: 'RESEND_API_KEY not configured' }, { status: 500 })
 
-  // Auto-include the active sponsor's callout (unless this edition opts out).
+  // Auto-include the active sponsor (unless this edition opts out): "Presented
+  // by" masthead at top, plus a "Special offer" callout at bottom if it has one.
   const sponsor = skipSponsor ? null : await getActiveSponsor(adminDb)
-  const band = sponsor ? buildSponsorBand(sponsor) : ''
-  const sponsorTop = sponsor?.position === 'top' ? band : ''
-  const sponsorBottom = sponsor?.position === 'bottom' ? band : ''
+  const sponsorTop = sponsor ? buildSponsorTop(sponsor) : ''
+  const sponsorBottom = sponsor ? buildSponsorBottom(sponsor) : ''
 
   // Reaches all approved members (paginated), skips unsubscribes, throttled,
   // with a working unsubscribe link in every email.

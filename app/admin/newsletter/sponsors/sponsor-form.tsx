@@ -85,21 +85,31 @@ export default function SponsorForm({ addSponsor }: { addSponsor: (fd: FormData)
       <div className="space-y-1.5">
         <Label htmlFor="blurb">Blurb (one line)</Label>
         <Input id="blurb" name="blurb" maxLength={140} placeholder="The ATS built for talent teams." />
+        <p className="text-xs text-zinc-400">Shown in the &ldquo;Presented by&rdquo; masthead at the top.</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      {/* Optional special offer — renders as a callout at the bottom */}
+      <div className="rounded-xl border border-zinc-200 p-4 space-y-3">
+        <p className="text-sm font-semibold text-zinc-800">Special offer <span className="font-normal text-zinc-400">(optional — shows at the bottom)</span></p>
         <div className="space-y-1.5">
-          <Label htmlFor="position">Placement *</Label>
-          <select id="position" name="position" defaultValue="top" required
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-            <option value="top">Top</option>
-            <option value="bottom">Bottom</option>
-          </select>
+          <Label htmlFor="offer">Offer</Label>
+          <Input id="offer" name="offer" maxLength={160} placeholder="30% off your first year for TALK members." />
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="expires_at">Runs until *</Label>
-          <Input id="expires_at" name="expires_at" type="date" required />
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="offer_url" className="text-xs">Offer link</Label>
+            <Input id="offer_url" name="offer_url" type="url" placeholder="https://acme.com/talk" />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="offer_cta" className="text-xs">Button label</Label>
+            <Input id="offer_cta" name="offer_cta" maxLength={30} placeholder="Claim offer" />
+          </div>
         </div>
+      </div>
+
+      <div className="space-y-1.5 max-w-[200px]">
+        <Label htmlFor="expires_at">Runs until *</Label>
+        <Input id="expires_at" name="expires_at" type="date" required />
       </div>
 
       <Button type="submit" disabled={submitting}>
