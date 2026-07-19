@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -9,6 +10,7 @@ import { toast } from 'sonner'
 import { Upload, X, Loader2 } from 'lucide-react'
 
 export default function SponsorForm({ addSponsor }: { addSponsor: (fd: FormData) => Promise<void> }) {
+  const router = useRouter()
   const fileRef = useRef<HTMLInputElement>(null)
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
@@ -43,8 +45,9 @@ export default function SponsorForm({ addSponsor }: { addSponsor: (fd: FormData)
       setLogoFile(null)
       setLogoPreview(null)
       toast.success('Sponsor added')
-    } catch {
-      toast.error('Failed to add sponsor')
+      router.refresh() // re-fetch the list so the new sponsor shows immediately
+    } catch (err) {
+      toast.error(err instanceof Error ? `Couldn't save: ${err.message}` : 'Failed to add sponsor')
     } finally {
       setSubmitting(false)
     }
