@@ -58,6 +58,7 @@ export default async function EditNewsletterPage({ params }: { params: Promise<{
           id={newsletter.id}
           initialSubject={newsletter.subject}
           initialPreview={newsletter.preview_text ?? ''}
+          initialIntro={newsletter.intro ?? ''}
           initialSections={newsletter.sections_json ?? {}}
           memberCount={memberCount ?? 0}
         />

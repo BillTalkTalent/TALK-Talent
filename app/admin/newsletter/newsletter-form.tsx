@@ -27,10 +27,13 @@ interface Sections {
   [key: string]: string
 }
 
+const DEFAULT_INTRO = "Here's your weekly roundup from the TALK community."
+
 interface NewsletterFormProps {
   id?: string
   initialSubject?: string
   initialPreview?: string
+  initialIntro?: string
   initialSections?: Sections
   memberCount: number
 }
@@ -39,12 +42,14 @@ export default function NewsletterForm({
   id,
   initialSubject = '',
   initialPreview = '',
+  initialIntro = '',
   initialSections = {},
   memberCount,
 }: NewsletterFormProps) {
   const router = useRouter()
   const [subject, setSubject] = useState(initialSubject)
   const [previewText, setPreviewText] = useState(initialPreview)
+  const [intro, setIntro] = useState(initialIntro)
   const [sections, setSections] = useState<Sections>(initialSections)
   const [openSection, setOpenSection] = useState<SectionKey | null>('talk_news')
   const [showPreview, setShowPreview] = useState(false)
@@ -92,7 +97,7 @@ export default function NewsletterForm({
     const res = await fetch('/api/admin/newsletter', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, subject, previewText, sections, skipSponsor, action: 'save' }),
+      body: JSON.stringify({ id, subject, previewText, intro, sections, skipSponsor, action: 'save' }),
     })
     const data = await res.json()
     setLoading(null)
@@ -109,7 +114,7 @@ export default function NewsletterForm({
     const res = await fetch('/api/admin/newsletter', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, subject, previewText, sections, skipSponsor, action: 'send' }),
+      body: JSON.stringify({ id, subject, previewText, intro, sections, skipSponsor, action: 'send' }),
     })
     const data = await res.json()
     setLoading(null)
@@ -126,7 +131,7 @@ export default function NewsletterForm({
     const res = await fetch('/api/admin/newsletter', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, subject, previewText, sections, skipSponsor, action: 'schedule', scheduledFor }),
+      body: JSON.stringify({ id, subject, previewText, intro, sections, skipSponsor, action: 'schedule', scheduledFor }),
     })
     const data = await res.json()
     setLoading(null)
@@ -173,6 +178,16 @@ export default function NewsletterForm({
             value={previewText}
             onChange={e => setPreviewText(e.target.value)}
             placeholder="Here's what's happening in the TALK community this week…"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-xs font-bold text-zinc-500 uppercase tracking-wide">
+            Opening message <span className="text-zinc-400 normal-case font-normal">(shown right after &ldquo;Hi [name],&rdquo; — leave blank for the default)</span>
+          </Label>
+          <Input
+            value={intro}
+            onChange={e => setIntro(e.target.value)}
+            placeholder={DEFAULT_INTRO}
           />
         </div>
       </div>
@@ -295,7 +310,7 @@ export default function NewsletterForm({
                 <div className="bg-white px-8 py-6 space-y-6">
                   <div>
                     <p className="text-zinc-600 text-sm">Hi <span className="text-zinc-400">[first name],</span></p>
-                    <p className="text-zinc-500 text-sm mt-1">Here&apos;s your weekly roundup from the TALK community.</p>
+                    <p className="text-zinc-500 text-sm mt-1">{intro.trim() || DEFAULT_INTRO}</p>
                     <hr className="border-zinc-100 mt-4" />
                   </div>
                   {filledSections.map(s => (

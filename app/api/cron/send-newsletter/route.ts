@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
     const { sent } = await sendNewsletter(
       adminDb,
       newsletter.subject,
-      (firstName, unsubscribeUrl) => buildEmailHtml(newsletter.subject, newsletter.body_html, firstName, unsubscribeUrl, sponsorTop, sponsorBottom),
+      (firstName, unsubscribeUrl) => buildEmailHtml(newsletter.subject, newsletter.body_html, firstName, unsubscribeUrl, newsletter.intro, sponsorTop, sponsorBottom),
     )
     await adminDb.from('newsletters').update({
       status: 'sent',
@@ -56,7 +56,8 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ sent: results })
 }
 
-function buildEmailHtml(subject: string, bodyHtml: string, memberName: string, unsubscribeUrl: string, sponsorTop = '', sponsorBottom = '') {
+function buildEmailHtml(subject: string, bodyHtml: string, memberName: string, unsubscribeUrl: string, intro = '', sponsorTop = '', sponsorBottom = '') {
+  const introLine = (intro || '').trim() || "Here's your weekly roundup from the TALK community."
   return `<!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
@@ -81,7 +82,8 @@ function buildEmailHtml(subject: string, bodyHtml: string, memberName: string, u
   </td></tr>
   ${sponsorTop}
   <tr><td style="background:#fff;padding:32px 36px 0;">
-    <p style="margin:0 0 24px;color:#374151;font-size:15px;">Hi ${memberName},</p>
+    <p style="margin:0 0 6px;color:#374151;font-size:15px;">Hi ${memberName},</p>
+    <p style="margin:0 0 20px;color:#6b7280;font-size:14px;">${introLine}</p>
   </td></tr>
   <tr><td style="background:#fff;padding:0 36px 32px;">
     <div class="prose">${bodyHtml}</div>

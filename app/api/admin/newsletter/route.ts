@@ -39,7 +39,8 @@ function compileSectionsToHtml(sections: Record<string, string>): string {
     }).join('\n')
 }
 
-function buildEmailHtml(subject: string, sections: Record<string, string>, memberName: string, unsubscribeUrl: string, sponsorTop = '', sponsorBottom = ''): string {
+function buildEmailHtml(subject: string, sections: Record<string, string>, memberName: string, unsubscribeUrl: string, intro = '', sponsorTop = '', sponsorBottom = ''): string {
+  const introLine = (intro || '').trim() || "Here's your weekly roundup from the TALK community."
   const sectionsHtml = compileSectionsToHtml(sections)
   return `<!DOCTYPE html>
 <html>
@@ -87,7 +88,7 @@ function buildEmailHtml(subject: string, sections: Record<string, string>, membe
   <!-- Greeting -->
   <tr><td style="background:#fff;padding:32px 36px 8px;">
     <p style="color:#374151;font-size:15px;line-height:1.6;">Hi ${memberName},</p>
-    <p style="color:#6b7280;font-size:14px;line-height:1.6;margin-bottom:24px;">Here's your weekly roundup from the TALK community.</p>
+    <p style="color:#6b7280;font-size:14px;line-height:1.6;margin-bottom:24px;">${introLine}</p>
     <hr style="border:none;border-top:1px solid #f3f4f6;margin-bottom:28px;">
   </td></tr>
 
@@ -120,7 +121,7 @@ export async function POST(req: NextRequest) {
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (profile?.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const { id, subject, previewText, sections, action, scheduledFor, skipSponsor } = await req.json()
+  const { id, subject, previewText, intro, sections, action, scheduledFor, skipSponsor } = await req.json()
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const adminDb = createAdminClient() as any
@@ -132,6 +133,7 @@ export async function POST(req: NextRequest) {
     preview_text: previewText ?? null,
     body_html: bodyHtml,
     sections_json: sections ?? {},
+    intro: (intro as string)?.trim() || null,
     skip_sponsor: !!skipSponsor,
     created_by: user.id,
     ...(action === 'schedule' ? { status: 'scheduled', scheduled_for: scheduledFor } : {}),
@@ -164,7 +166,7 @@ export async function POST(req: NextRequest) {
   const { sent, skipped, total } = await sendNewsletter(
     adminDb,
     subject,
-    (firstName, unsubscribeUrl) => buildEmailHtml(subject, sections ?? {}, firstName, unsubscribeUrl, sponsorTop, sponsorBottom),
+    (firstName, unsubscribeUrl) => buildEmailHtml(subject, sections ?? {}, firstName, unsubscribeUrl, intro, sponsorTop, sponsorBottom),
   )
 
   if (total === 0) return NextResponse.json({ error: 'No eligible members found' }, { status: 400 })
