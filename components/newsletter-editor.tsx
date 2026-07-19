@@ -1,16 +1,20 @@
 'use client'
 
+import { useRef, useState } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import TextAlign from '@tiptap/extension-text-align'
 import Placeholder from '@tiptap/extension-placeholder'
+import Image from '@tiptap/extension-image'
+import { createClient } from '@/lib/supabase/client'
+import { toast } from 'sonner'
 import {
   Bold, Italic, UnderlineIcon, Strikethrough,
   Heading2, Heading3, List, ListOrdered,
   AlignLeft, AlignCenter, AlignRight,
-  Link2, Minus, Undo, Redo
+  Link2, Minus, Undo, Redo, ImageIcon, Loader2
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -20,15 +24,20 @@ interface NewsletterEditorProps {
 }
 
 export default function NewsletterEditor({ content, onChange }: NewsletterEditorProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+
   const editor = useEditor({
     extensions: [
       StarterKit,
       Underline,
       Link.configure({ openOnClick: false }),
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
+      Image.configure({ inline: false, HTMLAttributes: { class: 'newsletter-img' } }),
       Placeholder.configure({ placeholder: 'Write your newsletter here…' }),
     ],
     content,
+    immediatelyRender: false,
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
     editorProps: {
       attributes: {
@@ -36,6 +45,27 @@ export default function NewsletterEditor({ content, onChange }: NewsletterEditor
       },
     },
   })
+
+  async function handleImagePick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !editor) return
+    if (file.size > 5 * 1024 * 1024) { toast.error('Image must be under 5MB'); return }
+    setUploading(true)
+    try {
+      const supabase = createClient()
+      const ext = file.name.split('.').pop()
+      const path = `newsletter/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      const { error } = await supabase.storage.from('event-images').upload(path, file, { upsert: false })
+      if (error) throw error
+      const { data } = supabase.storage.from('event-images').getPublicUrl(path)
+      editor.chain().focus().setImage({ src: data.publicUrl }).run()
+    } catch {
+      toast.error('Image upload failed')
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
 
   if (!editor) return null
 
@@ -124,9 +154,19 @@ export default function NewsletterEditor({ content, onChange }: NewsletterEditor
         <ToolbarBtn title="Add link" active={editor.isActive('link')} onClick={addLink}>
           <Link2 className="size-3.5" />
         </ToolbarBtn>
+        <ToolbarBtn title="Insert image" onClick={() => fileInputRef.current?.click()}>
+          {uploading ? <Loader2 className="size-3.5 animate-spin" /> : <ImageIcon className="size-3.5" />}
+        </ToolbarBtn>
         <ToolbarBtn title="Divider" onClick={() => editor.chain().focus().setHorizontalRule().run()}>
           <Minus className="size-3.5" />
         </ToolbarBtn>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/png,image/jpeg,image/webp,image/gif"
+          onChange={handleImagePick}
+          className="hidden"
+        />
       </div>
 
       {/* Editor area */}

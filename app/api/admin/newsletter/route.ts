@@ -16,6 +16,12 @@ const SECTION_META: Record<string, { label: string; color: string }> = {
 
 const SECTION_ORDER = ['talk_news', 'member_highlight', 'industry_news', 'career_opportunities', 'vendor_highlight']
 
+// Make editor <img> tags render well in email clients: absolute-only URLs are
+// already produced (Supabase public URLs), just add responsive inline styles.
+function styleImages(html: string): string {
+  return html.replace(/<img /g, '<img style="max-width:100%;height:auto;border-radius:8px;display:block;margin:14px auto;" ')
+}
+
 function compileSectionsToHtml(sections: Record<string, string>): string {
   return SECTION_ORDER
     .filter(key => sections[key] && sections[key] !== '<p></p>' && sections[key].trim())
@@ -28,7 +34,7 @@ function compileSectionsToHtml(sections: Record<string, string>): string {
             <span style="font-size:10px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:${meta.color};">${meta.label}</span>
             <div style="height:1px;flex:1;background:#f3f4f6;display:inline-block;"></div>
           </div>
-          <div style="color:#374151;font-size:15px;line-height:1.7;">${sections[key]}</div>
+          <div style="color:#374151;font-size:15px;line-height:1.7;">${styleImages(sections[key])}</div>
         </div>`
     }).join('\n')
 }
