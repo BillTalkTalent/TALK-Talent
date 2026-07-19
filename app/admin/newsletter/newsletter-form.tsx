@@ -293,7 +293,11 @@ export default function NewsletterForm({
                 )}
                 {/* Sections */}
                 <div className="bg-white px-8 py-6 space-y-6">
-                  <p className="text-zinc-600 text-sm">Hi there,</p>
+                  <div>
+                    <p className="text-zinc-600 text-sm">Hi <span className="text-zinc-400">[first name],</span></p>
+                    <p className="text-zinc-500 text-sm mt-1">Here&apos;s your weekly roundup from the TALK community.</p>
+                    <hr className="border-zinc-100 mt-4" />
+                  </div>
                   {filledSections.map(s => (
                     <div key={s.key}>
                       <div className="flex items-center gap-2 mb-3">
