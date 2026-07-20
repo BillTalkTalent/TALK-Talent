@@ -1,11 +1,11 @@
 import { revalidatePath } from 'next/cache'
 import Link from 'next/link'
-import { ArrowLeft, Trash2 } from 'lucide-react'
+import { ArrowLeft, Trash2, Pencil } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import SponsorForm from './sponsor-form'
+import SponsorForm, { type SponsorInitial } from './sponsor-form'
 
 async function requireAdmin() {
   const supabase = await createClient()
@@ -15,12 +15,13 @@ async function requireAdmin() {
   if (me?.role !== 'admin') throw new Error('Forbidden')
 }
 
-async function addSponsor(fd: FormData) {
+// Insert when no id is present, update when one is (the form sets it in edit mode).
+async function saveSponsor(fd: FormData) {
   'use server'
   await requireAdmin()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const admin = createAdminClient() as any
-  await admin.from('newsletter_sponsors').insert({
+  const payload = {
     name: (fd.get('name') as string)?.trim(),
     logo_url: (fd.get('logo_url') as string) || null,
     url: (fd.get('url') as string) || null,
@@ -29,7 +30,15 @@ async function addSponsor(fd: FormData) {
     offer_url: (fd.get('offer_url') as string) || null,
     offer_cta: (fd.get('offer_cta') as string)?.trim() || null,
     expires_at: fd.get('expires_at') as string,
-  })
+  }
+  const id = fd.get('id') as string | null
+  if (id) {
+    const { error } = await admin.from('newsletter_sponsors').update(payload).eq('id', id)
+    if (error) throw new Error(error.message)
+  } else {
+    const { error } = await admin.from('newsletter_sponsors').insert(payload)
+    if (error) throw new Error(error.message)
+  }
   revalidatePath('/admin/newsletter/sponsors')
 }
 
@@ -42,7 +51,12 @@ async function deleteSponsor(fd: FormData) {
   revalidatePath('/admin/newsletter/sponsors')
 }
 
-export default async function SponsorsPage() {
+export default async function SponsorsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ edit?: string }>
+}) {
+  const { edit } = await searchParams
   const supabase = await createClient()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any
@@ -53,6 +67,8 @@ export default async function SponsorsPage() {
 
   const today = new Date().toISOString().slice(0, 10)
   const activeId = (sponsors ?? []).find((s: { expires_at: string }) => s.expires_at >= today)?.id ?? null
+  const editing: SponsorInitial | null =
+    (edit && (sponsors ?? []).find((s: { id: string }) => s.id === edit)) || null
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -69,8 +85,12 @@ export default async function SponsorsPage() {
       </div>
 
       <Card>
-        <CardHeader><CardTitle>Add a sponsor</CardTitle></CardHeader>
-        <CardContent><SponsorForm addSponsor={addSponsor} /></CardContent>
+        <CardHeader>
+          <CardTitle>{editing ? `Edit sponsor — ${editing.name}` : 'Add a sponsor'}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <SponsorForm key={editing?.id ?? 'new'} saveSponsor={saveSponsor} initial={editing} />
+        </CardContent>
       </Card>
 
       <Card>
@@ -80,7 +100,7 @@ export default async function SponsorsPage() {
             <p className="text-sm text-zinc-500">No sponsors yet.</p>
           ) : (
             <ul className="divide-y divide-zinc-100">
-              {sponsors.map((s: { id: string; name: string; logo_url: string | null; offer: string | null; expires_at: string }) => {
+              {sponsors.map((s: SponsorInitial) => {
                 const expired = s.expires_at < today
                 const isActive = s.id === activeId
                 return (
@@ -99,6 +119,13 @@ export default async function SponsorsPage() {
                       {isActive ? <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">Active</Badge>
                         : expired ? <Badge variant="secondary">Expired</Badge>
                         : <Badge variant="outline">Queued</Badge>}
+                      <Link
+                        href={`/admin/newsletter/sponsors?edit=${s.id}`}
+                        className="p-1.5 rounded-lg text-zinc-300 hover:text-zinc-700 hover:bg-zinc-100"
+                        title="Edit"
+                      >
+                        <Pencil className="size-4" />
+                      </Link>
                       <form action={deleteSponsor}>
                         <input type="hidden" name="id" value={s.id} />
                         <button type="submit" className="p-1.5 rounded-lg text-zinc-300 hover:text-red-500 hover:bg-red-50" title="Delete">

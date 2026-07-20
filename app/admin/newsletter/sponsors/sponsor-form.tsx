@@ -9,12 +9,32 @@ import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { Upload, X, Loader2 } from 'lucide-react'
 
-export default function SponsorForm({ addSponsor }: { addSponsor: (fd: FormData) => Promise<void> }) {
+export type SponsorInitial = {
+  id: string
+  name: string
+  logo_url: string | null
+  url: string | null
+  blurb: string | null
+  offer: string | null
+  offer_url: string | null
+  offer_cta: string | null
+  expires_at: string
+}
+
+export default function SponsorForm({
+  saveSponsor,
+  initial,
+}: {
+  saveSponsor: (fd: FormData) => Promise<void>
+  initial?: SponsorInitial | null
+}) {
   const router = useRouter()
   const fileRef = useRef<HTMLInputElement>(null)
   const [logoFile, setLogoFile] = useState<File | null>(null)
-  const [logoPreview, setLogoPreview] = useState<string | null>(null)
+  const [logoPreview, setLogoPreview] = useState<string | null>(initial?.logo_url ?? null)
+  const [logoRemoved, setLogoRemoved] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const editing = !!initial
 
   function pickLogo(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]
@@ -22,6 +42,7 @@ export default function SponsorForm({ addSponsor }: { addSponsor: (fd: FormData)
     if (f.size > 5 * 1024 * 1024) { toast.error('Logo must be under 5MB'); return }
     setLogoFile(f)
     setLogoPreview(URL.createObjectURL(f))
+    setLogoRemoved(false)
   }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -30,7 +51,8 @@ export default function SponsorForm({ addSponsor }: { addSponsor: (fd: FormData)
     const fd = new FormData(form)
     setSubmitting(true)
     try {
-      let logoUrl = ''
+      // Keep the existing logo when editing unless it's replaced or removed.
+      let logoUrl = editing && !logoRemoved ? (initial?.logo_url ?? '') : ''
       if (logoFile) {
         const supabase = createClient()
         const ext = logoFile.name.split('.').pop()
@@ -40,14 +62,19 @@ export default function SponsorForm({ addSponsor }: { addSponsor: (fd: FormData)
         logoUrl = supabase.storage.from('event-images').getPublicUrl(path).data.publicUrl
       }
       fd.set('logo_url', logoUrl)
-      await addSponsor(fd)
-      form.reset()
-      setLogoFile(null)
-      setLogoPreview(null)
-      toast.success('Sponsor added')
-      router.refresh() // re-fetch the list so the new sponsor shows immediately
+      if (editing) fd.set('id', initial!.id)
+      await saveSponsor(fd)
+      toast.success(editing ? 'Sponsor updated' : 'Sponsor added')
+      if (editing) {
+        router.push('/admin/newsletter/sponsors')
+      } else {
+        form.reset()
+        setLogoFile(null)
+        setLogoPreview(null)
+      }
+      router.refresh() // re-fetch the list so changes show immediately
     } catch (err) {
-      toast.error(err instanceof Error ? `Couldn't save: ${err.message}` : 'Failed to add sponsor')
+      toast.error(err instanceof Error ? `Couldn't save: ${err.message}` : 'Failed to save sponsor')
     } finally {
       setSubmitting(false)
     }
@@ -57,7 +84,7 @@ export default function SponsorForm({ addSponsor }: { addSponsor: (fd: FormData)
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-1.5">
         <Label htmlFor="name">Sponsor name *</Label>
-        <Input id="name" name="name" required placeholder="Acme ATS" />
+        <Input id="name" name="name" required defaultValue={initial?.name ?? ''} placeholder="Acme ATS" />
       </div>
 
       <div className="space-y-1.5">
@@ -66,7 +93,7 @@ export default function SponsorForm({ addSponsor }: { addSponsor: (fd: FormData)
           <div className="relative inline-block rounded-lg border border-zinc-200 bg-white p-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={logoPreview} alt="Logo preview" className="h-12 w-auto object-contain" />
-            <button type="button" onClick={() => { setLogoFile(null); setLogoPreview(null); if (fileRef.current) fileRef.current.value = '' }}
+            <button type="button" onClick={() => { setLogoFile(null); setLogoPreview(null); setLogoRemoved(true); if (fileRef.current) fileRef.current.value = '' }}
               className="absolute -top-2 -right-2 size-5 rounded-full bg-zinc-800 text-white flex items-center justify-center">
               <X className="size-3" />
             </button>
@@ -82,12 +109,12 @@ export default function SponsorForm({ addSponsor }: { addSponsor: (fd: FormData)
 
       <div className="space-y-1.5">
         <Label htmlFor="url">Link URL</Label>
-        <Input id="url" name="url" type="url" placeholder="https://acme.com" />
+        <Input id="url" name="url" type="url" defaultValue={initial?.url ?? ''} placeholder="https://acme.com" />
       </div>
 
       <div className="space-y-1.5">
         <Label htmlFor="blurb">Blurb (one line)</Label>
-        <Input id="blurb" name="blurb" maxLength={140} placeholder="The ATS built for talent teams." />
+        <Input id="blurb" name="blurb" maxLength={140} defaultValue={initial?.blurb ?? ''} placeholder="The ATS built for talent teams." />
         <p className="text-xs text-zinc-400">Shown in the &ldquo;Presented by&rdquo; masthead at the top.</p>
       </div>
 
@@ -96,28 +123,35 @@ export default function SponsorForm({ addSponsor }: { addSponsor: (fd: FormData)
         <p className="text-sm font-semibold text-zinc-800">Special offer <span className="font-normal text-zinc-400">(optional — shows at the bottom)</span></p>
         <div className="space-y-1.5">
           <Label htmlFor="offer">Offer</Label>
-          <Input id="offer" name="offer" maxLength={160} placeholder="30% off your first year for TALK members." />
+          <Input id="offer" name="offer" maxLength={160} defaultValue={initial?.offer ?? ''} placeholder="30% off your first year for TALK members." />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <Label htmlFor="offer_url" className="text-xs">Offer link</Label>
-            <Input id="offer_url" name="offer_url" type="url" placeholder="https://acme.com/talk" />
+            <Input id="offer_url" name="offer_url" type="url" defaultValue={initial?.offer_url ?? ''} placeholder="https://acme.com/talk" />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="offer_cta" className="text-xs">Button label</Label>
-            <Input id="offer_cta" name="offer_cta" maxLength={30} placeholder="Claim offer" />
+            <Input id="offer_cta" name="offer_cta" maxLength={30} defaultValue={initial?.offer_cta ?? ''} placeholder="Claim offer" />
           </div>
         </div>
       </div>
 
       <div className="space-y-1.5 max-w-[200px]">
         <Label htmlFor="expires_at">Runs until *</Label>
-        <Input id="expires_at" name="expires_at" type="date" required />
+        <Input id="expires_at" name="expires_at" type="date" required defaultValue={initial?.expires_at ?? ''} />
       </div>
 
-      <Button type="submit" disabled={submitting}>
-        {submitting ? <><Loader2 className="size-4 animate-spin" /> Adding…</> : 'Add sponsor'}
-      </Button>
+      <div className="flex items-center gap-3">
+        <Button type="submit" disabled={submitting}>
+          {submitting ? <><Loader2 className="size-4 animate-spin" /> Saving…</> : editing ? 'Save changes' : 'Add sponsor'}
+        </Button>
+        {editing && (
+          <Button type="button" variant="outline" onClick={() => router.push('/admin/newsletter/sponsors')}>
+            Cancel
+          </Button>
+        )}
+      </div>
     </form>
   )
 }
