@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import CreateEventForm from './create-event-form'
+import DeleteEventButton from './delete-event-button'
 import { ImageIcon, Pencil } from 'lucide-react'
 
 async function deleteEvent(id: string) {
@@ -90,7 +91,7 @@ export default async function AdminEventsPage() {
                       <Pencil className="size-3.5 mr-1" /> Edit
                     </Button>
                     <form action={deleteEvent.bind(null, event.id)}>
-                      <Button type="submit" size="sm" variant="destructive">Delete</Button>
+                      <DeleteEventButton title={event.title} />
                     </form>
                   </div>
                 </li>
