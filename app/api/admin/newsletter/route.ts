@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendNewsletter } from '@/lib/newsletter-send'
 import { getActiveSponsor, buildSponsorTop, buildSponsorBottom } from '@/lib/newsletter-sponsor'
+import { unsubUrl } from '@/lib/unsubscribe'
+import { Resend } from 'resend'
 
 // Sending to the full ~13k list runs in throttled batches — give it room.
 export const maxDuration = 300
@@ -121,10 +123,34 @@ export async function POST(req: NextRequest) {
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (profile?.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const { id, subject, previewText, intro, sections, action, scheduledFor, skipSponsor } = await req.json()
+  const { id, subject, previewText, intro, sections, action, scheduledFor, skipSponsor, testEmail } = await req.json()
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const adminDb = createAdminClient() as any
+
+  // === SEND TEST === one copy of the fully-assembled draft to a chosen address.
+  if (action === 'test') {
+    const to = (testEmail as string || '').trim()
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
+      return NextResponse.json({ error: 'Enter a valid test email' }, { status: 400 })
+    }
+    if (!process.env.RESEND_API_KEY) return NextResponse.json({ error: 'RESEND_API_KEY not configured' }, { status: 500 })
+    const sponsor = skipSponsor ? null : await getActiveSponsor(adminDb)
+    const sponsorTop = sponsor ? buildSponsorTop(sponsor) : ''
+    const sponsorBottom = sponsor ? buildSponsorBottom(sponsor) : ''
+    const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
+    const html = buildEmailHtml(subject || 'TALK newsletter', sections ?? {}, 'there', unsubUrl(origin, to), intro, sponsorTop, sponsorBottom)
+    const resend = new Resend(process.env.RESEND_API_KEY)
+    const { error } = await resend.emails.send({
+      from: process.env.FROM_EMAIL ?? 'TALK Community <onboarding@resend.dev>',
+      replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
+      to,
+      subject: `[TEST] ${subject || 'TALK newsletter'}`,
+      html,
+    })
+    if (error) return NextResponse.json({ error: 'Failed to send test' }, { status: 500 })
+    return NextResponse.json({ success: true, test: true, to })
+  }
 
   const bodyHtml = compileSectionsToHtml(sections ?? {})
 

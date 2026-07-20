@@ -64,6 +64,17 @@ export default function NewsletterForm({
   }
   const [activeSponsor, setActiveSponsor] = useState<ActiveSponsor | null>(null)
   const [skipSponsor, setSkipSponsor] = useState(false)
+  const [testEmail, setTestEmail] = useState('')
+  const [sendingTest, setSendingTest] = useState(false)
+
+  useEffect(() => {
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('nl_test_email') : null
+    if (saved) { setTestEmail(saved); return }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(createClient() as any).auth.getUser().then(({ data }: { data: { user: { email?: string } | null } }) => {
+      if (data?.user?.email) setTestEmail(data.user.email)
+    })
+  }, [])
 
   useEffect(() => {
     const today = new Date().toISOString().slice(0, 10)
@@ -138,6 +149,23 @@ export default function NewsletterForm({
     if (!res.ok) { showToast('error', data.error ?? 'Failed to schedule'); return }
     showToast('success', `Scheduled for ${scheduledFor.toLocaleDateString()}!`)
     setTimeout(() => router.push('/admin/newsletter'), 1500)
+  }
+
+  async function sendTest() {
+    const to = testEmail.trim()
+    if (!to) { showToast('error', 'Enter a test email'); return }
+    if (filledSections.length === 0) { showToast('error', 'Write at least one section first'); return }
+    localStorage.setItem('nl_test_email', to)
+    setSendingTest(true)
+    const res = await fetch('/api/admin/newsletter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subject, previewText, intro, sections, skipSponsor, testEmail: to, action: 'test' }),
+    })
+    const data = await res.json()
+    setSendingTest(false)
+    if (!res.ok) { showToast('error', data.error ?? 'Failed to send test'); return }
+    showToast('success', `Test sent to ${data.to}`)
   }
 
   const nextMonday = () => {
@@ -388,6 +416,26 @@ export default function NewsletterForm({
           <span className="text-xs text-zinc-400 ml-auto">
             {filledSections.length}/{SECTIONS.length} sections complete
           </span>
+        </div>
+
+        {/* Send a test copy */}
+        <div className="mt-4 pt-4 border-t border-zinc-100 flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">Send a test to</span>
+          <Input
+            value={testEmail}
+            onChange={e => setTestEmail(e.target.value)}
+            placeholder="you@example.com"
+            className="max-w-[240px] h-9"
+          />
+          <button
+            type="button"
+            onClick={sendTest}
+            disabled={sendingTest || !!loading}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-zinc-200 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 disabled:opacity-60 transition-all"
+          >
+            {sendingTest ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+            Send test
+          </button>
         </div>
 
         {showScheduler && (
