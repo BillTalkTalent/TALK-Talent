@@ -329,6 +329,14 @@ skip_nonce_check = false
 # If enabled, it will allow the user to successfully authenticate when the provider does not return an email address.
 email_optional = false
 
+# LinkedIn "Sign in with LinkedIn" — requires a LinkedIn Developer app (redirect URI:
+# <SUPABASE_URL>/auth/v1/callback) with the client ID/secret entered here for local dev,
+# and in the hosted project's Authentication > Providers > LinkedIn (OIDC) settings for production.
+[auth.external.linkedin_oidc]
+enabled = false
+client_id = ""
+secret = "env(SUPABASE_AUTH_EXTERNAL_LINKEDIN_OIDC_SECRET)"
+
 # Allow Solana wallet holders to sign in to your project via the Sign in with Solana (SIWS, EIP-4361) standard.
 # You can configure "web3" rate limit in the [auth.rate_limit] section and set up [auth.captcha] if self-hosting.
 [auth.web3.solana]

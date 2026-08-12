@@ -23,12 +23,33 @@ export default function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [mode, setMode] = useState<'password' | 'magic-link'>('password')
+  const [magicLinkSent, setMagicLinkSent] = useState(false)
+  const [linkedinLoading, setLinkedinLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
 
     const supabase = createClient()
+
+    if (mode === 'magic-link') {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      })
+
+      if (error) {
+        toast.error(error.message)
+        setLoading(false)
+        return
+      }
+
+      setMagicLinkSent(true)
+      setLoading(false)
+      return
+    }
+
     const { error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
@@ -39,6 +60,22 @@ export default function LoginForm() {
 
     router.refresh()
     window.location.href = '/dashboard'
+  }
+
+  async function handleLinkedInSignIn() {
+    setLinkedinLoading(true)
+
+    const supabase = createClient()
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'linkedin_oidc',
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    })
+
+    if (error) {
+      toast.error(error.message)
+      setLinkedinLoading(false)
+    }
+    // On success, Supabase redirects to LinkedIn — no further action here.
   }
 
   return (
@@ -116,44 +153,85 @@ export default function LoginForm() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-1.5">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link href="/forgot-password" className="text-xs text-[#1E4B82] hover:underline">
-                  Forgot password?
-                </Link>
-              </div>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full font-semibold gap-2.5"
+            size="lg"
+            onClick={handleLinkedInSignIn}
+            disabled={linkedinLoading}
+          >
+            <svg viewBox="0 0 24 24" className="size-4.5 shrink-0" fill="#0A66C2" aria-hidden="true">
+              <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 1 1 0-4.125 2.062 2.062 0 0 1 0 4.125zM7.114 20.452H3.558V9h3.556v11.452z" />
+            </svg>
+            {linkedinLoading ? 'Redirecting…' : 'Continue with LinkedIn'}
+          </Button>
 
-            <Button
-              type="submit"
-              className="w-full text-white font-semibold"
-              style={{ background: '#E8503A' }}
-              size="lg"
-              disabled={loading}
-            >
-              {loading ? 'Signing in…' : 'Sign In'}
-            </Button>
-          </form>
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-zinc-200" />
+            <span className="text-xs text-zinc-400">or</span>
+            <div className="h-px flex-1 bg-zinc-200" />
+          </div>
+
+          {magicLinkSent ? (
+            <div className="rounded-xl border border-zinc-100 bg-zinc-50 p-4 space-y-1.5">
+              <p className="text-sm font-semibold text-zinc-900">Check your email</p>
+              <p className="text-xs text-zinc-500 leading-relaxed">
+                We sent a sign-in link to <strong>{email}</strong>. Click it to log straight in — no password needed.
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-1.5">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              {mode === 'password' && (
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Password</Label>
+                    <Link href="/forgot-password" className="text-xs text-[#1E4B82] hover:underline">
+                      Forgot password?
+                    </Link>
+                  </div>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                className="w-full text-white font-semibold"
+                style={{ background: '#E8503A' }}
+                size="lg"
+                disabled={loading}
+              >
+                {loading
+                  ? (mode === 'magic-link' ? 'Sending…' : 'Signing in…')
+                  : (mode === 'magic-link' ? 'Send me a sign-in link' : 'Sign In')}
+              </Button>
+
+              <button
+                type="button"
+                onClick={() => setMode(mode === 'password' ? 'magic-link' : 'password')}
+                className="w-full text-center text-xs text-zinc-500 hover:underline"
+              >
+                {mode === 'password' ? 'Sign in with a magic link instead' : 'Sign in with your password instead'}
+              </button>
+            </form>
+          )}
 
           {/* First-time members claim banner */}
           <div className="rounded-xl border px-4 py-3" style={{ background: 'rgba(30,75,130,0.05)', borderColor: 'rgba(30,75,130,0.15)' }}>
