@@ -1,7 +1,19 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { CalendarDays, MapPin, Monitor, Users, CreditCard } from "lucide-react";
-import { formatInZone } from "@/lib/timezone";
+import { CalendarDays, MapPin, Monitor, Users, CreditCard, ChevronLeft, ChevronRight } from "lucide-react";
+import { formatInZone, utcToZonedInputValue } from "@/lib/timezone";
+import {
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  eachDayOfInterval,
+  addMonths,
+  subMonths,
+  format as formatDate,
+  isSameMonth,
+  isToday,
+} from "date-fns";
 import type { Event } from "@/lib/supabase/types";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format-price";
@@ -109,6 +121,104 @@ function EventCard({ event, attendeeCount }: { event: PaidEvent; attendeeCount: 
   );
 }
 
+const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+// Local calendar date (YYYY-MM-DD) an event falls on in its own timezone —
+// not UTC, so a 9pm PT event doesn't appear a day late for everyone else.
+function eventDayKey(event: PaidEvent): string {
+  return utcToZonedInputValue(event.event_date, event.timezone || "America/New_York").slice(0, 10);
+}
+
+function MonthCalendar({ monthParam, events }: { monthParam: string; events: PaidEvent[] }) {
+  const monthDate = /^\d{4}-\d{2}$/.test(monthParam) ? new Date(`${monthParam}-01T00:00:00`) : new Date();
+  const monthStart = startOfMonth(monthDate);
+  const monthEnd = endOfMonth(monthDate);
+  const gridStart = startOfWeek(monthStart);
+  const gridEnd = endOfWeek(monthEnd);
+  const days = eachDayOfInterval({ start: gridStart, end: gridEnd });
+
+  const eventsByDay = new Map<string, PaidEvent[]>();
+  for (const event of events) {
+    const key = eventDayKey(event);
+    if (!eventsByDay.has(key)) eventsByDay.set(key, []);
+    eventsByDay.get(key)!.push(event);
+  }
+
+  const prevMonthHref = `/events?tab=calendar&month=${formatDate(subMonths(monthStart, 1), "yyyy-MM")}`;
+  const nextMonthHref = `/events?tab=calendar&month=${formatDate(addMonths(monthStart, 1), "yyyy-MM")}`;
+
+  return (
+    <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100">
+        <h2 className="text-base font-bold text-zinc-900">{formatDate(monthStart, "MMMM yyyy")}</h2>
+        <div className="flex items-center gap-1">
+          <Link href={prevMonthHref} className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 transition-colors">
+            <ChevronLeft className="size-4" />
+          </Link>
+          <Link href={`/events?tab=calendar&month=${formatDate(new Date(), "yyyy-MM")}`} className="px-2.5 py-1 rounded-lg text-xs font-semibold text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700 transition-colors">
+            Today
+          </Link>
+          <Link href={nextMonthHref} className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 transition-colors">
+            <ChevronRight className="size-4" />
+          </Link>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-7 border-b border-zinc-100">
+        {WEEKDAY_LABELS.map((d) => (
+          <div key={d} className="py-2 text-center text-[11px] font-bold uppercase tracking-wide text-zinc-400">
+            {d}
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-7">
+        {days.map((day) => {
+          const key = formatDate(day, "yyyy-MM-dd");
+          const dayEvents = eventsByDay.get(key) ?? [];
+          const inMonth = isSameMonth(day, monthStart);
+          const today = isToday(day);
+          return (
+            <div
+              key={key}
+              className={`min-h-[104px] border-b border-r border-zinc-50 p-1.5 last:border-r-0 ${inMonth ? "bg-white" : "bg-zinc-50/50"}`}
+            >
+              <span
+                className={`inline-flex items-center justify-center size-6 rounded-full text-xs font-semibold ${
+                  today ? "bg-[#f97316] text-white" : inMonth ? "text-zinc-700" : "text-zinc-300"
+                }`}
+              >
+                {formatDate(day, "d")}
+              </span>
+              <div className="mt-1 space-y-1">
+                {dayEvents.slice(0, 3).map((event) => (
+                  <Link
+                    key={event.id}
+                    href={`/events/${event.id}`}
+                    className={`block truncate text-[11px] font-medium px-1.5 py-0.5 rounded-md hover:opacity-80 transition-opacity ${
+                      event.is_paid
+                        ? "bg-[#E8503A]/10 text-[#E8503A]"
+                        : "bg-[#f97316]/10 text-[#ea580c]"
+                    }`}
+                    title={event.title}
+                  >
+                    {event.title}
+                  </Link>
+                ))}
+                {dayEvents.length > 3 && (
+                  <span className="block text-[10px] font-semibold text-zinc-400 px-1.5">
+                    +{dayEvents.length - 3} more
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function TabButton({ href, label, active }: { href: string; label: string; active: boolean }) {
   return (
     <Link
@@ -127,10 +237,10 @@ function TabButton({ href, label, active }: { href: string; label: string; activ
 export default async function EventsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; month?: string }>;
 }) {
-  const { tab } = await searchParams;
-  const activeTab = tab === "past" ? "past" : "upcoming";
+  const { tab, month } = await searchParams;
+  const activeTab = tab === "past" ? "past" : tab === "calendar" ? "calendar" : "upcoming";
   const supabase = await createClient();
   const now = new Date().toISOString();
 
@@ -156,7 +266,25 @@ export default async function EventsPage({
   const allEventIds = [...upcomingEvents, ...pastEvents].map((e) => e.id);
   const attendeeCountMap = await getAttendeeCountMap(supabase, allEventIds);
 
-  const events = activeTab === "upcoming" ? upcomingEvents : pastEvents;
+  const events = activeTab === "upcoming" ? upcomingEvents : activeTab === "past" ? pastEvents : [];
+
+  // Calendar tab fetches its own range — the visible month can reach outside
+  // both the "upcoming" and (capped) "past" windows above.
+  const monthParam = /^\d{4}-\d{2}$/.test(month ?? "") ? (month as string) : formatDate(new Date(), "yyyy-MM");
+  let calendarEvents: PaidEvent[] = [];
+  if (activeTab === "calendar") {
+    const monthDate = new Date(`${monthParam}-01T00:00:00`);
+    const gridStart = startOfWeek(startOfMonth(monthDate));
+    const gridEnd = endOfWeek(endOfMonth(monthDate));
+    const { data } = await supabase
+      .from("events")
+      .select("*")
+      .eq("status", "published")
+      .gte("event_date", gridStart.toISOString())
+      .lte("event_date", gridEnd.toISOString())
+      .order("event_date", { ascending: true });
+    calendarEvents = (data ?? []) as PaidEvent[];
+  }
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
@@ -178,10 +306,12 @@ export default async function EventsPage({
       <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-2xl w-fit">
         <TabButton href="/events?tab=upcoming" label={`Upcoming (${upcomingEvents.length})`} active={activeTab === "upcoming"} />
         <TabButton href="/events?tab=past" label={`Past (${pastEvents.length})`} active={activeTab === "past"} />
+        <TabButton href="/events?tab=calendar" label="Calendar" active={activeTab === "calendar"} />
       </div>
 
-      {/* Grid */}
-      {events.length === 0 ? (
+      {activeTab === "calendar" ? (
+        <MonthCalendar monthParam={monthParam} events={calendarEvents} />
+      ) : events.length === 0 ? (
         <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-16 text-center">
           <CalendarDays className="size-10 text-zinc-200 mx-auto mb-3" />
           <p className="text-zinc-400 font-medium">No {activeTab} events</p>
