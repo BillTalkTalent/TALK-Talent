@@ -5,9 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ArrowLeft, DollarSign } from 'lucide-react'
+import { ArrowLeft, DollarSign, Video } from 'lucide-react'
 import Link from 'next/link'
 import { TIME_ZONES, zonedWallTimeToUTC, utcToZonedInputValue } from '@/lib/timezone'
+import MaterialsManager from './materials-manager'
 
 async function updateEvent(id: string, formData: FormData) {
   'use server'
@@ -38,6 +39,7 @@ async function updateEvent(id: string, formData: FormData) {
     is_paid: isPaid,
     price: priceCents,
     currency: (formData.get('currency') as string) || 'usd',
+    recording_url: (formData.get('recording_url') as string) || null,
   }).eq('id', id)
 
   revalidatePath('/admin/events')
@@ -50,6 +52,12 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: event } = await (supabase as any).from('events').select('*').eq('id', id).single()
   if (!event) notFound()
+
+  const { data: materials } = await supabase
+    .from('event_materials')
+    .select('id, title, file_url')
+    .eq('event_id', id)
+    .order('created_at', { ascending: true })
 
   // Pre-fill datetime-local inputs with the event's wall-clock time in its own
   // timezone (not raw UTC), so editing round-trips correctly.
@@ -174,11 +182,32 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
               </div>
             </div>
 
+            <div className="sm:col-span-2 space-y-2 rounded-xl border border-zinc-200 p-4">
+              <Label htmlFor="recording_url" className="font-semibold">
+                <Video className="size-3.5 inline mr-0.5 text-indigo-600" />
+                Recording URL
+              </Label>
+              <Input id="recording_url" name="recording_url" type="url" defaultValue={event.recording_url ?? ''} placeholder="https://…" />
+              <p className="text-xs text-zinc-400">
+                Once the event&apos;s recorded, paste the link here (Zoom, YouTube, Drive, etc.) — it shows up as
+                &ldquo;Watch the recording&rdquo; on the event page for members.
+              </p>
+            </div>
+
             <div className="sm:col-span-2 flex gap-3">
               <Button type="submit">Save Changes</Button>
               <Button type="button" variant="outline" render={<Link href="/admin/events" />}>Cancel</Button>
             </div>
           </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Supporting Materials</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <MaterialsManager eventId={id} initialMaterials={materials ?? []} />
         </CardContent>
       </Card>
     </div>

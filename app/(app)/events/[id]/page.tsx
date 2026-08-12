@@ -36,6 +36,8 @@ import {
   Lock,
   PartyPopper,
   Mail,
+  Video,
+  FileText,
 } from "lucide-react";
 import type { Event, Profile } from "@/lib/supabase/types";
 import { formatPrice } from "@/lib/format-price";
@@ -44,6 +46,7 @@ type PaidEvent = Event & {
   is_paid: boolean;
   price: number | null;
   currency: string;
+  recording_url: string | null;
 };
 
 type RegistrationStatus = "none" | "pending" | "completed" | "refunded" | "cancelled";
@@ -288,6 +291,7 @@ export default function EventDetailPage() {
   const [posts, setPosts] = useState<any[]>([]);
   const [postContent, setPostContent] = useState('');
   const [postLoading, setPostLoading] = useState(false);
+  const [materials, setMaterials] = useState<{ id: string; title: string; file_url: string }[]>([]);
 
   const fetchData = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -305,7 +309,7 @@ export default function EventDetailPage() {
       return;
     }
 
-    const [eventResult, rsvpsResult, profileResult] = await Promise.all([
+    const [eventResult, rsvpsResult, profileResult, materialsResult] = await Promise.all([
       db.from("events").select("*").eq("id", params.id).single(),
       supabase
         .from("event_rsvps")
@@ -313,10 +317,12 @@ export default function EventDetailPage() {
         .eq("event_id", params.id)
         .eq("status", "going"),
       supabase.from("profiles").select("role").eq("id", user.id).single(),
+      db.from("event_materials").select("id, title, file_url").eq("event_id", params.id).order("created_at", { ascending: true }),
     ]);
 
     setEvent(eventResult.data as PaidEvent);
     setIsAdmin(profileResult.data?.role === "admin");
+    setMaterials(materialsResult.data ?? []);
 
     if (rsvpsResult.data) {
       const attendeeProfiles = rsvpsResult.data
@@ -611,6 +617,45 @@ export default function EventDetailPage() {
             ) : null}
           </div>
         </div>
+
+        {/* Recording & materials — shows up once an admin's added either */}
+        {(event.recording_url || materials.length > 0) && (
+          <div className="rounded-2xl border overflow-hidden" style={{ borderColor: "#DDE6F0" }}>
+            <div className="px-5 py-3 border-b flex items-center gap-2" style={{ background: "#F5F8FC", borderColor: "#DDE6F0" }}>
+              <Video className="size-4" style={{ color: "#1E4B82" }} />
+              <p className="text-sm font-bold" style={{ color: "#0F1F35" }}>Recording &amp; materials</p>
+            </div>
+            <div className="p-5 space-y-3 bg-white">
+              {event.recording_url && (
+                <Button
+                  className="text-white"
+                  style={{ background: "#0d9488" }}
+                  render={<a href={event.recording_url} target="_blank" rel="noopener noreferrer" />}
+                >
+                  <Video className="size-4" />
+                  Watch the Recording
+                </Button>
+              )}
+              {materials.length > 0 && (
+                <ul className="space-y-2">
+                  {materials.map((m) => (
+                    <li key={m.id}>
+                      <a
+                        href={m.file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-sm text-zinc-700 hover:text-[#1E4B82] transition-colors"
+                      >
+                        <FileText className="size-4 text-zinc-400" />
+                        {m.title}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Action buttons */}
         <div className="flex gap-2 flex-wrap">
