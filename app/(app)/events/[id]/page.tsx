@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ShareOnLinkedInButton } from "@/components/share-on-linkedin-button";
+import { buildLinkedInShareText } from "@/lib/linkedin-share-text";
 import { format } from "date-fns";
 import { formatInZone, localZone } from "@/lib/timezone";
 import {
@@ -409,7 +410,9 @@ export default function EventDetailPage() {
               </button>
             )}
             <ShareOnLinkedInButton
-              defaultText={`${event.title}\n\n${typeof window !== "undefined" ? window.location.href : ""}`}
+              defaultText={buildLinkedInShareText(
+                `${event.title}\n\n${typeof window !== "undefined" ? window.location.href : ""}`
+              )}
             />
           </div>
 
