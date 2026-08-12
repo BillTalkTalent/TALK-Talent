@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -378,17 +377,52 @@ export default function EventDetailPage() {
   const isPaid = event.is_paid && event.price != null;
   const isRegistered = registrationStatus === "completed";
 
-  return (
-    <div className="max-w-3xl mx-auto">
-      {/* Hero image */}
-      {event.image_url && (
-        <div className="relative w-full aspect-[16/6] overflow-hidden bg-zinc-100">
-          <img src={event.image_url} alt={event.title} className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-        </div>
-      )}
+  const mapsHref = event.location
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`
+    : null;
 
-      <div className="p-6 space-y-6">
+  return (
+    <div className="max-w-3xl mx-auto pb-10">
+      {/* Hero — brand gradient always, event photo layered on top when there is one */}
+      <div
+        className="relative w-full aspect-[16/7] overflow-hidden flex items-end"
+        style={{ background: "linear-gradient(160deg, #0F1F35 0%, #162D4A 55%, #1A3A5C 100%)" }}
+      >
+        {event.image_url && (
+          <img src={event.image_url} alt={event.title} className="absolute inset-0 w-full h-full object-cover" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+        <div className="relative w-full p-6 space-y-2.5">
+          <div className="flex flex-wrap items-center gap-2">
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            <EventTypeBadge isVirtual={event.is_virtual} eventType={(event as any)?.event_type} />
+            {isPaid && (
+              <span
+                className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full text-white"
+                style={{ background: "linear-gradient(135deg, #E8503A, #F07058)" }}
+              >
+                <CreditCard className="size-3.5" />
+                {formatPrice(event.price!, event.currency)}
+              </span>
+            )}
+            {isPast && (
+              <span className="inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full bg-white/15 text-white/80 backdrop-blur-sm">
+                Past
+              </span>
+            )}
+            {isRegistered && (
+              <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-900 bg-emerald-300 px-2.5 py-1 rounded-full">
+                <CheckCircle2 className="size-3.5" /> Registered
+              </span>
+            )}
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white leading-tight" style={{ fontFamily: "var(--font-poppins), system-ui" }}>
+            {event.title}
+          </h1>
+        </div>
+      </div>
+
+      <div className="p-6 space-y-5">
 
         {/* Post-payment success banner */}
         {justRegistered && (
@@ -412,146 +446,133 @@ export default function EventDetailPage() {
           </div>
         )}
 
-        <div className="space-y-3">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div>
-              <h1 className="text-2xl font-bold text-zinc-900">{event.title}</h1>
-              <div className="mt-2">
-                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                <EventTypeBadge isVirtual={event.is_virtual} eventType={(event as any)?.event_type} />
-              </div>
-            </div>
-            <div className="flex gap-2 flex-wrap shrink-0">
-              {isPaid && (
-                <span
-                  className="inline-flex items-center gap-1 text-sm font-bold px-3 py-1 rounded-full text-white"
-                  style={{ background: "linear-gradient(135deg, #E8503A, #F07058)" }}
-                >
-                  <CreditCard className="size-3.5" />
-                  {formatPrice(event.price!, event.currency)}
-                </span>
-              )}
-              {event.is_virtual ? (
-                <Badge variant="secondary">Virtual</Badge>
-              ) : (
-                <Badge variant="outline">In Person</Badge>
-              )}
-              {isPast && <Badge variant="outline">Past</Badge>}
-              {isRegistered && (
-                <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
-                  <CheckCircle2 className="size-3.5" /> Registered
-                </span>
-              )}
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+        {/* Details card */}
+        <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-5 space-y-4">
+          <div className="flex flex-wrap gap-x-6 gap-y-2.5 text-sm text-zinc-600">
             <EventWhen event={event} />
             <span className="flex items-center gap-1.5">
               {event.is_virtual ? (
-                <><Monitor className="size-4" /> Virtual event</>
+                <><Monitor className="size-4 text-zinc-400" /> Virtual event</>
               ) : (
-                <><MapPin className="size-4" /> {event.location ?? "Location TBD"}</>
+                <><MapPin className="size-4 text-zinc-400" /> {event.location ?? "Location TBD"}</>
               )}
             </span>
             <span className="flex items-center gap-1.5">
-              <Users className="size-4" />
+              <Users className="size-4 text-zinc-400" />
               {attendees.length} going
               {event.max_attendees && ` / ${event.max_attendees} max`}
             </span>
           </div>
 
-          <div className="flex gap-2 flex-wrap mt-3">
-            {event && (<>
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              <a href={buildGoogleCalendarUrl(event as any)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-200 text-xs font-medium text-zinc-500 hover:bg-zinc-50 transition-colors"><CalendarDays className="size-3.5"/>Add to Google Calendar</a>
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              <a href={buildIcalDataUri(event as any)} download={`${event.title}.ics`} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-200 text-xs font-medium text-zinc-500 hover:bg-zinc-50 transition-colors"><CalendarDays className="size-3.5"/>Add to iCal</a>
-            </>)}
+          <div className="flex gap-2 flex-wrap">
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            <a href={buildGoogleCalendarUrl(event as any)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-200 text-xs font-medium text-zinc-500 hover:bg-zinc-50 transition-colors"><CalendarDays className="size-3.5"/>Add to Google Calendar</a>
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            <a href={buildIcalDataUri(event as any)} download={`${event.title}.ics`} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-200 text-xs font-medium text-zinc-500 hover:bg-zinc-50 transition-colors"><CalendarDays className="size-3.5"/>Add to iCal</a>
           </div>
 
           {event.description && (
-            <p className="text-muted-foreground leading-relaxed">{event.description}</p>
+            <p className="text-muted-foreground leading-relaxed border-t border-zinc-100 pt-4">{event.description}</p>
           )}
+        </div>
 
-          {/* Action buttons */}
-          <div className="flex gap-2 flex-wrap">
-            {!isPast && !isPaid && (
-              <Button
-                onClick={handleRsvp}
-                disabled={rsvpLoading || !currentUserId}
-                variant={rsvpStatus === "going" ? "outline" : "default"}
-              >
-                {rsvpStatus === "going" ? (
-                  <><XCircle className="size-4" /> Cancel RSVP</>
-                ) : (
-                  <><CheckCircle2 className="size-4" /> RSVP — I&apos;m Going</>
-                )}
-              </Button>
-            )}
-
-            {!isPast && isPaid && !isRegistered && currentUserId && (
-              <button
-                onClick={handleCheckout}
-                disabled={checkoutLoading}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white shadow-sm disabled:opacity-70 transition-opacity hover:opacity-90"
-                style={{ background: "linear-gradient(135deg, #E8503A, #F07058)", color: "#0d0d0d" }}
-              >
-                {checkoutLoading ? (
-                  <><Loader2 className="size-4 animate-spin" /> Redirecting to checkout…</>
-                ) : (
-                  <><CreditCard className="size-4" /> Register — {formatPrice(event.price!, event.currency)}</>
-                )}
-              </button>
-            )}
-            <ShareOnLinkedInButton
-              defaultText={buildLinkedInShareText(
-                `${event.title}\n\n${typeof window !== "undefined" ? window.location.href : ""}`
-              )}
-              card={{
-                eyebrow: "Event",
-                title: event.title,
-                subtitle: `${format(new Date(event.event_date), "MMM d, yyyy")} · ${event.is_virtual ? "Virtual" : (event.location ?? "In Person")}`,
-              }}
-            />
+        {/* How to join — the actual access info, front and center */}
+        <div className="rounded-2xl border overflow-hidden" style={{ borderColor: "#DDE6F0" }}>
+          <div className="px-5 py-3 border-b flex items-center gap-2" style={{ background: "#F5F8FC", borderColor: "#DDE6F0" }}>
+            {event.is_virtual ? <Monitor className="size-4" style={{ color: "#1E4B82" }} /> : <MapPin className="size-4" style={{ color: "#1E4B82" }} />}
+            <p className="text-sm font-bold" style={{ color: "#0F1F35" }}>How to join</p>
           </div>
 
-          {/* Virtual link — shown to everyone (free) or registered users only (paid) */}
-          {event.is_virtual && event.virtual_url && (
-            isPaid ? (
-              isRegistered ? (
-                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 flex items-center justify-between gap-3">
+          <div className="p-5 space-y-4 bg-white">
+            {/* Virtual access */}
+            {event.is_virtual && (
+              event.virtual_url && (!isPaid || isRegistered) ? (
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 flex items-center justify-between gap-3 flex-wrap">
                   <div>
-                    <p className="text-sm font-semibold text-emerald-800">Your virtual class link</p>
-                    <p className="text-xs text-emerald-600 mt-0.5">Only visible to registered attendees</p>
+                    <p className="text-sm font-semibold text-emerald-800">Your virtual link is ready</p>
+                    {isPaid && <p className="text-xs text-emerald-600 mt-0.5">Only visible to registered attendees</p>}
                   </div>
                   <Button
-                    variant="outline"
-                    className="border-emerald-300 text-emerald-700 hover:bg-emerald-100 shrink-0"
+                    className="text-white shrink-0"
+                    style={{ background: "#0d9488" }}
                     render={<a href={event.virtual_url} target="_blank" rel="noopener noreferrer" />}
                   >
                     <ExternalLink className="size-4" />
-                    Join Class
+                    {isPaid ? "Join Class" : "Join Virtual Event"}
                   </Button>
                 </div>
               ) : (
                 <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 flex items-center gap-3 text-zinc-500">
                   <Lock className="size-4 shrink-0" />
-                  <p className="text-sm">
-                    The virtual link will be unlocked after you register and pay.
-                  </p>
+                  <p className="text-sm">The virtual link unlocks once you register{isPaid ? " and pay" : ""}.</p>
                 </div>
               )
-            ) : (
-              <Button
-                variant="outline"
-                render={<a href={event.virtual_url} target="_blank" rel="noopener noreferrer" />}
-              >
-                <ExternalLink className="size-4" />
-                Join Virtual Event
-              </Button>
-            )
+            )}
+
+            {/* In-person / hybrid location */}
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            {!event.is_virtual || (event as any)?.event_type === "hybrid" ? (
+              <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4 flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-3">
+                  <div className="size-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: "#1E4B8215" }}>
+                    <MapPin className="size-4" style={{ color: "#1E4B82" }} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-zinc-800">{event.location ?? "Location TBD"}</p>
+                    <p className="text-xs text-zinc-500 mt-0.5">Arrive any time after the start — no check-in link needed</p>
+                  </div>
+                </div>
+                {mapsHref && (
+                  <Button variant="outline" size="sm" render={<a href={mapsHref} target="_blank" rel="noopener noreferrer" />}>
+                    <ExternalLink className="size-3.5" />
+                    Get Directions
+                  </Button>
+                )}
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex gap-2 flex-wrap">
+          {!isPast && !isPaid && (
+            <Button
+              onClick={handleRsvp}
+              disabled={rsvpLoading || !currentUserId}
+              variant={rsvpStatus === "going" ? "outline" : "default"}
+            >
+              {rsvpStatus === "going" ? (
+                <><XCircle className="size-4" /> Cancel RSVP</>
+              ) : (
+                <><CheckCircle2 className="size-4" /> RSVP — I&apos;m Going</>
+              )}
+            </Button>
           )}
+
+          {!isPast && isPaid && !isRegistered && currentUserId && (
+            <button
+              onClick={handleCheckout}
+              disabled={checkoutLoading}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white shadow-sm disabled:opacity-70 transition-opacity hover:opacity-90"
+              style={{ background: "linear-gradient(135deg, #E8503A, #F07058)", color: "#0d0d0d" }}
+            >
+              {checkoutLoading ? (
+                <><Loader2 className="size-4 animate-spin" /> Redirecting to checkout…</>
+              ) : (
+                <><CreditCard className="size-4" /> Register — {formatPrice(event.price!, event.currency)}</>
+              )}
+            </button>
+          )}
+          <ShareOnLinkedInButton
+            defaultText={buildLinkedInShareText(
+              `${event.title}\n\n${typeof window !== "undefined" ? window.location.href : ""}`
+            )}
+            card={{
+              eyebrow: "Event",
+              title: event.title,
+              subtitle: `${format(new Date(event.event_date), "MMM d, yyyy")} · ${event.is_virtual ? "Virtual" : (event.location ?? "In Person")}`,
+            }}
+          />
         </div>
 
         <Separator />
