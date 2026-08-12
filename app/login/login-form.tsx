@@ -127,19 +127,6 @@ export default function LoginForm() {
             <p className="text-sm text-zinc-500">Sign in to your TALK account</p>
           </div>
 
-          {/* Migration notice — every existing member's account moved here */}
-          <div className="rounded-xl border px-4 py-3.5" style={{ background: 'rgba(232,80,58,0.06)', borderColor: 'rgba(232,80,58,0.28)' }}>
-            <p className="text-sm font-semibold text-[#0F1F35]">👋 Welcome to the new TALK</p>
-            <p className="text-sm text-zinc-600 mt-1 leading-relaxed">
-              Were you a member of the old TALK site?{' '}
-              <strong className="text-zinc-800">Your account has moved here — no need to sign up again.</strong>{' '}
-              <Link href="/claim" className="font-semibold hover:underline" style={{ color: '#E8503A' }}>
-                Claim your account →
-              </Link>{' '}
-              to set a password. Your profile, chapters, and history came with you.
-            </p>
-          </div>
-
           {linkExpired && (
             <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
               <AlertTriangle className="size-4 text-amber-500 shrink-0 mt-0.5" />
@@ -155,16 +142,16 @@ export default function LoginForm() {
 
           <Button
             type="button"
-            variant="outline"
-            className="w-full font-semibold gap-2.5"
+            className="w-full font-semibold gap-2.5 text-white"
+            style={{ background: '#0A66C2' }}
             size="lg"
             onClick={handleLinkedInSignIn}
             disabled={linkedinLoading}
           >
-            <svg viewBox="0 0 24 24" className="size-4.5 shrink-0" fill="#0A66C2" aria-hidden="true">
+            <svg viewBox="0 0 24 24" className="size-4.5 shrink-0" fill="#FFFFFF" aria-hidden="true">
               <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 1 1 0-4.125 2.062 2.062 0 0 1 0 4.125zM7.114 20.452H3.558V9h3.556v11.452z" />
             </svg>
-            {linkedinLoading ? 'Redirecting…' : 'Continue with LinkedIn'}
+            {linkedinLoading ? 'Redirecting…' : 'LinkedIn'}
           </Button>
 
           <div className="flex items-center gap-3">
@@ -232,18 +219,6 @@ export default function LoginForm() {
               </button>
             </form>
           )}
-
-          {/* First-time members claim banner */}
-          <div className="rounded-xl border px-4 py-3" style={{ background: 'rgba(30,75,130,0.05)', borderColor: 'rgba(30,75,130,0.15)' }}>
-            <p className="text-sm text-zinc-700">
-              <strong className="text-zinc-900">First time on the new TALK?</strong>{' '}
-              If you&apos;re an existing member,{' '}
-              <Link href="/claim" className="font-semibold hover:underline" style={{ color: '#1E4B82' }}>
-                claim your account
-              </Link>{' '}
-              to set your password.
-            </p>
-          </div>
 
           <p className="text-sm text-zinc-500 text-center">
             Don&apos;t have an account?{' '}
