@@ -17,7 +17,7 @@ export default async function EditNewsletterPage({ params }: { params: Promise<{
 
   const [{ data: newsletter }, { count: memberCount }] = await Promise.all([
     adminDb.from('newsletters').select('*').eq('id', id).single(),
-    adminDb.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
+    adminDb.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'approved').eq('is_bot', false),
   ])
 
   if (!newsletter) redirect('/admin/newsletter')

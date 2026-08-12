@@ -71,7 +71,15 @@ export default async function MemberProfilePage({
             </Avatar>
 
             <div>
-              <h1 className="text-xl font-semibold">{member.full_name ?? "Unknown"}</h1>
+              <h1 className="text-xl font-semibold flex items-center justify-center gap-2">
+                {member.full_name ?? "Unknown"}
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {(member as any).is_bot && (
+                  <Badge variant="outline" className="text-[10px] text-zinc-400 border-zinc-200">
+                    Automated account
+                  </Badge>
+                )}
+              </h1>
               <div className="flex items-center justify-center gap-2 mt-1 flex-wrap">
                 {member.title && (
                   <span className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -95,7 +103,8 @@ export default async function MemberProfilePage({
             )}
 
             <div className="flex gap-2 flex-wrap justify-center">
-              {!isOwnProfile && (
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              {!isOwnProfile && !(member as any).is_bot && (
                 <Button render={<Link href={`/messages?new=${member.id}`} />}>
                   <MessageSquare className="size-4" />
                   Message

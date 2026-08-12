@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Eye } from "lucide-react";
 import EditTopic from "./edit-topic";
@@ -20,6 +21,7 @@ type Author = {
   id: string;
   full_name: string | null;
   avatar_url: string | null;
+  is_bot?: boolean;
 };
 
 type Reply = {
@@ -79,6 +81,11 @@ export default function TopicView({
               </Link>
             ) : (
               <span className="font-medium">{topicAuthor?.full_name ?? "Unknown"}</span>
+            )}
+            {topicAuthor?.is_bot && (
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 text-zinc-400 border-zinc-200">
+                Automated
+              </Badge>
             )}
             <span className="text-zinc-400">·</span>
             <span className="text-zinc-400 text-xs">

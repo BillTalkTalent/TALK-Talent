@@ -19,7 +19,7 @@ export default async function TopicPage({
 
   const [{ data: { user } }, topicResult, repliesResult, categoryResult] = await Promise.all([
     supabase.auth.getUser(),
-    supabase.from("forum_topics").select("*, profiles(id, full_name, avatar_url, title, company)").eq("id", topicId).single(),
+    supabase.from("forum_topics").select("*, profiles(id, full_name, avatar_url, title, company, is_bot)").eq("id", topicId).single(),
     supabase
       .from("forum_replies")
       .select("*, profiles(id, full_name, avatar_url)")
@@ -91,6 +91,8 @@ export default async function TopicPage({
           id: topicAuthor.id,
           full_name: topicAuthor.full_name,
           avatar_url: topicAuthor.avatar_url ?? null,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          is_bot: (topicAuthor as any).is_bot ?? false,
         } : null}
         replies={replies.map(r => ({
           id: r.id,

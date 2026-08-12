@@ -19,6 +19,7 @@ async function fetchApprovedMembers(adminDb: AdminDb): Promise<{ email: string; 
       .from('profiles')
       .select('email, full_name')
       .eq('status', 'approved')
+      .eq('is_bot', false)
       .not('email', 'is', null)
       .range(from, from + 999)
     if (error || !data || data.length === 0) break

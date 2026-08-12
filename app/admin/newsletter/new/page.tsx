@@ -16,6 +16,7 @@ export default async function NewNewsletterPage() {
     .from('profiles')
     .select('id', { count: 'exact', head: true })
     .eq('status', 'approved')
+    .eq('is_bot', false)
 
   return (
     <div className="space-y-6">

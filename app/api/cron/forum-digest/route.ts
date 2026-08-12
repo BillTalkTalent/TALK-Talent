@@ -35,6 +35,7 @@ export async function GET(req: Request) {
     .from('profiles')
     .select('id, email, full_name')
     .eq('status', 'approved')
+    .eq('is_bot', false)
     .not('email', 'is', null)
 
   if (!members || members.length === 0) {

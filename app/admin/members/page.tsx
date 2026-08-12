@@ -53,6 +53,7 @@ export default async function AdminMembersPage({
     .from('profiles')
     .select('*', { count: 'exact' })
     .eq('status', 'approved')
+    .eq('is_bot', false)
   if (q) {
     // Strip characters that would break PostgREST's or() filter grammar.
     const like = `%${q.replace(/[,()*]/g, ' ').trim()}%`
@@ -68,11 +69,12 @@ export default async function AdminMembersPage({
     { data: rejectedMembers },
   ] = await Promise.all([
     membersQuery.order('created_at', { ascending: false }).range(fromRow, fromRow + PAGE_SIZE - 1),
-    supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
+    supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'approved').eq('is_bot', false),
     supabase
       .from('profiles')
       .select('id', { count: 'exact', head: true })
       .eq('status', 'approved')
+      .eq('is_bot', false)
       .eq('has_onboarded', true),
     supabase
       .from('profiles')

@@ -182,8 +182,14 @@ export default async function ForumCategoryPage({
                           <Badge variant="outline" className="shrink-0 text-xs">Locked</Badge>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">
+                      <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
                         by {author?.full_name ?? "Unknown"}
+                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                        {(author as any)?.is_bot && (
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 text-zinc-400 border-zinc-200">
+                            Automated
+                          </Badge>
+                        )}
                       </p>
                     </div>
 

@@ -39,6 +39,7 @@ export default async function MembersPage({
     .from("profiles")
     .select("*", { count: "exact" })
     .eq("status", "approved")
+    .eq("is_bot", false)
     .order("full_name", { ascending: true });
 
   if (q?.trim()) {

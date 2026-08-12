@@ -60,6 +60,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           { href: '/admin/vendors',       label: 'Vendors' },
           { href: '/admin/newsletter',    label: 'Newsletter' },
           { href: '/admin/forum',          label: 'Forum' },
+          { href: '/admin/news-brief',    label: 'News Brief' },
           { href: '/admin/suggestions',   label: 'Suggestions & Invites' },
           { href: '/admin/activity',      label: 'Activity' },
         ].map(({ href, label }) => (

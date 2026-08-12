@@ -16,7 +16,7 @@ export default async function AdminNewsletterPage() {
 
   const [newslettersResult, memberCountResult] = await Promise.all([
     adminDb.from('newsletters').select('*').order('created_at', { ascending: false }),
-    adminDb.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
+    adminDb.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'approved').eq('is_bot', false),
   ])
 
   const newsletters = newslettersResult.data ?? []

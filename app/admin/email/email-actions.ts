@@ -26,6 +26,7 @@ async function fetchApprovedEmails(admin: ReturnType<typeof createAdminClient>):
       .from('profiles')
       .select('email')
       .eq('status', 'approved')
+      .eq('is_bot', false)
       .not('email', 'is', null)
       .range(from, from + pageSize - 1)
     if (error || !data || data.length === 0) break

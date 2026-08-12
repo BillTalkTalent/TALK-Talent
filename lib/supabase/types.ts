@@ -64,6 +64,7 @@ export type Database = {
           role: "member" | "board_member" | "admin";
           rejection_note: string | null;
           has_onboarded: boolean;
+          is_bot: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -80,6 +81,7 @@ export type Database = {
           role?: "member" | "board_member" | "admin";
           rejection_note?: string | null;
           has_onboarded?: boolean;
+          is_bot?: boolean;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
         Relationships: [];
