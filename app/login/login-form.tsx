@@ -20,6 +20,7 @@ export default function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const linkExpired = searchParams.get('error') === 'link_expired'
+  const next = searchParams.get('next') || '/dashboard'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -36,7 +37,7 @@ export default function LoginForm() {
     if (mode === 'magic-link') {
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
       })
 
       if (error) {
@@ -59,7 +60,7 @@ export default function LoginForm() {
     }
 
     router.refresh()
-    window.location.href = '/dashboard'
+    window.location.href = next
   }
 
   async function handleLinkedInSignIn() {
@@ -68,7 +69,7 @@ export default function LoginForm() {
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'linkedin_oidc',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
     })
 
     if (error) {

@@ -111,6 +111,85 @@ function getInitials(name: string | null): string {
   return name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase();
 }
 
+// Shown to anyone who isn't a TALK member yet — the landing page behind
+// shared event links (LinkedIn, direct invites, etc.). Registering routes
+// through /signup with the event attached, so approval drops them straight
+// back onto this event instead of the generic dashboard.
+function PublicEventTeaser({ event, eventId }: { event: PaidEvent; eventId: string }) {
+  const isPaid = event.is_paid && event.price != null;
+  const signupHref = `/signup?event=${eventId}&title=${encodeURIComponent(event.title)}`;
+  const loginHref = `/login?next=${encodeURIComponent(`/events/${eventId}`)}`;
+
+  return (
+    <div className="min-h-screen" style={{ background: "#F5F8FC" }}>
+      {event.image_url && (
+        <div className="relative w-full aspect-[16/6] overflow-hidden bg-zinc-100">
+          <img src={event.image_url} alt={event.title} className="w-full h-full object-cover" />
+        </div>
+      )}
+      <div className="max-w-2xl mx-auto p-6 pt-10 space-y-6">
+        <div
+          className="rounded-2xl p-6 text-white text-center space-y-2"
+          style={{ background: "linear-gradient(160deg, #0F1F35 0%, #162D4A 55%, #1A3A5C 100%)" }}
+        >
+          <p className="text-sm font-semibold uppercase tracking-widest" style={{ color: "#93C5FD" }}>
+            You&apos;re invited
+          </p>
+          <h1 className="text-2xl font-bold">{event.title}</h1>
+        </div>
+
+        <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-6 space-y-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <EventTypeBadge isVirtual={event.is_virtual} />
+            {isPaid && (
+              <span
+                className="inline-flex items-center gap-1 text-sm font-bold px-3 py-1 rounded-full text-white"
+                style={{ background: "linear-gradient(135deg, #E8503A, #F07058)" }}
+              >
+                <CreditCard className="size-3.5" />
+                {formatPrice(event.price!, event.currency)}
+              </span>
+            )}
+          </div>
+
+          <EventWhen event={event} />
+
+          {!event.is_virtual && event.location && (
+            <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <MapPin className="size-4" /> {event.location}
+            </span>
+          )}
+
+          {event.description && (
+            <p className="text-muted-foreground leading-relaxed">{event.description}</p>
+          )}
+
+          <div className="rounded-xl p-5 space-y-3" style={{ background: "rgba(232,80,58,0.06)" }}>
+            <p className="text-sm font-semibold text-zinc-800">
+              🎉 We&apos;re excited you want to join us! TALK is a private, invite-only community —
+              apply below and we&apos;ll get you set up for this event.
+            </p>
+            <a
+              href={signupHref}
+              className="inline-flex items-center justify-center w-full gap-2 px-6 py-3 rounded-xl text-base font-bold text-white transition-all hover:scale-[1.01]"
+              style={{ background: "#E8503A" }}
+            >
+              Register — Apply to Join TALK
+            </a>
+          </div>
+
+          <p className="text-sm text-zinc-500 text-center">
+            Already a member?{" "}
+            <a href={loginHref} className="font-semibold hover:underline" style={{ color: "#1E4B82" }}>
+              Sign in
+            </a>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function EventDetailPage() {
   const params = useParams<{ id: string }>();
   const searchParams = useSearchParams();
@@ -137,6 +216,18 @@ export default function EventDetailPage() {
   const fetchData = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
     setCurrentUserId(user?.id ?? null);
+
+    if (!user) {
+      // Not signed in — RLS blocks a direct read, and there's nothing else
+      // (RSVPs, posts, registration) to show anyway. Fetch just the public
+      // teaser fields through the service-role-backed route instead.
+      const res = await fetch(`/api/events/${params.id}/public`);
+      if (res.ok) {
+        setEvent((await res.json()) as PaidEvent);
+      }
+      setLoading(false);
+      return;
+    }
 
     const [eventResult, rsvpsResult] = await Promise.all([
       db.from("events").select("*").eq("id", params.id).single(),
@@ -277,6 +368,10 @@ export default function EventDetailPage() {
 
   if (!event) {
     return <div className="p-6 text-muted-foreground">Event not found.</div>;
+  }
+
+  if (!currentUserId) {
+    return <PublicEventTeaser event={event} eventId={params.id} />;
   }
 
   const isPast = new Date(event.event_date) < new Date();

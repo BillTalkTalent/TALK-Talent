@@ -35,7 +35,10 @@ export async function middleware(request: NextRequest) {
   // /claim + /api/auth = logged-out claim & password-reset flow (must be public,
   // or new members get bounced to /login before they can claim).
   // /api/notify-admin-signup is called from the public signup page.
-  const publicRoutes = ["/login", "/signup", "/claim", "/auth/callback", "/auth/reset-password", "/forgot-password", "/mockup", "/pending", "/privacy", "/terms", "/unsubscribe", "/api/auth", "/api/notify-admin-signup", "/api/unsubscribe", "/api/webhooks"];
+  // /events/ (trailing slash, so the /events list itself stays members-only) lets
+  // an individual event page render a public teaser for shared links — see
+  // app/(app)/events/[id]/page.tsx. /api/events/ backs that teaser's data fetch.
+  const publicRoutes = ["/login", "/signup", "/claim", "/auth/callback", "/auth/reset-password", "/forgot-password", "/mockup", "/pending", "/privacy", "/terms", "/unsubscribe", "/api/auth", "/api/notify-admin-signup", "/api/unsubscribe", "/api/webhooks", "/events/", "/api/events/"];
   if (publicRoutes.some((r) => pathname.startsWith(r))) {
     return supabaseResponse;
   }

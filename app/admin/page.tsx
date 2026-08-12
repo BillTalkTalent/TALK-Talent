@@ -15,9 +15,10 @@ async function approveMember(id: string) {
   const admin = createAdminClient()
 
   // 1. Fetch the member's profile so we have email + name
-  const { data: profile } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: profile } = await (supabase as any)
     .from('profiles')
-    .select('email, full_name')
+    .select('email, full_name, interested_event_id')
     .eq('id', id)
     .single()
 
@@ -33,11 +34,16 @@ async function approveMember(id: string) {
     try {
       const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
 
-      // Generate a magic link (one-click login)
+      // Generate a magic link (one-click login) — if they signed up wanting
+      // to attend a specific event, drop them straight back on it instead
+      // of the generic dashboard.
+      const destination = profile.interested_event_id
+        ? `${origin}/events/${profile.interested_event_id}`
+        : `${origin}/dashboard`
       const { data: linkData } = await admin.auth.admin.generateLink({
         type: 'magiclink',
         email: profile.email,
-        options: { redirectTo: `${origin}/dashboard` },
+        options: { redirectTo: destination },
       })
       const loginUrl = linkData?.properties?.action_link ?? `${origin}/login`
 
