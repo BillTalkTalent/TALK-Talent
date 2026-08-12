@@ -73,7 +73,11 @@ export function ShareOnLinkedInButton({ defaultText }: { defaultText: string }) 
         return
       }
 
-      toast.error('Failed to post to LinkedIn. Please try again.')
+      toast.error(
+        data.detail
+          ? `LinkedIn rejected the post: ${String(data.detail).slice(0, 300)}`
+          : 'Failed to post to LinkedIn. Please try again.'
+      )
     } finally {
       setLoading(false)
     }
