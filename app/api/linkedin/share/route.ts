@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { readFile } from 'fs/promises'
-import path from 'path'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { generateShareCardPng } from '@/lib/share-card'
 
 // LinkedIn's REST API requires a version header in YYYYMM form. Each
 // version is supported for ~2 years from release, then requests to it
@@ -20,12 +19,14 @@ function linkedinHeaders(token: string) {
   }
 }
 
-// Uploads the static TALK-branded card as a fresh image asset owned by this
-// member — LinkedIn image assets belong to whoever uploads them, so this
-// can't be uploaded once and reused across different members' posts.
-// Returns the image urn, or null if anything about the upload fails (the
-// post still goes out, just without the branded image).
-async function uploadShareCardImage(token: string, memberUrn: string): Promise<string | null> {
+type CardInput = { eyebrow: string; title: string; subtitle?: string | null }
+
+// Renders the branded card for this specific share and uploads it as a
+// fresh image asset owned by this member — LinkedIn image assets belong to
+// whoever uploads them, so this can't be generated once and reused across
+// different members' posts. Returns the image urn, or null if anything
+// fails (the post still goes out, just without the branded image).
+async function uploadShareCardImage(token: string, memberUrn: string, card: CardInput): Promise<string | null> {
   try {
     const initRes = await fetch('https://api.linkedin.com/rest/images?action=initializeUpload', {
       method: 'POST',
@@ -40,11 +41,11 @@ async function uploadShareCardImage(token: string, memberUrn: string): Promise<s
     const imageUrn: string | undefined = initData?.value?.image
     if (!uploadUrl || !imageUrn) return null
 
-    const imageBytes = await readFile(path.join(process.cwd(), 'public', 'linkedin-share-card.png'))
+    const imageBytes = await generateShareCardPng(card)
     const putRes = await fetch(uploadUrl, {
       method: 'PUT',
       headers: { Authorization: `Bearer ${token}` },
-      body: imageBytes,
+      body: new Uint8Array(imageBytes),
     })
     if (!putRes.ok) return null
 
@@ -61,9 +62,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'not_signed_in' }, { status: 401 })
   }
 
-  const { text } = await req.json()
+  const { text, card } = await req.json()
   if (!text || typeof text !== 'string' || !text.trim()) {
     return NextResponse.json({ error: 'missing_text' }, { status: 400 })
+  }
+  if (!card || typeof card.title !== 'string' || typeof card.eyebrow !== 'string') {
+    return NextResponse.json({ error: 'missing_card' }, { status: 400 })
   }
 
   const admin = createAdminClient()
@@ -77,7 +81,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'not_connected' }, { status: 409 })
   }
 
-  const imageUrn = await uploadShareCardImage(connection.access_token, connection.member_urn)
+  const imageUrn = await uploadShareCardImage(connection.access_token, connection.member_urn, card)
 
   const linkedinRes = await fetch('https://api.linkedin.com/rest/posts', {
     method: 'POST',
@@ -93,9 +97,7 @@ export async function POST(req: NextRequest) {
       },
       lifecycleState: 'PUBLISHED',
       isReshareDisabledByAuthor: false,
-      ...(imageUrn
-        ? { content: { media: { id: imageUrn, title: 'TALK — the private community for TA leaders' } } }
-        : {}),
+      ...(imageUrn ? { content: { media: { id: imageUrn, title: card.title } } } : {}),
     }),
   })
 

@@ -413,6 +413,11 @@ export default function EventDetailPage() {
               defaultText={buildLinkedInShareText(
                 `${event.title}\n\n${typeof window !== "undefined" ? window.location.href : ""}`
               )}
+              card={{
+                eyebrow: "Event",
+                title: event.title,
+                subtitle: `${format(new Date(event.event_date), "MMM d, yyyy")} · ${event.is_virtual ? "Virtual" : (event.location ?? "In Person")}`,
+              }}
             />
           </div>
 

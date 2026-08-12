@@ -181,6 +181,11 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
           defaultText={buildLinkedInShareText(
             `${job.title} at ${job.company}\n\n${process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.talktalent.com"}/jobs/${id}`
           )}
+          card={{
+            eyebrow: "Job Opening",
+            title: job.title,
+            subtitle: [job.company, job.location].filter(Boolean).join(" · "),
+          }}
         />
         </div>
       </div>

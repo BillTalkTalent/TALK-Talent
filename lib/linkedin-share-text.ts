@@ -1,7 +1,6 @@
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.talktalent.com";
-
-// Wraps member-facing share text in a consistent TALK-branded footer so
-// every LinkedIn post promotes the community, not just the linked content.
+// Short brand line appended to share text — the branded image (see
+// lib/share-card.tsx) carries the heavy promotion now, so this stays
+// light enough that members won't feel the urge to delete it.
 export function buildLinkedInShareText(body: string): string {
-  return `${body}\n\n— \nShared via TALK, the private community for TA leaders.\nJoin us: ${SITE_URL}/signup\n\n#TalentAcquisition #TAleaders #TALKCommunity`;
+  return `${body}\n\nShared via TALK — the private community for TA leaders. #TalentAcquisition #TALKCommunity`;
 }

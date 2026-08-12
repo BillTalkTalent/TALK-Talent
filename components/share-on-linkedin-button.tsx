@@ -23,11 +23,23 @@ function LinkedInIcon() {
   )
 }
 
-export function ShareOnLinkedInButton({ defaultText }: { defaultText: string }) {
+export type ShareCard = { eyebrow: string; title: string; subtitle?: string | null }
+
+export function ShareOnLinkedInButton({
+  defaultText,
+  card,
+}: {
+  defaultText: string
+  card: ShareCard
+}) {
   const [connected, setConnected] = useState<boolean | null>(null)
   const [open, setOpen] = useState(false)
   const [text, setText] = useState(defaultText)
   const [loading, setLoading] = useState(false)
+
+  const previewParams = new URLSearchParams({ eyebrow: card.eyebrow, title: card.title })
+  if (card.subtitle) previewParams.set('subtitle', card.subtitle)
+  const previewUrl = `/api/linkedin/card-preview?${previewParams.toString()}`
 
   useEffect(() => {
     fetch('/api/linkedin/status')
@@ -53,7 +65,7 @@ export function ShareOnLinkedInButton({ defaultText }: { defaultText: string }) 
       const res = await fetch('/api/linkedin/share', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text, card }),
       })
       const data = await res.json()
 
@@ -115,6 +127,12 @@ export function ShareOnLinkedInButton({ defaultText }: { defaultText: string }) 
           </div>
         ) : (
           <div className="space-y-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={previewUrl}
+              alt="LinkedIn share card preview"
+              className="w-full rounded-lg border border-zinc-200"
+            />
             <Textarea
               value={text}
               onChange={(e) => setText(e.target.value)}

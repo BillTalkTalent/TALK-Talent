@@ -124,6 +124,7 @@ export default function TopicView({
               defaultText={buildLinkedInShareText(
                 `${title}\n\n${typeof window !== "undefined" ? window.location.href : ""}`
               )}
+              card={{ eyebrow: "Community Discussion", title, subtitle: "TALK Forum" }}
             />
           </div>
         </div>
