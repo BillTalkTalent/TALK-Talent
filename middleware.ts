@@ -40,8 +40,11 @@ export async function middleware(request: NextRequest) {
     return supabaseResponse;
   }
 
-  // Also allow root landing page
+  // Root landing page is public, but send already-signed-in visitors straight to the app
   if (pathname === "/") {
+    if (user) {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
     return supabaseResponse;
   }
 
