@@ -40,6 +40,11 @@ export async function middleware(request: NextRequest) {
   // app/(app)/events/[id]/page.tsx. /api/events/ backs that teaser's data fetch.
   const publicRoutes = ["/login", "/signup", "/claim", "/auth/callback", "/auth/reset-password", "/forgot-password", "/mockup", "/pending", "/privacy", "/terms", "/unsubscribe", "/api/auth", "/api/notify-admin-signup", "/api/unsubscribe", "/api/webhooks", "/events/", "/api/events/"];
   if (publicRoutes.some((r) => pathname.startsWith(r))) {
+    // app/(app)/layout.tsx has its own independent auth redirect and can't
+    // see the matched route below it, so hand it the pathname explicitly —
+    // that's how it knows to let a logged-out visitor through to the public
+    // event teaser instead of bouncing them to /login.
+    supabaseResponse.headers.set("x-pathname", pathname);
     return supabaseResponse;
   }
 

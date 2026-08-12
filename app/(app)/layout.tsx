@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import AppTopNav from '@/components/app-topnav'
 import AppFooter from '@/components/app-footer'
@@ -8,6 +9,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
+    // middleware.ts lets /events/[id] through logged-out so it can show a
+    // public teaser instead of a login wall — render bare here too (no
+    // member-only nav/footer chrome) rather than redirecting.
+    const pathname = (await headers()).get('x-pathname') ?? ''
+    if (pathname.startsWith('/events/')) {
+      return <>{children}</>
+    }
     redirect('/login')
   }
 
