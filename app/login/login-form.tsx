@@ -23,7 +23,7 @@ export default function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const [mode, setMode] = useState<'password' | 'magic-link'>('password')
+  const [mode, setMode] = useState<'password' | 'magic-link'>('magic-link')
   const [magicLinkSent, setMagicLinkSent] = useState(false)
   const [linkedinLoading, setLinkedinLoading] = useState(false)
 
