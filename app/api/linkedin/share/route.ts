@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-// LinkedIn's REST API requires a version header in YYYYMM form and rejects
-// requests once a version goes stale — bump this periodically.
+// LinkedIn's REST API requires a version header in YYYYMM form. Each
+// version is supported for ~2 years from release, then requests to it
+// start failing with 426 NONEXISTENT_VERSION — bump this every so often
+// (roughly yearly is safe) to a recent YYYYMM.
 // https://learn.microsoft.com/en-us/linkedin/marketing/versioning
-const LINKEDIN_API_VERSION = '202501'
+const LINKEDIN_API_VERSION = '202603'
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
