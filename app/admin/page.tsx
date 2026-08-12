@@ -88,14 +88,20 @@ async function confirmMatch(newProfileId: string, oldProfileId: string) {
     return
   }
 
+  // Order matters: auth.users.email is unique, so the duplicate account
+  // holding the new email has to be deleted *before* the old account can
+  // take it over — doing this the other way round fails outright.
+  // Discard the duplicate pending account — cascades to its profiles row.
+  await admin.auth.admin.deleteUser(newProfileId)
+
   await admin.auth.admin.updateUserById(oldProfileId, {
     email: newProfile.email,
     email_confirm: true,
   })
-  await supabase.from('profiles').update({ status: 'approved' }).eq('id', oldProfileId)
-
-  // Discard the duplicate pending account — cascades to its profiles row.
-  await admin.auth.admin.deleteUser(newProfileId)
+  // profiles.email is a denormalized copy of auth.users.email, not kept in
+  // sync automatically — update it too or the old profile keeps showing
+  // its previous email everywhere in the UI.
+  await supabase.from('profiles').update({ status: 'approved', email: newProfile.email }).eq('id', oldProfileId)
 
   try {
     const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
