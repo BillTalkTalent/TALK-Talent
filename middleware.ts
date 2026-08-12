@@ -38,7 +38,7 @@ export async function middleware(request: NextRequest) {
   // /events/ (trailing slash, so the /events list itself stays members-only) lets
   // an individual event page render a public teaser for shared links — see
   // app/(app)/events/[id]/page.tsx. /api/events/ backs that teaser's data fetch.
-  const publicRoutes = ["/login", "/signup", "/claim", "/auth/callback", "/auth/reset-password", "/forgot-password", "/mockup", "/pending", "/privacy", "/terms", "/unsubscribe", "/api/auth", "/api/notify-admin-signup", "/api/unsubscribe", "/api/webhooks", "/events/", "/api/events/"];
+  const publicRoutes = ["/login", "/signup", "/claim", "/auth/callback", "/auth/reset-password", "/forgot-password", "/mockup", "/pending", "/privacy", "/terms", "/unsubscribe", "/api/auth", "/api/notify-admin-signup", "/api/unsubscribe", "/api/webhooks", "/events/", "/api/events/", "/api/signup/"];
   if (publicRoutes.some((r) => pathname.startsWith(r))) {
     // app/(app)/layout.tsx has its own independent auth redirect and can't
     // see the matched route below it, so hand it the pathname explicitly —

@@ -16,6 +16,14 @@ const benefits = [
   'Invite-only — membership is reviewed',
 ]
 
+type MatchCandidate = {
+  id: string
+  full_name: string | null
+  avatar_url: string | null
+  company: string | null
+  title: string | null
+}
+
 export default function SignupForm() {
   const searchParams = useSearchParams()
   const eventId = searchParams.get('event')
@@ -27,9 +35,32 @@ export default function SignupForm() {
   const [linkedinUrl, setLinkedinUrl] = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [matchCandidates, setMatchCandidates] = useState<MatchCandidate[] | null>(null)
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleFormSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setLoading(true)
+
+    try {
+      const res = await fetch('/api/signup/find-matches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullName, linkedinUrl }),
+      })
+      const { candidates } = await res.json()
+      if (candidates?.length > 0) {
+        setMatchCandidates(candidates)
+        setLoading(false)
+        return
+      }
+    } catch {
+      // Matching is a nice-to-have — if it fails, fall through to a normal signup.
+    }
+
+    await completeSignup(null)
+  }
+
+  async function completeSignup(claimedMatchId: string | null) {
     setLoading(true)
 
     const supabase = createClient()
@@ -63,6 +94,7 @@ export default function SignupForm() {
         status: 'pending' as const,
         role: 'member' as const,
         interested_event_id: eventId || null,
+        claimed_match_id: claimedMatchId,
       })
 
       if (profileError) {
@@ -170,6 +202,52 @@ export default function SignupForm() {
                 <a href="mailto:hello@talktalent.com" className="text-[#1E4B82] hover:underline font-semibold">hello@talktalent.com</a>
               </p>
             </div>
+          ) : matchCandidates ? (
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <h2 className="text-2xl font-semibold text-zinc-900">Is this you?</h2>
+                <p className="text-sm text-zinc-500">
+                  We found existing TALK profile{matchCandidates.length > 1 ? 's' : ''} that might
+                  already be yours.
+                </p>
+              </div>
+
+              <div className="space-y-2.5">
+                {matchCandidates.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    disabled={loading}
+                    onClick={() => completeSignup(c.id)}
+                    className="w-full flex items-center gap-3 rounded-xl border border-zinc-200 p-3 text-left hover:border-[#1E4B82] hover:bg-[#1E4B82]/03 transition-colors disabled:opacity-60"
+                  >
+                    {c.avatar_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={c.avatar_url} alt="" className="size-10 rounded-full object-cover shrink-0" />
+                    ) : (
+                      <div className="size-10 rounded-full bg-zinc-100 shrink-0" />
+                    )}
+                    <div className="min-w-0">
+                      <p className="font-semibold text-zinc-900 truncate">{c.full_name ?? 'TALK Member'}</p>
+                      {(c.title || c.company) && (
+                        <p className="text-xs text-zinc-500 truncate">
+                          {[c.title, c.company].filter(Boolean).join(' · ')}
+                        </p>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => completeSignup(null)}
+                className="w-full text-center text-sm text-zinc-500 hover:underline py-2 disabled:opacity-60"
+              >
+                {loading ? 'Submitting…' : 'None of these are me — create a new profile'}
+              </button>
+            </div>
           ) : (
             <>
               <div className="space-y-1">
@@ -186,7 +264,7 @@ export default function SignupForm() {
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-5">
+              <form onSubmit={handleFormSubmit} className="space-y-5">
                 <div className="space-y-1.5">
                   <Label htmlFor="fullName">Full Name</Label>
                   <Input

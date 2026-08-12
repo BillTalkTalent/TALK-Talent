@@ -67,6 +67,62 @@ async function approveMember(id: string) {
   revalidatePath('/admin')
 }
 
+// A signup recognized themself among possible existing-profile matches
+// (app/api/signup/find-matches) but with a different email than what's on
+// file. Confirming here keeps the OLD profile — and everything attached to
+// its id (forum posts, poll votes, chapter memberships, event RSVPs) — and
+// just moves its login to the new email, rather than creating a second,
+// history-less profile.
+async function confirmMatch(newProfileId: string, oldProfileId: string) {
+  'use server'
+  const supabase = await createClient()
+  const admin = createAdminClient()
+
+  const { data: newProfile } = await supabase
+    .from('profiles')
+    .select('email, full_name')
+    .eq('id', newProfileId)
+    .single()
+
+  if (!newProfile?.email) {
+    return
+  }
+
+  await admin.auth.admin.updateUserById(oldProfileId, {
+    email: newProfile.email,
+    email_confirm: true,
+  })
+  await supabase.from('profiles').update({ status: 'approved' }).eq('id', oldProfileId)
+
+  // Discard the duplicate pending account — cascades to its profiles row.
+  await admin.auth.admin.deleteUser(newProfileId)
+
+  try {
+    const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
+    const { data: linkData } = await admin.auth.admin.generateLink({
+      type: 'magiclink',
+      email: newProfile.email,
+      options: { redirectTo: `${origin}/dashboard` },
+    })
+    const loginUrl = linkData?.properties?.action_link ?? `${origin}/login`
+    const firstName = newProfile.full_name?.split(' ')[0] ?? 'there'
+    const resend = new Resend(process.env.RESEND_API_KEY)
+    const from = process.env.FROM_EMAIL ?? 'TALK Community <onboarding@resend.dev>'
+
+    await resend.emails.send({
+      from,
+      replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
+      to: newProfile.email,
+      subject: "You're in — welcome back to TALK! 🎉",
+      html: buildApprovalEmail(firstName, loginUrl, origin),
+    })
+  } catch (err) {
+    console.error('[confirmMatch] email error:', err)
+  }
+
+  revalidatePath('/admin')
+}
+
 function buildApprovalEmail(firstName: string, loginUrl: string, origin: string): string {
   return `<!DOCTYPE html>
 <html>
@@ -226,6 +282,13 @@ export default async function AdminPage() {
     supabase.from('vendors').select('*', { count: 'exact', head: true }),
   ])
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const claimedMatchIds = (pendingMembers ?? []).map((m: any) => m.claimed_match_id).filter(Boolean)
+  const matchedProfiles = claimedMatchIds.length
+    ? await supabase.from('profiles').select('id, full_name').in('id', claimedMatchIds)
+    : { data: [] }
+  const matchedNameById = new Map((matchedProfiles.data ?? []).map((p) => [p.id, p.full_name]))
+
   const stats = [
     { label: 'Approved Members', value: approvedCount ?? 0, icon: Users },
     { label: 'Pending Approvals', value: pendingCount ?? 0, icon: Clock },
@@ -272,7 +335,8 @@ export default async function AdminPage() {
             <p className="text-sm text-zinc-500">No pending applications.</p>
           ) : (
             <ul className="divide-y divide-zinc-100">
-              {pendingMembers.map((member) => (
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              {pendingMembers.map((member: any) => (
                 <li key={member.id} className="py-4 flex items-start justify-between gap-4">
                   <div className="min-w-0 space-y-1">
                     <p className="font-medium text-zinc-900">{member.full_name}</p>
@@ -287,11 +351,23 @@ export default async function AdminPage() {
                         {member.linkedin_url}
                       </a>
                     )}
+                    {member.claimed_match_id && (
+                      <p className="text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2 py-1 inline-block">
+                        Claims to be: {matchedNameById.get(member.claimed_match_id) ?? 'an existing profile'}
+                      </p>
+                    )}
                   </div>
                   <div className="flex flex-col gap-2 flex-shrink-0 items-end">
+                    {member.claimed_match_id && (
+                      <form action={confirmMatch.bind(null, member.id, member.claimed_match_id)}>
+                        <Button type="submit" size="sm" variant="outline" className="border-amber-300 text-amber-700 hover:bg-amber-50">
+                          Confirm match & merge
+                        </Button>
+                      </form>
+                    )}
                     <form action={approveMember.bind(null, member.id)}>
                       <Button type="submit" size="sm" variant="default">
-                        Approve
+                        {member.claimed_match_id ? 'Approve as new instead' : 'Approve'}
                       </Button>
                     </form>
                     <form action={rejectMember} className="flex flex-col gap-1.5 items-end">
