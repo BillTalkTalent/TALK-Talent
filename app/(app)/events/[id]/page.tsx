@@ -7,8 +7,20 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { ShareOnLinkedInButton } from "@/components/share-on-linkedin-button";
 import { buildLinkedInShareText } from "@/lib/linkedin-share-text";
+import { getRsvpAudienceCount, emailRsvps } from "./email-rsvps-actions";
+import { toast } from "sonner";
 import { format } from "date-fns";
 import { formatInZone, localZone } from "@/lib/timezone";
 import {
@@ -23,6 +35,7 @@ import {
   Loader2,
   Lock,
   PartyPopper,
+  Mail,
 } from "lucide-react";
 import type { Event, Profile } from "@/lib/supabase/types";
 import { formatPrice } from "@/lib/format-price";
@@ -189,6 +202,69 @@ function PublicEventTeaser({ event, eventId }: { event: PaidEvent; eventId: stri
   );
 }
 
+// Admin-only — emails everyone who's going (RSVP'd for free events,
+// completed registration for paid ones). Never rendered for non-admins.
+function EmailRsvpsButton({ eventId, isPaid }: { eventId: string; isPaid: boolean }) {
+  const [open, setOpen] = useState(false);
+  const [audience, setAudience] = useState<number | null>(null);
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    getRsvpAudienceCount(eventId, isPaid).then((r) => setAudience(r.total));
+  }, [open, eventId, isPaid]);
+
+  async function handleSend() {
+    setLoading(true);
+    try {
+      const result = await emailRsvps(eventId, isPaid, subject, body);
+      if (result.ok) {
+        toast.success(`Sent to ${result.sent} attendee${result.sent === 1 ? "" : "s"}`);
+        setOpen(false);
+        setSubject("");
+        setBody("");
+      } else {
+        toast.error(result.error ?? "Failed to send.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger render={<Button type="button" variant="outline" />}>
+        <Mail className="size-4" />
+        Email RSVPs
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Email everyone going</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <p className="text-xs text-muted-foreground">
+            {audience === null ? "Loading audience…" : `Sends to ${audience} attendee${audience === 1 ? "" : "s"}.`}
+          </p>
+          <Input placeholder="Subject" value={subject} onChange={(e) => setSubject(e.target.value)} />
+          <Textarea
+            placeholder="Message…"
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            rows={6}
+          />
+          <DialogFooter>
+            <Button type="button" onClick={handleSend} disabled={loading || !subject.trim() || !body.trim()}>
+              {loading ? <Loader2 className="size-4 animate-spin" /> : "Send"}
+            </Button>
+          </DialogFooter>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function EventDetailPage() {
   const params = useParams<{ id: string }>();
   const searchParams = useSearchParams();
@@ -201,6 +277,7 @@ export default function EventDetailPage() {
   const [event, setEvent] = useState<PaidEvent | null>(null);
   const [attendees, setAttendees] = useState<Profile[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [rsvpStatus, setRsvpStatus] = useState<"going" | "not_going" | null>(null);
   const [registrationStatus, setRegistrationStatus] = useState<RegistrationStatus>("none");
   const [loading, setLoading] = useState(true);
@@ -228,16 +305,18 @@ export default function EventDetailPage() {
       return;
     }
 
-    const [eventResult, rsvpsResult] = await Promise.all([
+    const [eventResult, rsvpsResult, profileResult] = await Promise.all([
       db.from("events").select("*").eq("id", params.id).single(),
       supabase
         .from("event_rsvps")
         .select("*, profiles(*)")
         .eq("event_id", params.id)
         .eq("status", "going"),
+      supabase.from("profiles").select("role").eq("id", user.id).single(),
     ]);
 
     setEvent(eventResult.data as PaidEvent);
+    setIsAdmin(profileResult.data?.role === "admin");
 
     if (rsvpsResult.data) {
       const attendeeProfiles = rsvpsResult.data
@@ -573,6 +652,7 @@ export default function EventDetailPage() {
               subtitle: `${format(new Date(event.event_date), "MMM d, yyyy")} · ${event.is_virtual ? "Virtual" : (event.location ?? "In Person")}`,
             }}
           />
+          {isAdmin && <EmailRsvpsButton eventId={event.id} isPaid={isPaid} />}
         </div>
 
         <Separator />
