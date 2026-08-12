@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { ShareOnLinkedInButton } from "@/components/share-on-linkedin-button";
 import { format } from "date-fns";
 import { formatInZone, localZone } from "@/lib/timezone";
 import {
@@ -407,6 +408,9 @@ export default function EventDetailPage() {
                 )}
               </button>
             )}
+            <ShareOnLinkedInButton
+              defaultText={`${event.title}\n\n${typeof window !== "undefined" ? window.location.href : ""}`}
+            />
           </div>
 
           {/* Virtual link — shown to everyone (free) or registered users only (paid) */}

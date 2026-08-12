@@ -8,6 +8,7 @@ import { Eye } from "lucide-react";
 import EditTopic from "./edit-topic";
 import EditReply from "./edit-reply";
 import ModeratorRemove from "./moderator-remove";
+import { ShareOnLinkedInButton } from "@/components/share-on-linkedin-button";
 
 function getInitials(name: string | null): string {
   if (!name) return "?";
@@ -115,6 +116,12 @@ export default function TopicView({
 
           <div className="mt-2 prose prose-sm max-w-none text-foreground whitespace-pre-wrap">
             {body}
+          </div>
+
+          <div className="mt-3">
+            <ShareOnLinkedInButton
+              defaultText={`${title}\n\n${typeof window !== "undefined" ? window.location.href : ""}`}
+            />
           </div>
         </div>
       </div>

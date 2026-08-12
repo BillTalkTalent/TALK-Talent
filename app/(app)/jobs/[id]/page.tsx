@@ -3,6 +3,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
+import { ShareOnLinkedInButton } from "@/components/share-on-linkedin-button";
 import { formatDistanceToNow } from "date-fns";
 import { ArrowLeft, MapPin, ExternalLink, Mail, Clock, Pencil } from "lucide-react";
 
@@ -175,6 +176,9 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
             </a>
           </div>
         )}
+        <ShareOnLinkedInButton
+          defaultText={`${job.title} at ${job.company}\n\n${process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.talktalent.com"}/jobs/${id}`}
+        />
         </div>
       </div>
 
