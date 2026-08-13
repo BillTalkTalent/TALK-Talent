@@ -40,11 +40,10 @@ export default async function ForumCategoryPage({
 
   const supabase = await createClient();
 
-  const { data: category } = await supabase
-    .from("forum_categories")
-    .select("*")
-    .eq("slug", categorySlug)
-    .single();
+  const [{ data: category }, { data: allCategories }] = await Promise.all([
+    supabase.from("forum_categories").select("*").eq("slug", categorySlug).single(),
+    supabase.from("forum_categories").select("id, name, slug, icon").order("sort_order"),
+  ]);
 
   if (!category) notFound();
 
@@ -144,6 +143,30 @@ export default async function ForumCategoryPage({
             New Topic
           </Button>
         </div>
+      </div>
+
+      {/* Category pills — jump to another category without going back through Forum home */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <Link
+          href="/forum"
+          className="text-xs font-semibold px-3 py-1.5 rounded-full bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-700 transition-colors"
+        >
+          All
+        </Link>
+        {(allCategories ?? []).map((cat) => (
+          <Link
+            key={cat.id}
+            href={`/forum/${cat.slug}`}
+            className={`text-xs font-semibold px-3 py-1.5 rounded-full transition-colors flex items-center gap-1 ${
+              cat.slug === categorySlug
+                ? "bg-[#8b5cf6]/10 text-[#6d28d9]"
+                : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-700"
+            }`}
+          >
+            {cat.icon && <span>{cat.icon}</span>}
+            {cat.name}
+          </Link>
+        ))}
       </div>
 
       <div className="rounded-xl border overflow-hidden">

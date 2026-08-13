@@ -1,8 +1,21 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { MessageSquare, Hash, ChevronRight, Search } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { MessageSquare, Search, Plus, Pin, Lock, Clock, Flame, Eye } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import ForumSearchInput from "./forum-search-input";
+import type { Profile } from "@/lib/supabase/types";
+
+function getInitials(name: string | null): string {
+  if (!name) return "?";
+  return name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase();
+}
+
+function hotScore(replies: number, views: number, createdAt: string): number {
+  const hoursOld = (Date.now() - new Date(createdAt).getTime()) / 3_600_000;
+  return (replies * 4 + views) / Math.pow(hoursOld + 2, 1.2);
+}
 
 interface SearchResult {
   id: string;
@@ -20,14 +33,17 @@ interface SearchResult {
   authorName?: string;
 }
 
+const FEED_SIZE = 40;
+
 export default async function ForumPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; sort?: string }>;
 }) {
-  const { q } = await searchParams;
+  const { q, sort = "recent" } = await searchParams;
   const supabase = await createClient();
   const query = q?.trim() ?? "";
+  const isHot = sort === "hot";
 
   const { data: categories } = await supabase
     .from("forum_categories")
@@ -70,41 +86,63 @@ export default async function ForumPage({
     }));
   }
 
-  // Category stats (only needed when not searching)
-  let categoriesWithStats: {
+  // Merged activity feed across every category (only needed when not searching).
+  // "Hot" re-ranks a larger pool by engagement; "Recent" just orders by updated_at.
+  let feed: Array<{
     id: string;
-    name: string;
-    description: string | null;
-    slug: string;
-    icon: string | null;
-    topicCount: number;
-    latestActivity: string | null;
-  }[] = [];
+    title: string;
+    body: string;
+    is_pinned: boolean;
+    is_locked: boolean;
+    views: number;
+    created_at: string;
+    updated_at: string;
+    replyCount: number;
+    author: Profile | null;
+    categorySlug: string;
+    categoryName: string;
+  }> = [];
 
   if (!query) {
-    const categoryIds = (categories ?? []).map((c) => c.id);
-    const { data: allTopics } =
-      categoryIds.length > 0
-        ? await supabase
-            .from("forum_topics")
-            .select("category_id, updated_at")
-            .in("category_id", categoryIds)
+    const { data: feedTopics } = await supabase
+      .from("forum_topics")
+      .select("*, profiles(*), forum_categories(name, slug)")
+      .order("updated_at", { ascending: false })
+      .limit(isHot ? 200 : FEED_SIZE);
+
+    const feedTopicIds = (feedTopics ?? []).map((t) => t.id);
+    const { data: replyRows } =
+      feedTopicIds.length > 0
+        ? await supabase.from("forum_replies").select("topic_id").in("topic_id", feedTopicIds)
         : { data: [] };
 
-    const topicCountMap: Record<string, number> = {};
-    const latestActivityMap: Record<string, string> = {};
-    for (const t of allTopics ?? []) {
-      topicCountMap[t.category_id] = (topicCountMap[t.category_id] ?? 0) + 1;
-      if (!latestActivityMap[t.category_id] || t.updated_at > latestActivityMap[t.category_id]) {
-        latestActivityMap[t.category_id] = t.updated_at;
-      }
+    const replyCountMap: Record<string, number> = {};
+    for (const r of replyRows ?? []) {
+      replyCountMap[r.topic_id] = (replyCountMap[r.topic_id] ?? 0) + 1;
     }
 
-    categoriesWithStats = (categories ?? []).map((cat) => ({
-      ...cat,
-      topicCount: topicCountMap[cat.id] ?? 0,
-      latestActivity: latestActivityMap[cat.id] ?? null,
+    feed = (feedTopics ?? []).map((t) => ({
+      id: t.id,
+      title: t.title,
+      body: t.body,
+      is_pinned: t.is_pinned ?? false,
+      is_locked: t.is_locked ?? false,
+      views: t.views ?? 0,
+      created_at: t.created_at,
+      updated_at: t.updated_at,
+      replyCount: replyCountMap[t.id] ?? 0,
+      author: t.profiles as Profile | null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      categorySlug: (t as any).forum_categories?.slug ?? "",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      categoryName: (t as any).forum_categories?.name ?? "",
     }));
+
+    if (isHot) {
+      feed = feed
+        .sort((a, b) => hotScore(b.replyCount, b.views, b.created_at) - hotScore(a.replyCount, a.views, a.created_at))
+        .slice(0, FEED_SIZE);
+    }
   }
 
   // Highlight matching text
@@ -126,8 +164,16 @@ export default async function ForumPage({
         </div>
         <div className="flex-1">
           <h1 className="text-xl font-bold text-zinc-900">Forum</h1>
-          <p className="text-sm text-zinc-500">Join the conversation</p>
+          <p className="text-sm text-zinc-500">Everything, newest first</p>
         </div>
+        <Link
+          href="/forum/new"
+          className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-[#0d0d0d] hover:opacity-90 transition-opacity shrink-0"
+          style={{ background: "linear-gradient(135deg, #E8503A, #F07058)" }}
+        >
+          <Plus className="size-4" />
+          New Topic
+        </Link>
       </div>
 
       {/* Search bar */}
@@ -189,58 +235,113 @@ export default async function ForumPage({
       ) : query.length === 1 ? (
         <p className="text-sm text-zinc-400 text-center py-4">Type at least 2 characters to search…</p>
       ) : (
-        /* Category list — default view */
+        /* Merged activity feed — default view */
         <>
-          {categoriesWithStats.length === 0 ? (
+          {/* Category pills */}
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-[#8b5cf6]/10 text-[#6d28d9]">
+                All
+              </span>
+              {(categories ?? []).map((category) => (
+                <Link
+                  key={category.id}
+                  href={`/forum/${category.slug}`}
+                  className="text-xs font-semibold px-3 py-1.5 rounded-full bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-700 transition-colors flex items-center gap-1"
+                >
+                  {category.icon && <span>{category.icon}</span>}
+                  {category.name}
+                </Link>
+              ))}
+            </div>
+
+            {/* Sort toggle */}
+            <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-xl shrink-0">
+              <Link
+                href="/forum?sort=recent"
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  !isHot ? "bg-white shadow-sm text-zinc-900" : "text-zinc-500 hover:text-zinc-700"
+                }`}
+              >
+                <Clock className="size-3" /> Recent
+              </Link>
+              <Link
+                href="/forum?sort=hot"
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  isHot ? "bg-white shadow-sm text-orange-600" : "text-zinc-500 hover:text-zinc-700"
+                }`}
+              >
+                <Flame className="size-3" /> Hot
+              </Link>
+            </div>
+          </div>
+
+          {/* Feed */}
+          {feed.length === 0 ? (
             <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-16 text-center">
               <MessageSquare className="size-10 text-zinc-200 mx-auto mb-3" />
-              <p className="text-zinc-400 font-medium">No categories yet</p>
+              <p className="text-zinc-400 font-medium">No topics yet</p>
+              <p className="text-zinc-300 text-sm mt-1">Be the first to start a discussion!</p>
             </div>
           ) : (
             <div className="space-y-2">
-              {categoriesWithStats.map((category) => (
-                <Link key={category.id} href={`/forum/${category.slug}`}>
-                  <div className="group flex items-center gap-4 rounded-2xl bg-white border border-zinc-100 p-4 shadow-sm hover:shadow-md hover:border-[#8b5cf6] transition-all cursor-pointer">
-                    {/* Icon */}
-                    <div className="size-12 rounded-2xl bg-[#8b5cf6]/10 flex items-center justify-center text-2xl flex-shrink-0 group-hover:bg-[#8b5cf6]/20 transition-colors">
-                      {category.icon ? (
-                        <span>{category.icon}</span>
-                      ) : (
-                        <Hash className="size-5 text-[#8b5cf6]" />
+              {feed.map((topic) => {
+                const bodyPreview = topic.body.slice(0, 140);
+                return (
+                  <Link
+                    key={topic.id}
+                    href={`/forum/${topic.categorySlug}/${topic.id}`}
+                    className="group flex items-start gap-3 rounded-2xl bg-white border border-zinc-100 p-4 shadow-sm hover:shadow-md hover:border-[#8b5cf6] transition-all"
+                  >
+                    <Avatar size="sm" className="mt-0.5">
+                      {topic.author?.avatar_url && (
+                        <AvatarImage src={topic.author.avatar_url} alt={topic.author.full_name ?? ""} />
                       )}
-                    </div>
+                      <AvatarFallback>{getInitials(topic.author?.full_name ?? null)}</AvatarFallback>
+                    </Avatar>
 
-                    {/* Name + description */}
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-zinc-900 group-hover:text-[#8b5cf6] transition-colors">
-                        {category.name}
-                      </p>
-                      {category.description && (
-                        <p className="text-sm text-zinc-500 mt-0.5 line-clamp-1">
-                          {category.description}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Stats */}
-                    <div className="flex items-center gap-6 shrink-0">
-                      <div className="text-right hidden sm:block">
-                        <p className="text-sm font-bold text-zinc-900">{category.topicCount}</p>
-                        <p className="text-xs text-zinc-400">topics</p>
-                      </div>
-                      {category.latestActivity && (
-                        <div className="text-right hidden md:block">
-                          <p className="text-xs text-zinc-400">Last post</p>
-                          <p className="text-xs font-medium text-zinc-500">
-                            {formatDistanceToNow(new Date(category.latestActivity), { addSuffix: true })}
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {topic.is_pinned && <Pin className="size-3 text-[#8b5cf6] shrink-0" />}
+                          {topic.is_locked && <Lock className="size-3 text-zinc-300 shrink-0" />}
+                          <p className="font-semibold text-zinc-900 group-hover:text-[#8b5cf6] transition-colors leading-snug">
+                            {topic.title}
                           </p>
+                          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                          {(topic.author as any)?.is_bot && (
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 text-zinc-400 border-zinc-200">
+                              Automated
+                            </Badge>
+                          )}
                         </div>
-                      )}
-                      <ChevronRight className="size-4 text-zinc-300 group-hover:text-[#8b5cf6] transition-colors" />
+                        {topic.categoryName && (
+                          <span className="text-[10px] font-semibold text-[#8b5cf6] bg-[#8b5cf6]/10 px-2 py-0.5 rounded-full shrink-0">
+                            {topic.categoryName}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-zinc-500 line-clamp-2 leading-relaxed mt-0.5">
+                        {bodyPreview}{topic.body.length > 140 ? "…" : ""}
+                      </p>
+                      <div className="flex items-center gap-3 text-xs text-zinc-400 mt-1.5">
+                        <span>{topic.author?.full_name ?? "Unknown"}</span>
+                        <span>·</span>
+                        <span>{formatDistanceToNow(new Date(topic.updated_at), { addSuffix: true })}</span>
+                        <span>·</span>
+                        <span className="flex items-center gap-1">
+                          <MessageSquare className="size-3" /> {topic.replyCount}
+                        </span>
+                        {topic.views > 0 && (
+                          <span className="flex items-center gap-1">
+                            <Eye className="size-3" /> {topic.views}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                );
+              })}
             </div>
           )}
         </>
