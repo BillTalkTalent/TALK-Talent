@@ -5,12 +5,14 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Users, Clock, Calendar, Building2 } from 'lucide-react'
+import { Users, Clock, Calendar, Building2, Lock } from 'lucide-react'
 import { Resend } from 'resend'
 import AdminMemberSearch from '@/components/admin-member-search'
+import { requireSuperAdmin } from '@/lib/admin-auth'
 
 async function approveMember(id: string) {
   'use server'
+  await requireSuperAdmin()
   const supabase = await createClient()
   const admin = createAdminClient()
 
@@ -75,6 +77,7 @@ async function approveMember(id: string) {
 // history-less profile.
 async function confirmMatch(newProfileId: string, oldProfileId: string) {
   'use server'
+  await requireSuperAdmin()
   const supabase = await createClient()
   const admin = createAdminClient()
 
@@ -196,6 +199,7 @@ function buildApprovalEmail(firstName: string, loginUrl: string, origin: string)
 
 async function rejectMember(formData: FormData) {
   'use server'
+  await requireSuperAdmin()
   const id = formData.get('id') as string
   const note = (formData.get('note') as string)?.trim() || 'Does not meet community criteria'
   const supabase = await createClient()
@@ -269,6 +273,7 @@ function buildRejectionEmail(firstName: string, origin: string): string {
 
 export default async function AdminPage() {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
   const [
     { data: pendingMembers },
@@ -276,6 +281,7 @@ export default async function AdminPage() {
     { count: pendingCount },
     { count: eventCount },
     { count: vendorCount },
+    { data: viewerProfile },
   ] = await Promise.all([
     supabase
       .from('profiles')
@@ -286,7 +292,10 @@ export default async function AdminPage() {
     supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
     supabase.from('events').select('*', { count: 'exact', head: true }),
     supabase.from('vendors').select('*', { count: 'exact', head: true }),
+    supabase.from('profiles').select('is_superadmin').eq('id', user?.id ?? '').single(),
   ])
+
+  const isSuperAdmin = !!viewerProfile?.is_superadmin
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const claimedMatchIds = (pendingMembers ?? []).map((m: any) => m.claimed_match_id).filter(Boolean)
@@ -364,6 +373,13 @@ export default async function AdminPage() {
                     )}
                   </div>
                   <div className="flex flex-col gap-2 flex-shrink-0 items-end">
+                    {!isSuperAdmin ? (
+                      <span className="flex items-center gap-1.5 text-xs text-zinc-400 italic">
+                        <Lock className="size-3" />
+                        Only the super admin can approve or reject
+                      </span>
+                    ) : (
+                    <>
                     {member.claimed_match_id && (
                       <form action={confirmMatch.bind(null, member.id, member.claimed_match_id)}>
                         <Button type="submit" size="sm" variant="outline" className="border-amber-300 text-amber-700 hover:bg-amber-50">
@@ -388,6 +404,8 @@ export default async function AdminPage() {
                         Reject
                       </Button>
                     </form>
+                    </>
+                    )}
                   </div>
                 </li>
               ))}

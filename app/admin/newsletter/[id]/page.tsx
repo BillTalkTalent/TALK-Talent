@@ -15,10 +15,12 @@ export default async function EditNewsletterPage({ params }: { params: Promise<{
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const adminDb = createAdminClient() as any
 
-  const [{ data: newsletter }, { count: memberCount }] = await Promise.all([
+  const [{ data: newsletter }, { count: memberCount }, { data: viewerProfile }] = await Promise.all([
     adminDb.from('newsletters').select('*').eq('id', id).single(),
     adminDb.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'approved').eq('is_bot', false),
+    supabase.from('profiles').select('is_superadmin').eq('id', user.id).single(),
   ])
+  const isSuperAdmin = !!viewerProfile?.is_superadmin
 
   if (!newsletter) redirect('/admin/newsletter')
 
@@ -61,6 +63,7 @@ export default async function EditNewsletterPage({ params }: { params: Promise<{
           initialIntro={newsletter.intro ?? ''}
           initialSections={newsletter.sections_json ?? {}}
           memberCount={memberCount ?? 0}
+          isSuperAdmin={isSuperAdmin}
         />
       )}
     </div>

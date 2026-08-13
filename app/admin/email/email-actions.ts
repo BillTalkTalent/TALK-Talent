@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { buildBulkEmail, buildBulkText } from '@/lib/email'
 import { unsubUrl } from '@/lib/unsubscribe'
+import { requireSuperAdmin } from '@/lib/admin-auth'
 
 async function requireAdmin() {
   const supabase = await createClient()
@@ -94,7 +95,7 @@ export async function sendToAllMembers(
   subject: string,
   body: string,
 ): Promise<{ ok: boolean; sent: number; skipped: number; total: number; error?: string }> {
-  await requireAdmin()
+  await requireSuperAdmin()
   const subj = subject.trim()
   const bodyText = body.trim()
   if (!subj || !bodyText) return { ok: false, sent: 0, skipped: 0, total: 0, error: 'Subject and message are required.' }

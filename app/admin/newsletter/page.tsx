@@ -14,13 +14,15 @@ export default async function AdminNewsletterPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const adminDb = createAdminClient() as any
 
-  const [newslettersResult, memberCountResult] = await Promise.all([
+  const [newslettersResult, memberCountResult, viewerProfileResult] = await Promise.all([
     adminDb.from('newsletters').select('*').order('created_at', { ascending: false }),
     adminDb.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'approved').eq('is_bot', false),
+    supabase.from('profiles').select('is_superadmin').eq('id', user.id).single(),
   ])
 
   const newsletters = newslettersResult.data ?? []
   const memberCount = memberCountResult.count ?? 0
+  const isSuperAdmin = !!viewerProfileResult.data?.is_superadmin
 
   const statusBadge = (status: string) => {
     const map: Record<string, string> = {
@@ -148,7 +150,7 @@ export default async function AdminNewsletterPage() {
         <h2 className="text-sm font-bold text-zinc-700 mb-5 flex items-center gap-2">
           <Plus className="size-4 text-[#E8503A]" /> Quick compose
         </h2>
-        <NewsletterForm memberCount={memberCount} />
+        <NewsletterForm memberCount={memberCount} isSuperAdmin={isSuperAdmin} />
       </div>
     </div>
   )

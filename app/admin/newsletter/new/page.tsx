@@ -18,6 +18,13 @@ export default async function NewNewsletterPage() {
     .eq('status', 'approved')
     .eq('is_bot', false)
 
+  const { data: viewerProfile } = await supabase
+    .from('profiles')
+    .select('is_superadmin')
+    .eq('id', user.id)
+    .single()
+  const isSuperAdmin = !!viewerProfile?.is_superadmin
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
@@ -29,7 +36,7 @@ export default async function NewNewsletterPage() {
           <p className="text-sm text-zinc-500">Write your edition, preview it, then send or schedule</p>
         </div>
       </div>
-      <NewsletterForm memberCount={memberCount ?? 0} />
+      <NewsletterForm memberCount={memberCount ?? 0} isSuperAdmin={isSuperAdmin} />
     </div>
   )
 }

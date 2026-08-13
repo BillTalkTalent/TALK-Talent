@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { format } from 'date-fns'
 import { Input } from '@/components/ui/input'
 import type { Profile } from '@/lib/supabase/types'
-import { Shield, Star, User, ChevronDown, Trash2, Search, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Shield, Star, User, ChevronDown, Trash2, Search, ChevronLeft, ChevronRight, Crown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 type Role = 'member' | 'board_member' | 'admin'
@@ -13,7 +13,10 @@ type Role = 'member' | 'board_member' | 'admin'
 interface MembersTableProps {
   members: Profile[]
   setRole: (id: string, role: Role) => Promise<void>
+  setSuperAdmin: (id: string, value: boolean) => Promise<void>
   suspendMember: (id: string) => Promise<void>
+  isSuperAdmin: boolean
+  currentUserId: string
   query: string
   page: number
   totalPages: number
@@ -26,7 +29,9 @@ const ROLES: { value: Role; label: string; icon: typeof User; color: string }[] 
   { value: 'admin',        label: 'Admin',         icon: Shield,    color: 'text-red-500' },
 ]
 
-function RoleBadge({ role }: { role: string }) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function RoleBadge({ role, isSuperAdmin }: { role: string; isSuperAdmin?: any }) {
+  if (isSuperAdmin)            return <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-300"><Crown className="size-2.5" />Super Admin</span>
   if (role === 'admin')        return <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-100"><Shield className="size-2.5" />Admin</span>
   if (role === 'board_member') return <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 border border-amber-100"><Star className="size-2.5" />Board</span>
   return <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-zinc-50 text-zinc-500 border border-zinc-200"><User className="size-2.5" />Member</span>
@@ -51,7 +56,8 @@ function RoleDropdown({ member, setRole }: { member: Profile; setRole: (id: stri
         disabled={saving}
         className="flex items-center gap-1.5 px-2 py-1 rounded-lg border border-zinc-200 hover:border-zinc-300 bg-white transition-colors disabled:opacity-50"
       >
-        <RoleBadge role={member.role} />
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+        <RoleBadge role={member.role} isSuperAdmin={(member as any).is_superadmin} />
         <ChevronDown className="size-3 text-zinc-400" />
       </button>
       {open && (
@@ -83,10 +89,50 @@ function pageHref(query: string, page: number) {
   return `/admin/members${qs ? `?${qs}` : ''}`
 }
 
+function SuperAdminToggle({
+  member,
+  setSuperAdmin,
+  disabled,
+}: {
+  member: Profile
+  setSuperAdmin: (id: string, value: boolean) => Promise<void>
+  disabled: boolean
+}) {
+  const [saving, setSaving] = useState(false)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const isSuper = !!(member as any).is_superadmin
+
+  async function toggle() {
+    setSaving(true)
+    await setSuperAdmin(member.id, !isSuper)
+    setSaving(false)
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      disabled={saving || disabled}
+      title={isSuper ? 'Revoke super admin' : 'Grant super admin'}
+      className={cn(
+        'flex items-center gap-1 px-1.5 py-0.5 rounded-lg border text-[10px] font-bold transition-colors disabled:opacity-40',
+        isSuper
+          ? 'bg-amber-100 text-amber-700 border-amber-300 hover:bg-amber-200'
+          : 'bg-white text-zinc-300 border-zinc-200 hover:text-amber-500 hover:border-amber-200'
+      )}
+    >
+      <Crown className="size-2.5" />
+    </button>
+  )
+}
+
 export default function MembersTable({
   members,
   setRole,
+  setSuperAdmin,
   suspendMember,
+  isSuperAdmin,
+  currentUserId,
   query,
   page,
   totalPages,
@@ -153,13 +199,29 @@ export default function MembersTable({
                   <td className="py-3 pr-4 text-zinc-500">{member.company ?? '—'}</td>
                   <td className="py-3 pr-4 text-zinc-500 text-xs">{member.title ?? '—'}</td>
                   <td className="py-3 pr-4">
-                    <RoleDropdown member={member} setRole={setRole} />
+                    <div className="flex items-center gap-1.5">
+                      {isSuperAdmin ? (
+                        <RoleDropdown member={member} setRole={setRole} />
+                      ) : (
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        <RoleBadge role={member.role} isSuperAdmin={(member as any).is_superadmin} />
+                      )}
+                      {isSuperAdmin && member.role === 'admin' && (
+                        <SuperAdminToggle
+                          member={member}
+                          setSuperAdmin={setSuperAdmin}
+                          disabled={member.id === currentUserId}
+                        />
+                      )}
+                    </div>
                   </td>
                   <td className="py-3 pr-4 text-zinc-400 text-xs">
                     {format(new Date(member.created_at), 'MMM d, yyyy')}
                   </td>
                   <td className="py-3 pr-3">
-                    {confirmId === member.id ? (
+                    {!isSuperAdmin ? (
+                      <span className="text-xs text-zinc-300 italic">Super admin only</span>
+                    ) : confirmId === member.id ? (
                       <div className="flex items-center gap-1.5">
                         <span className="text-xs text-zinc-500 whitespace-nowrap">Remove access?</span>
                         <form action={suspendMember.bind(null, member.id)}>
@@ -171,7 +233,8 @@ export default function MembersTable({
                       <button
                         type="button"
                         onClick={() => setConfirmId(member.id)}
-                        className="p-1.5 rounded-lg text-zinc-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                        disabled={member.id === currentUserId}
+                        className="p-1.5 rounded-lg text-zinc-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-30 disabled:hover:text-zinc-300 disabled:hover:bg-transparent"
                         title="Remove member"
                       >
                         <Trash2 className="size-3.5" />

@@ -120,10 +120,16 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  const { data: profile } = await supabase.from('profiles').select('role, is_superadmin').eq('id', user.id).single()
   if (profile?.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { id, subject, previewText, intro, sections, action, scheduledFor, skipSponsor, testEmail } = await req.json()
+
+  // Actually broadcasting (now or on a schedule) is reserved for the super admin —
+  // drafting and test-sending stay open to any admin.
+  if ((action === 'send' || action === 'schedule') && !profile?.is_superadmin) {
+    return NextResponse.json({ error: 'Only the super admin can send or schedule a newsletter' }, { status: 403 })
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const adminDb = createAdminClient() as any

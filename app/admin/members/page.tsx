@@ -7,16 +7,35 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import MembersTable from './members-table'
 import type { Profile } from '@/lib/supabase/types'
 import { RotateCcw, AlertCircle } from 'lucide-react'
+import { requireSuperAdmin } from '@/lib/admin-auth'
 
 async function setRole(id: string, role: 'member' | 'board_member' | 'admin') {
   'use server'
+  const viewerId = await requireSuperAdmin()
+  if (id === viewerId && role !== 'admin') {
+    throw new Error("You can't change your own role away from admin.")
+  }
   const supabase = await createClient()
   await supabase.from('profiles').update({ role }).eq('id', id)
   revalidatePath('/admin/members')
 }
 
+async function setSuperAdmin(id: string, value: boolean) {
+  'use server'
+  const viewerId = await requireSuperAdmin()
+  if (id === viewerId && !value) {
+    throw new Error("You can't remove your own super admin access.")
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = (await createClient()) as any
+  await supabase.from('profiles').update({ is_superadmin: value }).eq('id', id)
+  revalidatePath('/admin/members')
+}
+
 async function suspendMember(id: string) {
   'use server'
+  const viewerId = await requireSuperAdmin()
+  if (id === viewerId) throw new Error("You can't remove your own access.")
   const supabase = await createClient()
   await supabase.from('profiles').update({ status: 'rejected', rejection_note: 'Removed by admin' }).eq('id', id)
   revalidatePath('/admin/members')
@@ -24,6 +43,7 @@ async function suspendMember(id: string) {
 
 async function reactivateMember(id: string) {
   'use server'
+  await requireSuperAdmin()
   const supabase = await createClient()
   await supabase.from('profiles').update({ status: 'approved', rejection_note: null }).eq('id', id)
   // Auto-fill profile from legacy staging data (matched by linkedin_url)
@@ -45,6 +65,13 @@ export default async function AdminMembersPage({
   const fromRow = (pageNum - 1) * PAGE_SIZE
 
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const { data: viewerProfile } = await supabase
+    .from('profiles')
+    .select('is_superadmin')
+    .eq('id', user?.id ?? '')
+    .single()
+  const isSuperAdmin = !!viewerProfile?.is_superadmin
 
   // Server-side search across the full roster (client-side filtering only ever
   // saw the capped first page, which is why members past the newest ~1k — like
@@ -103,7 +130,10 @@ export default async function AdminMembersPage({
           <MembersTable
             members={members ?? []}
             setRole={setRole}
+            setSuperAdmin={setSuperAdmin}
             suspendMember={suspendMember}
+            isSuperAdmin={isSuperAdmin}
+            currentUserId={user?.id ?? ''}
             query={q}
             page={pageNum}
             totalPages={totalPages}
@@ -143,15 +173,19 @@ export default async function AdminMembersPage({
                       {format(new Date(member.updated_at), 'MMM d, yyyy')}
                     </td>
                     <td className="py-3 pr-4">
-                      <form action={reactivateMember.bind(null, member.id)}>
-                        <button
-                          type="submit"
-                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition-colors"
-                        >
-                          <RotateCcw className="size-3" />
-                          Reactivate
-                        </button>
-                      </form>
+                      {isSuperAdmin ? (
+                        <form action={reactivateMember.bind(null, member.id)}>
+                          <button
+                            type="submit"
+                            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition-colors"
+                          >
+                            <RotateCcw className="size-3" />
+                            Reactivate
+                          </button>
+                        </form>
+                      ) : (
+                        <span className="text-xs text-zinc-300 italic">Super admin only</span>
+                      )}
                     </td>
                   </tr>
                 ))}

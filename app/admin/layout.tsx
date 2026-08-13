@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, LayoutDashboard } from 'lucide-react'
+import { ArrowLeft, Crown } from 'lucide-react'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -13,13 +13,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('role, is_superadmin')
     .eq('id', user.id)
     .single()
 
   if (!profile || profile.role !== 'admin') {
     redirect('/dashboard')
   }
+
+  const isSuperAdmin = !!profile.is_superadmin
 
   return (
     <div className="flex flex-col min-h-full">
@@ -35,9 +37,16 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <rect x="8" y="18.5" width="13" height="3" rx="1.5" fill="white"/>
           </svg>
           <span className="text-white font-bold text-sm">Admin Panel</span>
-          <span className="text-white/30 text-xs font-medium px-2 py-0.5 rounded-full border border-white/20">
-            TALK
-          </span>
+          {isSuperAdmin ? (
+            <span className="flex items-center gap-1 text-amber-300 text-xs font-bold px-2 py-0.5 rounded-full border border-amber-300/30 bg-amber-400/10">
+              <Crown className="size-3" />
+              Super Admin
+            </span>
+          ) : (
+            <span className="text-white/30 text-xs font-medium px-2 py-0.5 rounded-full border border-white/20">
+              Admin
+            </span>
+          )}
         </div>
 
         <Link

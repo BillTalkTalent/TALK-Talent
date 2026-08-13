@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic'
 import {
   Send, Save, Clock, Eye, EyeOff, Loader2,
   Calendar, ChevronDown, ChevronUp, Newspaper,
-  Star, Globe, Briefcase, Megaphone
+  Star, Globe, Briefcase, Megaphone, Lock
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -36,6 +36,7 @@ interface NewsletterFormProps {
   initialIntro?: string
   initialSections?: Sections
   memberCount: number
+  isSuperAdmin: boolean
 }
 
 export default function NewsletterForm({
@@ -45,6 +46,7 @@ export default function NewsletterForm({
   initialIntro = '',
   initialSections = {},
   memberCount,
+  isSuperAdmin,
 }: NewsletterFormProps) {
   const router = useRouter()
   const [subject, setSubject] = useState(initialSubject)
@@ -393,25 +395,34 @@ export default function NewsletterForm({
             Save draft
           </button>
 
-          <button
-            type="button"
-            onClick={() => setShowScheduler(s => !s)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-zinc-200 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 transition-all"
-          >
-            <Clock className="size-4" />
-            Schedule
-          </button>
+          {isSuperAdmin ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setShowScheduler(s => !s)}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl border border-zinc-200 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 transition-all"
+              >
+                <Clock className="size-4" />
+                Schedule
+              </button>
 
-          <button
-            type="button"
-            onClick={send}
-            disabled={!!loading}
-            className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold disabled:opacity-60 transition-all hover:opacity-90"
-            style={{ background: 'linear-gradient(135deg, #E8503A, #F07058)', color: '#0d0d0d' }}
-          >
-            {loading === 'send' ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
-            Send now · {memberCount} members
-          </button>
+              <button
+                type="button"
+                onClick={send}
+                disabled={!!loading}
+                className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold disabled:opacity-60 transition-all hover:opacity-90"
+                style={{ background: 'linear-gradient(135deg, #E8503A, #F07058)', color: '#0d0d0d' }}
+              >
+                {loading === 'send' ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+                Send now · {memberCount} members
+              </button>
+            </>
+          ) : (
+            <span className="flex items-center gap-1.5 text-xs text-zinc-400 italic">
+              <Lock className="size-3" />
+              Only the super admin can send or schedule
+            </span>
+          )}
 
           <span className="text-xs text-zinc-400 ml-auto">
             {filledSections.length}/{SECTIONS.length} sections complete
@@ -438,7 +449,7 @@ export default function NewsletterForm({
           </button>
         </div>
 
-        {showScheduler && (
+        {isSuperAdmin && showScheduler && (
           <div className="mt-4 pt-4 border-t border-zinc-100 flex flex-wrap items-end gap-4">
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-zinc-500">Date</Label>

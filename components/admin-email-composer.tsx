@@ -4,10 +4,16 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Send, Loader2, Check, Mail, AlertTriangle } from 'lucide-react'
+import { Send, Loader2, Check, Mail, AlertTriangle, Lock } from 'lucide-react'
 import { sendTestEmail, sendToAllMembers } from '@/app/admin/email/email-actions'
 
-export default function AdminEmailComposer({ audienceCount }: { audienceCount: number }) {
+export default function AdminEmailComposer({
+  audienceCount,
+  isSuperAdmin,
+}: {
+  audienceCount: number
+  isSuperAdmin: boolean
+}) {
   const [subject, setSubject] = useState('')
   const [body, setBody] = useState('')
   const [confirmText, setConfirmText] = useState('')
@@ -133,7 +139,16 @@ export default function AdminEmailComposer({ audienceCount }: { audienceCount: n
           {testState === 'error' && <span className="text-sm text-red-600">Test failed — check the fields.</span>}
         </div>
 
-        {/* Danger zone: send to everyone */}
+        {/* Danger zone: send to everyone — super admin only */}
+        {!isSuperAdmin ? (
+          <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 flex items-start gap-2">
+            <Lock className="size-4 text-zinc-400 mt-0.5 shrink-0" />
+            <p className="text-sm text-zinc-500 leading-relaxed">
+              Only the super admin can send to the full membership ({audienceCount.toLocaleString()}{' '}
+              people). Use the test send above to preview what you&apos;ve written.
+            </p>
+          </div>
+        ) : (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-3">
           <div className="flex items-start gap-2">
             <AlertTriangle className="size-4 text-amber-600 mt-0.5 shrink-0" />
@@ -173,6 +188,7 @@ export default function AdminEmailComposer({ audienceCount }: { audienceCount: n
             <p className="text-sm text-red-600">Something went wrong. Some batches may not have sent — check Resend.</p>
           )}
         </div>
+        )}
       </CardContent>
     </Card>
   )

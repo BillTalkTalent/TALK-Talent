@@ -2,12 +2,22 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import AdminEmailComposer from '@/components/admin-email-composer'
 import { getAudienceCount } from './email-actions'
+import { createClient } from '@/lib/supabase/server'
 
 // Bulk sends run in throttled batches — give the action room to finish.
 export const maxDuration = 300
 
 export default async function EmailMembersPage() {
   const { total } = await getAudienceCount()
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const { data: viewerProfile } = await supabase
+    .from('profiles')
+    .select('is_superadmin')
+    .eq('id', user?.id ?? '')
+    .single()
+  const isSuperAdmin = !!viewerProfile?.is_superadmin
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -19,7 +29,7 @@ export default async function EmailMembersPage() {
         <p className="text-sm text-zinc-500">Send a community-wide email through TALK.</p>
       </div>
 
-      <AdminEmailComposer audienceCount={total} />
+      <AdminEmailComposer audienceCount={total} isSuperAdmin={isSuperAdmin} />
     </div>
   )
 }
