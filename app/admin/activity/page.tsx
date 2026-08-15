@@ -4,7 +4,7 @@ import { formatDistanceToNow, format } from 'date-fns'
 import {
   Users, LogIn, UserPlus, Clock, Activity, MessageSquare, CalendarDays,
   Briefcase, MessagesSquare, BarChart3, GraduationCap, Building2,
-  Sparkles, TrendingUp, Flame,
+  Sparkles, TrendingUp, Flame, AlertTriangle, Rocket, Compass, LineChart,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -75,6 +75,8 @@ export default async function AdminActivityPage() {
     engagedMentorshipConnections,
     engagedMentorshipRequests,
     engagedVendorReviews,
+    pageViews30d,
+    dailySnapshots,
   ] = await Promise.all([
     listAllAuthUsers(admin),
     supabase.from('profiles').select('id, full_name, status, role, is_bot'),
@@ -96,21 +98,31 @@ export default async function AdminActivityPage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (admin as any).from('mentorship_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
     admin.from('vendor_reviews').select('id', { count: 'exact', head: true }).gte('created_at', thirtyDaysAgo),
-    // Lifetime "who has ever actually done something" — feeds the engaged-
-    // members north star metric (distinct from just logging in).
-    admin.from('forum_topics').select('author_id').limit(5000),
-    admin.from('forum_replies').select('author_id').limit(5000),
-    admin.from('event_rsvps').select('user_id').limit(5000),
+    // Lifetime "who has ever actually done something", with timestamps —
+    // feeds the engaged-members north star metric, the activation-rate KPI
+    // (first action vs. join date), and the "most engaging areas" ranking
+    // (same rows, filtered to the last 30 days in JS below). Ordered
+    // ascending so a 5000-row cap keeps the earliest actions, which is what
+    // the activation-rate check needs.
+    admin.from('forum_topics').select('author_id, created_at').order('created_at', { ascending: true }).limit(5000),
+    admin.from('forum_replies').select('author_id, created_at').order('created_at', { ascending: true }).limit(5000),
+    admin.from('event_rsvps').select('user_id, created_at').order('created_at', { ascending: true }).limit(5000),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (admin as any).from('event_registrations').select('user_id').eq('status', 'completed').limit(5000),
-    admin.from('chat_messages').select('user_id').limit(5000),
-    admin.from('poll_votes').select('user_id').limit(5000),
-    admin.from('job_posts').select('poster_id').limit(5000),
+    (admin as any).from('event_registrations').select('user_id, created_at').eq('status', 'completed').order('created_at', { ascending: true }).limit(5000),
+    admin.from('chat_messages').select('user_id, created_at').order('created_at', { ascending: true }).limit(5000),
+    admin.from('poll_votes').select('user_id, created_at').order('created_at', { ascending: true }).limit(5000),
+    admin.from('job_posts').select('poster_id, created_at').order('created_at', { ascending: true }).limit(5000),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (admin as any).from('mentorship_connections').select('mentor_id, mentee_id').limit(5000),
+    (admin as any).from('mentorship_connections').select('mentor_id, mentee_id, connected_at').order('connected_at', { ascending: true }).limit(5000),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (admin as any).from('mentorship_requests').select('requester_id').limit(5000),
-    admin.from('vendor_reviews').select('reviewer_id').limit(5000),
+    (admin as any).from('mentorship_requests').select('requester_id, created_at').order('created_at', { ascending: true }).limit(5000),
+    admin.from('vendor_reviews').select('reviewer_id, created_at').order('created_at', { ascending: true }).limit(5000),
+    // Route-level navigation, last 30 days — "where members are going".
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (admin as any).from('page_views').select('user_id, path, created_at').gte('created_at', thirtyDaysAgo).limit(20000),
+    // Daily north-star rollups — powers the retention/trend view.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (admin as any).from('activity_snapshots').select('snapshot_date, engagement_rate, usage_rate_30d, stickiness_rate').order('snapshot_date', { ascending: true }).limit(30),
   ])
 
   const profiles = profilesResult.data ?? []
@@ -152,28 +164,110 @@ export default async function AdminActivityPage() {
 
   // North star: "engaged" = has ever posted, replied, RSVP'd, chatted,
   // voted, posted a job, or joined mentorship — not just logged in.
+  // Same pass also tracks each member's first-ever action (for the
+  // activation-rate KPI) and buckets last-30-day actions by feature (for
+  // the "most engaging areas" ranking below).
   const engagedIds = new Set<string>()
-  for (const r of engagedForumTopics.data ?? []) if (r.author_id) engagedIds.add(r.author_id)
-  for (const r of engagedForumReplies.data ?? []) if (r.author_id) engagedIds.add(r.author_id)
-  for (const r of engagedEventRsvps.data ?? []) if (r.user_id) engagedIds.add(r.user_id)
+  const firstActionAt: Record<string, number> = {}
+  const featureBuckets = {
+    Forum: new Set<string>(),
+    Events: new Set<string>(),
+    Jobs: new Set<string>(),
+    Chat: new Set<string>(),
+    Polls: new Set<string>(),
+    Mentorship: new Set<string>(),
+    Vendors: new Set<string>(),
+  }
+  const thirtyDaysAgoMs = thirtyDaysAgoDate.getTime()
+
+  function noteAction(userId: string | null | undefined, createdAt: string | null | undefined, bucket?: keyof typeof featureBuckets) {
+    if (!userId) return
+    engagedIds.add(userId)
+    if (!createdAt) return
+    const t = new Date(createdAt).getTime()
+    if (!firstActionAt[userId] || t < firstActionAt[userId]) firstActionAt[userId] = t
+    if (bucket && t >= thirtyDaysAgoMs) featureBuckets[bucket].add(userId)
+  }
+
+  for (const r of engagedForumTopics.data ?? []) noteAction(r.author_id, r.created_at, 'Forum')
+  for (const r of engagedForumReplies.data ?? []) noteAction(r.author_id, r.created_at, 'Forum')
+  for (const r of engagedEventRsvps.data ?? []) noteAction(r.user_id, r.created_at, 'Events')
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  for (const r of (engagedEventRegs.data ?? []) as any[]) if (r.user_id) engagedIds.add(r.user_id)
-  for (const r of engagedChatMessages.data ?? []) if (r.user_id) engagedIds.add(r.user_id)
-  for (const r of engagedPollVotes.data ?? []) if (r.user_id) engagedIds.add(r.user_id)
-  for (const r of engagedJobPosts.data ?? []) if (r.poster_id) engagedIds.add(r.poster_id)
+  for (const r of (engagedEventRegs.data ?? []) as any[]) noteAction(r.user_id, r.created_at, 'Events')
+  for (const r of engagedChatMessages.data ?? []) noteAction(r.user_id, r.created_at, 'Chat')
+  for (const r of engagedPollVotes.data ?? []) noteAction(r.user_id, r.created_at, 'Polls')
+  for (const r of engagedJobPosts.data ?? []) noteAction(r.poster_id, r.created_at, 'Jobs')
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   for (const r of (engagedMentorshipConnections.data ?? []) as any[]) {
-    if (r.mentor_id) engagedIds.add(r.mentor_id)
-    if (r.mentee_id) engagedIds.add(r.mentee_id)
+    noteAction(r.mentor_id, r.connected_at, 'Mentorship')
+    noteAction(r.mentee_id, r.connected_at, 'Mentorship')
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  for (const r of (engagedMentorshipRequests.data ?? []) as any[]) if (r.requester_id) engagedIds.add(r.requester_id)
-  for (const r of engagedVendorReviews.data ?? []) if (r.reviewer_id) engagedIds.add(r.reviewer_id)
+  for (const r of (engagedMentorshipRequests.data ?? []) as any[]) noteAction(r.requester_id, r.created_at, 'Mentorship')
+  for (const r of engagedVendorReviews.data ?? []) noteAction(r.reviewer_id, r.created_at, 'Vendors')
 
   const engagedMembersCount = [...engagedIds].filter(id => approvedMemberIds.has(id)).length
   const engagementRate = approvedMembers > 0 ? (engagedMembersCount / approvedMembers) * 100 : 0
   const usageRate30d = approvedMembers > 0 ? (activeThisMonth / approvedMembers) * 100 : 0
   const stickinessRate = activeThisMonth > 0 ? (activeToday / activeThisMonth) * 100 : 0
+
+  // Most engaging areas: distinct approved members who touched each
+  // feature in the last 30 days, ranked — a participation-based proxy for
+  // "which sections are most engaging" from data we already have.
+  const mostEngagingAreas = Object.entries(featureBuckets)
+    .map(([label, set]) => ({ label, count: [...set].filter(id => approvedMemberIds.has(id)).length }))
+    .sort((a, b) => b.count - a.count)
+  const maxAreaCount = Math.max(1, ...mostEngagingAreas.map(a => a.count))
+
+  // Activation: of members who joined in the last 30 days, what % took a
+  // first action within 7 days of joining.
+  const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000)
+  const recentSignupMembers = members.filter(m => new Date(m.joined_at) > thirtyDaysAgoDate)
+  const activatedCount = recentSignupMembers.filter(m => {
+    const first = firstActionAt[m.id]
+    return !!first && first <= new Date(m.joined_at).getTime() + 7 * 24 * 60 * 60 * 1000
+  }).length
+  const activationRate = recentSignupMembers.length > 0 ? (activatedCount / recentSignupMembers.length) * 100 : null
+
+  // At risk: approved members who were active before but haven't logged in
+  // in the last 30 days (last login 30–60 days ago) — an early warning
+  // list, distinct from "never logged in" (who never started at all).
+  const atRiskCount = members.filter(m => {
+    if (m.status !== 'approved' || !m.last_login) return false
+    const t = new Date(m.last_login).getTime()
+    return t <= thirtyDaysAgoMs && t > sixtyDaysAgo.getTime()
+  }).length
+
+  // Where members are going: route navigation grouped by top-level
+  // section, last 30 days. Real page-view data (not a click/scroll
+  // heatmap) — populates as PageViewTracker logs visits going forward.
+  const sectionLabels: Record<string, string> = {
+    forum: 'Forum', events: 'Events', jobs: 'Job Board', chat: 'Chat',
+    mentorship: 'Mentorship', vendors: 'Vendor Reviews', polls: 'Polls',
+    members: 'Member Directory', dashboard: 'Dashboard', profile: 'Profile',
+    messages: 'Messages', notifications: 'Notifications', talent: 'Talent',
+    chapters: 'Chapters', registrations: 'My Registrations',
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const pageViewRows = (pageViews30d.data ?? []) as any[]
+  const sectionStats: Record<string, { views: number; users: Set<string> }> = {}
+  for (const row of pageViewRows) {
+    const seg = String(row.path ?? '').split('/').filter(Boolean)[0] ?? ''
+    const label = sectionLabels[seg] ?? (seg ? seg.charAt(0).toUpperCase() + seg.slice(1) : 'Home')
+    if (!sectionStats[label]) sectionStats[label] = { views: 0, users: new Set() }
+    sectionStats[label].views += 1
+    if (row.user_id) sectionStats[label].users.add(row.user_id)
+  }
+  const whereGoing = Object.entries(sectionStats)
+    .map(([label, v]) => ({ label, views: v.views, users: v.users.size }))
+    .sort((a, b) => b.views - a.views)
+    .slice(0, 8)
+  const maxViews = Math.max(1, ...whereGoing.map(w => w.views))
+
+  // Retention trend: daily snapshots written by the activity-snapshot
+  // cron. Empty until the first cron run lands.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const snapshots = (dailySnapshots.data ?? []) as any[]
 
   const northStarStats = [
     {
@@ -296,6 +390,74 @@ export default async function AdminActivityPage() {
         </div>
       )}
 
+      {/* Activation & at-risk — are new members getting hooked, and who's
+          drifting away before they churn entirely. */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-semibold text-zinc-500">Activation rate</span>
+              <Rocket className="size-4 text-emerald-600" />
+            </div>
+            {activationRate === null ? (
+              <p className="text-sm text-zinc-400 mt-2">No new signups in the last 30 days</p>
+            ) : (
+              <>
+                <p className="text-3xl font-black text-zinc-900">{activationRate.toFixed(0)}%</p>
+                <p className="text-[11px] text-zinc-400 mt-1.5">
+                  {activatedCount.toLocaleString()} of {recentSignupMembers.length.toLocaleString()} members who joined in the last 30 days took a first action (post, RSVP, vote, etc.) within 7 days
+                </p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-semibold text-zinc-500">At risk — going quiet</span>
+              <AlertTriangle className="size-4 text-amber-500" />
+            </div>
+            <p className="text-3xl font-black text-zinc-900">{atRiskCount.toLocaleString()}</p>
+            <p className="text-[11px] text-zinc-400 mt-1.5">
+              Approved members who logged in before, but not in the last 30 days (last seen 30–60 days ago)
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Retention trend — daily snapshots from the activity-snapshot cron,
+          so these numbers can be watched over time instead of read once. */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
+            <LineChart className="size-4" />
+            Engagement Trend
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {snapshots.length === 0 ? (
+            <p className="text-sm text-zinc-400">
+              No trend data yet — a daily snapshot starts tonight. Check back tomorrow to see engagement rate move over time.
+            </p>
+          ) : (
+            <div className="flex items-end gap-1 h-24">
+              {snapshots.map((s) => (
+                <div key={s.snapshot_date} className="flex-1 flex flex-col items-center justify-end h-full group relative">
+                  <div
+                    className="w-full rounded-t bg-violet-500/80 group-hover:bg-violet-600 transition-colors"
+                    style={{ height: `${Math.max(4, Math.min(100, s.engagement_rate))}%` }}
+                    title={`${format(new Date(s.snapshot_date), 'MMM d')}: ${s.engagement_rate}% engaged`}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+          {snapshots.length > 0 && (
+            <p className="text-[11px] text-zinc-400 mt-2">Engaged-members % by day, most recent {snapshots.length} snapshot{snapshots.length !== 1 ? 's' : ''}</p>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Activity breakdown — the deep-dive part: what's actually happening
           across the community, not just who's signing in. */}
       <Card>
@@ -318,6 +480,62 @@ export default async function AdminActivityPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Most engaging areas & where members are going — the closest thing
+          to a heat map we can build from data this app actually has: a
+          participation ranking (who's doing what, by feature) and a
+          navigation ranking (which sections get visited most). Not a
+          click/scroll heatmap — that needs a tool like PostHog or Hotjar
+          instrumented separately. */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
+              <BarChart3 className="size-4" />
+              Most Engaging Areas
+            </CardTitle>
+            <p className="text-xs text-zinc-400">Distinct members who participated, last 30 days</p>
+          </CardHeader>
+          <CardContent className="space-y-2.5">
+            {mostEngagingAreas.every(a => a.count === 0) ? (
+              <p className="text-sm text-zinc-400">No feature activity in the last 30 days yet.</p>
+            ) : mostEngagingAreas.map((a) => (
+              <div key={a.label} className="flex items-center gap-3">
+                <span className="text-xs font-medium text-zinc-600 w-24 shrink-0">{a.label}</span>
+                <div className="flex-1 h-2 rounded-full bg-zinc-100 overflow-hidden">
+                  <div className="h-full rounded-full bg-teal-500" style={{ width: `${(a.count / maxAreaCount) * 100}%` }} />
+                </div>
+                <span className="text-xs font-bold text-zinc-700 w-8 text-right">{a.count}</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
+              <Compass className="size-4" />
+              Where Members Are Going
+            </CardTitle>
+            <p className="text-xs text-zinc-400">Page views by section, last 30 days</p>
+          </CardHeader>
+          <CardContent className="space-y-2.5">
+            {whereGoing.length === 0 ? (
+              <p className="text-sm text-zinc-400">
+                No page views logged yet — tracking started today, check back once members browse the app.
+              </p>
+            ) : whereGoing.map((w) => (
+              <div key={w.label} className="flex items-center gap-3">
+                <span className="text-xs font-medium text-zinc-600 w-24 shrink-0">{w.label}</span>
+                <div className="flex-1 h-2 rounded-full bg-zinc-100 overflow-hidden">
+                  <div className="h-full rounded-full bg-blue-500" style={{ width: `${(w.views / maxViews) * 100}%` }} />
+                </div>
+                <span className="text-xs font-bold text-zinc-700 w-16 text-right">{w.views} · {w.users}u</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Activity table */}
       <Card>
