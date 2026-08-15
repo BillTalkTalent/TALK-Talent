@@ -28,8 +28,6 @@ const N = {
   muted:   '#5A7090',
 }
 
-const logoNames = ['Salesforce', 'HubSpot', 'Stripe', 'Figma', 'Notion', 'Rippling', 'Lattice']
-
 function Wordmark({ size = 32, redColor = N.red }: { size?: number; redColor?: string }) {
   return (
     <span style={{ fontFamily: 'var(--font-poppins), system-ui', fontWeight: 900, fontSize: size, lineHeight: 1, letterSpacing: '-0.03em', display: 'inline-flex', alignItems: 'baseline' }}>
@@ -67,6 +65,36 @@ async function getHeroStats() {
   }
 }
 
+// Real companies where approved members actually work — powers the
+// social-proof ticker instead of a hardcoded/placeholder logo list.
+// Case-insensitive dedup, most-common company first, capped to keep the
+// ticker a sane length.
+async function getMemberCompanies(): Promise<string[]> {
+  const admin = createAdminClient()
+  const { data } = await admin
+    .from('profiles')
+    .select('company')
+    .eq('status', 'approved')
+    .eq('is_bot', false)
+    .not('company', 'is', null)
+    .limit(5000)
+
+  const counts = new Map<string, { display: string; count: number }>()
+  for (const row of data ?? []) {
+    const raw = (row.company ?? '').trim()
+    if (!raw) continue
+    const key = raw.toLowerCase()
+    const existing = counts.get(key)
+    if (existing) existing.count += 1
+    else counts.set(key, { display: raw, count: 1 })
+  }
+
+  return [...counts.values()]
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 40)
+    .map(c => c.display)
+}
+
 async function getUpcomingEvents() {
   const admin = createAdminClient()
   const { data } = await admin
@@ -81,7 +109,11 @@ async function getUpcomingEvents() {
 }
 
 export default async function LandingPage() {
-  const [upcomingEvents, heroStats] = await Promise.all([getUpcomingEvents(), getHeroStats()])
+  const [upcomingEvents, heroStats, memberCompanies] = await Promise.all([
+    getUpcomingEvents(),
+    getHeroStats(),
+    getMemberCompanies(),
+  ])
 
   return (
     <div className="min-h-screen font-sans" style={{ background: N.pageBg, color: N.text }}>
@@ -256,18 +288,20 @@ export default async function LandingPage() {
       </section>
 
       {/* ── Social proof ── */}
-      <div className="border-y py-5" style={{ borderColor: N.border, background: N.cardBg }}>
-        <ScrollReveal>
-          <p className="text-center text-xs font-semibold uppercase tracking-widest px-6" style={{ color: N.muted }}>Trusted by TA leaders from</p>
-          <div className="mt-4 overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_10%,black_90%,transparent)]">
-            <div className="flex w-max items-center gap-16 animate-marquee">
-              {[...logoNames, ...logoNames].map((co, i) => (
-                <span key={`${co}-${i}`} className="text-sm font-black tracking-tight whitespace-nowrap" style={{ color: `${N.muted}99` }}>{co}</span>
-              ))}
+      {memberCompanies.length > 0 && (
+        <div className="border-y py-5" style={{ borderColor: N.border, background: N.cardBg }}>
+          <ScrollReveal>
+            <p className="text-center text-xs font-semibold uppercase tracking-widest px-6" style={{ color: N.muted }}>TALK members work at</p>
+            <div className="mt-4 overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_10%,black_90%,transparent)]">
+              <div className="flex w-max items-center gap-16 animate-marquee">
+                {[...memberCompanies, ...memberCompanies].map((co, i) => (
+                  <span key={`${co}-${i}`} className="text-sm font-black tracking-tight whitespace-nowrap" style={{ color: `${N.muted}99` }}>{co}</span>
+                ))}
+              </div>
             </div>
-          </div>
-        </ScrollReveal>
-      </div>
+          </ScrollReveal>
+        </div>
+      )}
 
       {/* ── Upcoming Events ── */}
       {upcomingEvents.length > 0 && (
