@@ -139,7 +139,7 @@ function PublicEventTeaser({ event, eventId }: { event: PaidEvent; eventId: stri
     <div className="min-h-screen" style={{ background: "#F5F8FC" }}>
       {event.image_url && (
         <div className="relative w-full aspect-[16/6] overflow-hidden bg-zinc-100">
-          <img src={event.image_url} alt={event.title} className="w-full h-full object-cover" />
+          <img src={event.image_url} alt={event.title} className="w-full h-full object-contain" />
         </div>
       )}
       <div className="max-w-2xl mx-auto p-6 pt-10 space-y-6">
@@ -176,7 +176,7 @@ function PublicEventTeaser({ event, eventId }: { event: PaidEvent; eventId: stri
           )}
 
           {event.description && (
-            <p className="text-muted-foreground leading-relaxed">{event.description}</p>
+            <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{event.description}</p>
           )}
 
           <div className="rounded-xl p-5 space-y-3" style={{ background: "rgba(232,80,58,0.06)" }}>
@@ -474,7 +474,7 @@ export default function EventDetailPage() {
         style={{ background: "linear-gradient(160deg, #0F1F35 0%, #162D4A 55%, #1A3A5C 100%)" }}
       >
         {event.image_url && (
-          <img src={event.image_url} alt={event.title} className="absolute inset-0 w-full h-full object-cover" />
+          <img src={event.image_url} alt={event.title} className="absolute inset-0 w-full h-full object-contain" />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         <div className="relative w-full p-6 space-y-2.5">
@@ -557,7 +557,7 @@ export default function EventDetailPage() {
           </div>
 
           {event.description && (
-            <p className="text-muted-foreground leading-relaxed border-t border-zinc-100 pt-4">{event.description}</p>
+            <p className="text-muted-foreground leading-relaxed border-t border-zinc-100 pt-4 whitespace-pre-wrap">{event.description}</p>
           )}
         </div>
 
