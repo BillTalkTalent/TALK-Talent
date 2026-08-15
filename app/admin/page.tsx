@@ -290,7 +290,7 @@ export default async function AdminPage() {
       .order('created_at', { ascending: false }),
     supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('status', 'approved').eq('is_bot', false),
     supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-    supabase.from('events').select('*', { count: 'exact', head: true }),
+    supabase.from('events').select('*', { count: 'exact', head: true }).eq('is_test', false),
     supabase.from('vendors').select('*', { count: 'exact', head: true }),
     supabase.from('profiles').select('is_superadmin').eq('id', user?.id ?? '').single(),
   ])

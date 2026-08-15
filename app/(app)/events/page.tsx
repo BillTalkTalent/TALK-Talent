@@ -249,12 +249,14 @@ export default async function EventsPage({
       .from("events")
       .select("*")
       .eq("status", "published")
+      .eq("is_test", false)
       .gte("event_date", now)
       .order("event_date", { ascending: true }),
     supabase
       .from("events")
       .select("*")
       .eq("status", "published")
+      .eq("is_test", false)
       .lt("event_date", now)
       .order("event_date", { ascending: false })
       .limit(20),
@@ -280,6 +282,7 @@ export default async function EventsPage({
       .from("events")
       .select("*")
       .eq("status", "published")
+      .eq("is_test", false)
       .gte("event_date", gridStart.toISOString())
       .lte("event_date", gridEnd.toISOString())
       .order("event_date", { ascending: true });

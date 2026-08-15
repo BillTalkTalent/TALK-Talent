@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
     .from('events')
     .select('id, title, event_date, timezone, location, is_virtual, virtual_url')
     .eq('status', 'published')
+    .eq('is_test', false)
     .gte('event_date', in24h.toISOString())
     .lte('event_date', in25h.toISOString())
 
