@@ -4,6 +4,7 @@ import { formatDistanceToNow, format } from 'date-fns'
 import {
   Users, LogIn, UserPlus, Clock, Activity, MessageSquare, CalendarDays,
   Briefcase, MessagesSquare, BarChart3, GraduationCap, Building2,
+  Sparkles, TrendingUp, Flame,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -64,6 +65,16 @@ export default async function AdminActivityPage() {
     mentorshipActive,
     mentorshipPending,
     vendorReviews30d,
+    engagedForumTopics,
+    engagedForumReplies,
+    engagedEventRsvps,
+    engagedEventRegs,
+    engagedChatMessages,
+    engagedPollVotes,
+    engagedJobPosts,
+    engagedMentorshipConnections,
+    engagedMentorshipRequests,
+    engagedVendorReviews,
   ] = await Promise.all([
     listAllAuthUsers(admin),
     supabase.from('profiles').select('id, full_name, status, role, is_bot'),
@@ -85,6 +96,21 @@ export default async function AdminActivityPage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (admin as any).from('mentorship_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
     admin.from('vendor_reviews').select('id', { count: 'exact', head: true }).gte('created_at', thirtyDaysAgo),
+    // Lifetime "who has ever actually done something" — feeds the engaged-
+    // members north star metric (distinct from just logging in).
+    admin.from('forum_topics').select('author_id').limit(5000),
+    admin.from('forum_replies').select('author_id').limit(5000),
+    admin.from('event_rsvps').select('user_id').limit(5000),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (admin as any).from('event_registrations').select('user_id').eq('status', 'completed').limit(5000),
+    admin.from('chat_messages').select('user_id').limit(5000),
+    admin.from('poll_votes').select('user_id').limit(5000),
+    admin.from('job_posts').select('poster_id').limit(5000),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (admin as any).from('mentorship_connections').select('mentor_id, mentee_id').limit(5000),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (admin as any).from('mentorship_requests').select('requester_id').limit(5000),
+    admin.from('vendor_reviews').select('reviewer_id').limit(5000),
   ])
 
   const profiles = profilesResult.data ?? []
@@ -117,10 +143,61 @@ export default async function AdminActivityPage() {
 
   const signupsToday = members.filter(m => new Date(m.joined_at) > oneDayAgo).length
   const signupsThisWeek = members.filter(m => new Date(m.joined_at) > sevenDaysAgo).length
+  const activeToday = members.filter(m => m.last_login && new Date(m.last_login) > oneDayAgo).length
   const activeThisWeek = members.filter(m => m.last_login && new Date(m.last_login) > sevenDaysAgo).length
   const activeThisMonth = members.filter(m => m.last_login && new Date(m.last_login) > thirtyDaysAgoDate).length
   const neverLoggedIn = members.filter(m => !m.last_login).length
   const approvedMembers = members.filter(m => m.status === 'approved').length
+  const approvedMemberIds = new Set(members.filter(m => m.status === 'approved').map(m => m.id))
+
+  // North star: "engaged" = has ever posted, replied, RSVP'd, chatted,
+  // voted, posted a job, or joined mentorship — not just logged in.
+  const engagedIds = new Set<string>()
+  for (const r of engagedForumTopics.data ?? []) if (r.author_id) engagedIds.add(r.author_id)
+  for (const r of engagedForumReplies.data ?? []) if (r.author_id) engagedIds.add(r.author_id)
+  for (const r of engagedEventRsvps.data ?? []) if (r.user_id) engagedIds.add(r.user_id)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  for (const r of (engagedEventRegs.data ?? []) as any[]) if (r.user_id) engagedIds.add(r.user_id)
+  for (const r of engagedChatMessages.data ?? []) if (r.user_id) engagedIds.add(r.user_id)
+  for (const r of engagedPollVotes.data ?? []) if (r.user_id) engagedIds.add(r.user_id)
+  for (const r of engagedJobPosts.data ?? []) if (r.poster_id) engagedIds.add(r.poster_id)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  for (const r of (engagedMentorshipConnections.data ?? []) as any[]) {
+    if (r.mentor_id) engagedIds.add(r.mentor_id)
+    if (r.mentee_id) engagedIds.add(r.mentee_id)
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  for (const r of (engagedMentorshipRequests.data ?? []) as any[]) if (r.requester_id) engagedIds.add(r.requester_id)
+  for (const r of engagedVendorReviews.data ?? []) if (r.reviewer_id) engagedIds.add(r.reviewer_id)
+
+  const engagedMembersCount = [...engagedIds].filter(id => approvedMemberIds.has(id)).length
+  const engagementRate = approvedMembers > 0 ? (engagedMembersCount / approvedMembers) * 100 : 0
+  const usageRate30d = approvedMembers > 0 ? (activeThisMonth / approvedMembers) * 100 : 0
+  const stickinessRate = activeThisMonth > 0 ? (activeToday / activeThisMonth) * 100 : 0
+
+  const northStarStats = [
+    {
+      label: 'Engaged members',
+      value: engagementRate,
+      caption: `${engagedMembersCount.toLocaleString()} of ${approvedMembers.toLocaleString()} members have ever posted, RSVP'd, voted, or otherwise participated`,
+      icon: Sparkles,
+      color: '#7c3aed',
+    },
+    {
+      label: '30-day usage',
+      value: usageRate30d,
+      caption: `${activeThisMonth.toLocaleString()} of ${approvedMembers.toLocaleString()} members logged in over the last 30 days`,
+      icon: TrendingUp,
+      color: '#0d9488',
+    },
+    {
+      label: 'Stickiness (DAU/MAU)',
+      value: stickinessRate,
+      caption: `${activeToday.toLocaleString()} active today vs. ${activeThisMonth.toLocaleString()} active this month`,
+      icon: Flame,
+      color: '#E8503A',
+    },
+  ]
 
   const pulseStats = [
     { label: 'Approved members', value: approvedMembers, icon: Users, color: '#1E4B82' },
@@ -167,6 +244,32 @@ export default async function AdminActivityPage() {
         <div>
           <h1 className="text-lg font-bold text-zinc-900">Community Activity</h1>
           <p className="text-sm text-zinc-500">Signups, engagement, and activity across every part of TALK</p>
+        </div>
+      </div>
+
+      {/* North star metrics */}
+      <div className="rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50 via-white to-white p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Sparkles className="size-4 text-violet-600" />
+          <h2 className="text-xs font-bold uppercase tracking-wide text-violet-600">North Star Metrics</h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          {northStarStats.map((s) => (
+            <div key={s.label}>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-semibold text-zinc-500">{s.label}</span>
+                <s.icon className="size-4" style={{ color: s.color }} />
+              </div>
+              <p className="text-3xl font-black text-zinc-900">{s.value.toFixed(0)}%</p>
+              <div className="h-1.5 rounded-full bg-zinc-100 overflow-hidden mt-2.5">
+                <div
+                  className="h-full rounded-full"
+                  style={{ width: `${Math.min(100, Math.max(0, s.value))}%`, background: s.color }}
+                />
+              </div>
+              <p className="text-[11px] text-zinc-400 mt-2 leading-relaxed">{s.caption}</p>
+            </div>
+          ))}
         </div>
       </div>
 
