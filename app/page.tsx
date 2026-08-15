@@ -2,8 +2,16 @@ import Link from 'next/link'
 import {
   Users, CalendarDays, MessageSquare, Briefcase,
   GraduationCap, Building2, ArrowRight,
-  CheckCircle2, Lock, Zap, Globe
+  CheckCircle2, Lock, Zap, Globe, MapPin, Monitor
 } from 'lucide-react'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { formatInZone } from '@/lib/timezone'
+import { formatPrice } from '@/lib/format-price'
+
+// Renders per-request rather than being frozen into the static build — the
+// events section needs to reflect whatever's actually published right now,
+// not just whatever was true at the last deploy.
+export const dynamic = 'force-dynamic'
 
 // Navy palette constants
 const N = {
@@ -28,7 +36,28 @@ function Wordmark({ size = 32, redColor = N.red }: { size?: number; redColor?: s
   )
 }
 
-export default function LandingPage() {
+// Public, unauthenticated page — RLS would block the regular client from
+// reading events at all (its policy requires an already-approved member), so
+// this deliberately uses the service-role client with an explicit safe-column
+// allowlist, same pattern as the public event teaser route. virtual_url is
+// left out on purpose: that only gets shown to people who've actually
+// registered.
+async function getUpcomingEvents() {
+  const admin = createAdminClient()
+  const { data } = await admin
+    .from('events')
+    .select('id, title, event_date, location, is_virtual, image_url, is_paid, price, currency, timezone')
+    .eq('status', 'published')
+    .eq('is_test', false)
+    .gte('event_date', new Date().toISOString())
+    .order('event_date', { ascending: true })
+    .limit(3)
+  return data ?? []
+}
+
+export default async function LandingPage() {
+  const upcomingEvents = await getUpcomingEvents()
+
   return (
     <div className="min-h-screen font-sans" style={{ background: N.pageBg, color: N.text }}>
 
@@ -218,6 +247,79 @@ export default function LandingPage() {
           ))}
         </div>
       </div>
+
+      {/* ── Upcoming Events ── */}
+      {upcomingEvents.length > 0 && (
+        <section className="py-24 px-6" style={{ background: N.cardBg }}>
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-black tracking-tight mb-4" style={{ color: N.text }}>See TALK in action.</h2>
+              <p className="text-lg max-w-xl mx-auto" style={{ color: N.muted }}>
+                Sit in on a live event — no membership required to register.
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {upcomingEvents.map((event) => {
+                const tz = event.timezone || 'America/New_York'
+                const month = formatInZone(event.event_date, tz, { month: 'short', weekday: undefined, day: undefined, year: undefined, hour: undefined, minute: undefined, timeZoneName: undefined }).toUpperCase()
+                const day = formatInZone(event.event_date, tz, { day: 'numeric', weekday: undefined, month: undefined, year: undefined, hour: undefined, minute: undefined, timeZoneName: undefined })
+                const time = formatInZone(event.event_date, tz, { hour: 'numeric', minute: '2-digit', weekday: undefined, month: undefined, day: undefined, year: undefined })
+                const isPaid = event.is_paid && event.price != null
+
+                return (
+                  <Link
+                    key={event.id}
+                    href={`/events/${event.id}`}
+                    className="group rounded-2xl border overflow-hidden hover:shadow-md transition-all flex flex-col"
+                    style={{ background: N.cardBg, borderColor: N.border }}
+                  >
+                    {event.image_url ? (
+                      <div className="w-full aspect-[16/9] overflow-hidden" style={{ background: N.pageBg }}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={event.image_url} alt={event.title} className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className="w-full aspect-[16/9] flex items-center justify-center" style={{ background: `linear-gradient(160deg, ${N.navA} 0%, ${N.navB} 55%, #1A3A5C 100%)` }}>
+                        <span style={{ fontFamily: 'var(--font-poppins), system-ui', fontWeight: 900, fontSize: '1.75rem', display: 'inline-flex' }}>
+                          <span style={{ color: N.red }}>TA</span><span style={{ color: 'white' }}>LK</span>
+                        </span>
+                      </div>
+                    )}
+                    <div className="p-5 flex-1 flex flex-col gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-11 rounded-lg py-1 text-center shrink-0" style={{ background: `${N.navB}15` }}>
+                          <div className="text-[9px] font-bold uppercase" style={{ color: N.navy }}>{month}</div>
+                          <div className="text-base font-black leading-tight" style={{ color: N.navA }}>{day}</div>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-bold text-sm leading-snug line-clamp-2 group-hover:underline" style={{ color: N.text }}>{event.title}</p>
+                          <p className="text-xs mt-0.5" style={{ color: N.muted }}>{time}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 text-xs" style={{ color: N.muted }}>
+                        {event.is_virtual ? (
+                          <><Monitor className="size-3.5" /> Virtual</>
+                        ) : (
+                          <><MapPin className="size-3.5" /> <span className="truncate">{event.location ?? 'In person'}</span></>
+                        )}
+                        {isPaid && (
+                          <span className="ml-auto font-bold" style={{ color: N.red }}>{formatPrice(event.price!, event.currency)}</span>
+                        )}
+                      </div>
+
+                      <span className="mt-auto text-xs font-bold inline-flex items-center gap-1" style={{ color: N.red }}>
+                        Register <ArrowRight className="size-3" />
+                      </span>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── Features ── */}
       <section className="py-28 px-6" style={{ background: N.pageBg }}>
