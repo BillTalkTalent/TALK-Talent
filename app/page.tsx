@@ -313,7 +313,7 @@ export default async function LandingPage() {
             <ScrollReveal className="text-center mb-12">
               <h2 className="text-4xl font-black tracking-tight mb-4" style={{ color: N.text }}>See TALK in action.</h2>
               <p className="text-lg max-w-xl mx-auto" style={{ color: N.muted }}>
-                Sit in on a live event — no membership required to register.
+                Sit in on a live event — register in seconds, membership is free.
               </p>
             </ScrollReveal>
 
