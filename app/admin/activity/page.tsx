@@ -211,6 +211,12 @@ export default async function AdminActivityPage() {
   const usageRate30d = approvedMembers > 0 ? (activeThisMonth / approvedMembers) * 100 : 0
   const stickinessRate = activeThisMonth > 0 ? (activeToday / activeThisMonth) * 100 : 0
 
+  // "Engaged members" also shown against the total number of profiles in
+  // the system (every signup, any status) — the denominator Bill asked for
+  // alongside the approved-members rate.
+  const totalMembers = profiles.filter(p => !(p as Profile).is_bot).length
+  const engagementRateOfTotal = totalMembers > 0 ? (engagedMembersCount / totalMembers) * 100 : 0
+
   // Most engaging areas: distinct approved members who touched each
   // feature in the last 30 days, ranked — a participation-based proxy for
   // "which sections are most engaging" from data we already have.
@@ -273,9 +279,14 @@ export default async function AdminActivityPage() {
     {
       label: 'Engaged members',
       value: engagementRate,
-      caption: `${engagedMembersCount.toLocaleString()} of ${approvedMembers.toLocaleString()} members have ever posted, RSVP'd, voted, or otherwise participated`,
+      caption: `${engagedMembersCount.toLocaleString()} of ${approvedMembers.toLocaleString()} approved members have ever posted, RSVP'd, voted, or otherwise participated`,
       icon: Sparkles,
       color: '#7c3aed',
+      secondary: {
+        label: 'of total profiles in the system',
+        value: engagementRateOfTotal,
+        caption: `${engagedMembersCount.toLocaleString()} of ${totalMembers.toLocaleString()} total profiles`,
+      },
     },
     {
       label: '30-day usage',
@@ -362,6 +373,15 @@ export default async function AdminActivityPage() {
                 />
               </div>
               <p className="text-[11px] text-zinc-400 mt-2 leading-relaxed">{s.caption}</p>
+              {'secondary' in s && s.secondary && (
+                <div className="mt-3 pt-3 border-t border-zinc-100">
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-[11px] font-medium text-zinc-400">{s.secondary.label}</span>
+                    <span className="text-sm font-bold text-zinc-700">{s.secondary.value.toFixed(1)}%</span>
+                  </div>
+                  <p className="text-[11px] text-zinc-400 mt-0.5">{s.secondary.caption}</p>
+                </div>
+              )}
             </div>
           ))}
         </div>
