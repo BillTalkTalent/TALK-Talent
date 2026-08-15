@@ -7,6 +7,7 @@ import {
 import { createAdminClient } from '@/lib/supabase/admin'
 import { formatInZone } from '@/lib/timezone'
 import { formatPrice } from '@/lib/format-price'
+import ScrollReveal from '@/components/scroll-reveal'
 
 // Renders per-request rather than being frozen into the static build — the
 // events section needs to reflect whatever's actually published right now,
@@ -262,27 +263,29 @@ export default async function LandingPage() {
 
       {/* ── Social proof ── */}
       <div className="border-y py-5 px-6" style={{ borderColor: N.border, background: N.cardBg }}>
-        <p className="text-center text-xs font-semibold uppercase tracking-widest" style={{ color: N.muted }}>Trusted by TA leaders from</p>
-        <div className="flex flex-wrap items-center justify-center gap-8 mt-4">
-          {['Salesforce', 'HubSpot', 'Stripe', 'Figma', 'Notion', 'Rippling', 'Lattice'].map(co => (
-            <span key={co} className="text-sm font-black tracking-tight" style={{ color: `${N.muted}99` }}>{co}</span>
-          ))}
-        </div>
+        <ScrollReveal>
+          <p className="text-center text-xs font-semibold uppercase tracking-widest" style={{ color: N.muted }}>Trusted by TA leaders from</p>
+          <div className="flex flex-wrap items-center justify-center gap-8 mt-4">
+            {['Salesforce', 'HubSpot', 'Stripe', 'Figma', 'Notion', 'Rippling', 'Lattice'].map(co => (
+              <span key={co} className="text-sm font-black tracking-tight" style={{ color: `${N.muted}99` }}>{co}</span>
+            ))}
+          </div>
+        </ScrollReveal>
       </div>
 
       {/* ── Upcoming Events ── */}
       {upcomingEvents.length > 0 && (
         <section className="py-24 px-6" style={{ background: N.cardBg }}>
           <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-12">
+            <ScrollReveal className="text-center mb-12">
               <h2 className="text-4xl font-black tracking-tight mb-4" style={{ color: N.text }}>See TALK in action.</h2>
               <p className="text-lg max-w-xl mx-auto" style={{ color: N.muted }}>
                 Sit in on a live event — no membership required to register.
               </p>
-            </div>
+            </ScrollReveal>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {upcomingEvents.map((event) => {
+              {upcomingEvents.map((event, eventIdx) => {
                 const tz = event.timezone || 'America/New_York'
                 const month = formatInZone(event.event_date, tz, { month: 'short', weekday: undefined, day: undefined, year: undefined, hour: undefined, minute: undefined, timeZoneName: undefined }).toUpperCase()
                 const day = formatInZone(event.event_date, tz, { day: 'numeric', weekday: undefined, month: undefined, year: undefined, hour: undefined, minute: undefined, timeZoneName: undefined })
@@ -290,8 +293,8 @@ export default async function LandingPage() {
                 const isPaid = event.is_paid && event.price != null
 
                 return (
+                  <ScrollReveal key={event.id} delay={eventIdx * 100}>
                   <Link
-                    key={event.id}
                     href={`/events/${event.id}`}
                     className="group rounded-2xl border overflow-hidden hover:shadow-md transition-all flex flex-col"
                     style={{ background: N.cardBg, borderColor: N.border }}
@@ -336,6 +339,7 @@ export default async function LandingPage() {
                       </span>
                     </div>
                   </Link>
+                  </ScrollReveal>
                 )
               })}
             </div>
@@ -346,10 +350,10 @@ export default async function LandingPage() {
       {/* ── Features ── */}
       <section className="py-28 px-6" style={{ background: N.pageBg }}>
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
+          <ScrollReveal className="text-center mb-16">
             <h2 className="text-4xl font-black tracking-tight mb-4" style={{ color: N.text }}>Everything a TA leader needs.<br />Nothing they don&apos;t.</h2>
             <p className="text-lg max-w-xl mx-auto" style={{ color: N.muted }}>One place to connect, learn, hire, and grow — built specifically for the talent acquisition profession.</p>
-          </div>
+          </ScrollReveal>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {[
@@ -359,14 +363,16 @@ export default async function LandingPage() {
               { icon: Briefcase,   title: 'Job Board',         desc: 'TA-specific roles posted directly by members and trusted companies. No noise.',                          color: N.navyMid },
               { icon: GraduationCap,title:'Mentorship',        desc: 'Get paired with an experienced mentor, or pay it forward by mentoring someone else.',                    color: '#d97706' },
               { icon: Building2,   title: 'Vendor Directory',  desc: 'Honest, peer-reviewed recommendations for the tools and vendors that actually work.',                    color: '#db2777' },
-            ].map(({ icon: Icon, title, desc, color }) => (
-              <div key={title} className="rounded-2xl p-6 border hover:shadow-md transition-all" style={{ background: N.cardBg, borderColor: N.border }}>
-                <div className="size-10 rounded-xl flex items-center justify-center mb-4" style={{ background: `${color}15` }}>
-                  <Icon className="size-5" style={{ color }} />
+            ].map(({ icon: Icon, title, desc, color }, i) => (
+              <ScrollReveal key={title} delay={(i % 3) * 100}>
+                <div className="rounded-2xl p-6 border hover:shadow-md transition-all h-full" style={{ background: N.cardBg, borderColor: N.border }}>
+                  <div className="size-10 rounded-xl flex items-center justify-center mb-4" style={{ background: `${color}15` }}>
+                    <Icon className="size-5" style={{ color }} />
+                  </div>
+                  <h3 className="font-bold mb-2" style={{ color: N.text }}>{title}</h3>
+                  <p className="text-sm leading-relaxed" style={{ color: N.muted }}>{desc}</p>
                 </div>
-                <h3 className="font-bold mb-2" style={{ color: N.text }}>{title}</h3>
-                <p className="text-sm leading-relaxed" style={{ color: N.muted }}>{desc}</p>
-              </div>
+              </ScrollReveal>
             ))}
           </div>
         </div>
@@ -375,7 +381,7 @@ export default async function LandingPage() {
       {/* ── Why different ── */}
       <section className="py-28 px-6 border-t" style={{ borderColor: N.border, background: N.cardBg }}>
         <div className="max-w-5xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
-          <div>
+          <ScrollReveal>
             <h2 className="text-4xl font-black tracking-tight mb-6" style={{ color: N.text }}>Built for people who do the work.</h2>
             <p className="text-lg leading-relaxed mb-8" style={{ color: N.muted }}>TALK is not another LinkedIn group or Slack workspace you never check. It&apos;s a curated space where membership is earned and conversations are real.</p>
             <div className="space-y-4">
@@ -393,10 +399,10 @@ export default async function LandingPage() {
                 </div>
               ))}
             </div>
-          </div>
+          </ScrollReveal>
 
           {/* Testimonial */}
-          <div className="rounded-2xl p-8 border relative" style={{ background: `linear-gradient(135deg, ${N.navy}08, ${N.navyMid}05)`, borderColor: N.border }}>
+          <ScrollReveal delay={150} className="rounded-2xl p-8 border relative" style={{ background: `linear-gradient(135deg, ${N.navy}08, ${N.navyMid}05)`, borderColor: N.border }}>
             <div className="text-5xl font-black leading-none mb-4" style={{ color: `${N.navy}30` }}>&ldquo;</div>
             <p className="text-lg leading-relaxed mb-6" style={{ color: N.muted }}>
               TALK is the first community I&apos;ve been part of where I actually learn something every week. The quality of conversation is unlike anything else in the TA space.
@@ -408,13 +414,13 @@ export default async function LandingPage() {
                 <p className="text-xs" style={{ color: N.muted }}>Head of Talent · Series B SaaS</p>
               </div>
             </div>
-          </div>
+          </ScrollReveal>
         </div>
       </section>
 
       {/* ── CTA ── */}
       <section className="py-28 px-6" style={{ background: `linear-gradient(160deg, ${N.navA}, ${N.navB})` }}>
-        <div className="max-w-3xl mx-auto text-center">
+        <ScrollReveal className="max-w-3xl mx-auto text-center">
           <h2 className="text-4xl font-black tracking-tight mb-4 text-white">Ready to join?</h2>
           <p className="text-white/70 text-lg mb-10 max-w-lg mx-auto">Applications take 2 minutes. We review every one personally and get back to you within a few days.</p>
           <Link
@@ -425,7 +431,7 @@ export default async function LandingPage() {
             Apply for membership <ArrowRight className="size-4" />
           </Link>
           <p className="mt-5 text-xs text-white/40">Membership is always free for the TA community.</p>
-        </div>
+        </ScrollReveal>
       </section>
 
       {/* ── Footer ── */}
