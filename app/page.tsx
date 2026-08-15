@@ -28,6 +28,8 @@ const N = {
   muted:   '#5A7090',
 }
 
+const logoNames = ['Salesforce', 'HubSpot', 'Stripe', 'Figma', 'Notion', 'Rippling', 'Lattice']
+
 function Wordmark({ size = 32, redColor = N.red }: { size?: number; redColor?: string }) {
   return (
     <span style={{ fontFamily: 'var(--font-poppins), system-ui', fontWeight: 900, fontSize: size, lineHeight: 1, letterSpacing: '-0.03em', display: 'inline-flex', alignItems: 'baseline' }}>
@@ -254,13 +256,15 @@ export default async function LandingPage() {
       </section>
 
       {/* ── Social proof ── */}
-      <div className="border-y py-5 px-6" style={{ borderColor: N.border, background: N.cardBg }}>
+      <div className="border-y py-5" style={{ borderColor: N.border, background: N.cardBg }}>
         <ScrollReveal>
-          <p className="text-center text-xs font-semibold uppercase tracking-widest" style={{ color: N.muted }}>Trusted by TA leaders from</p>
-          <div className="flex flex-wrap items-center justify-center gap-8 mt-4">
-            {['Salesforce', 'HubSpot', 'Stripe', 'Figma', 'Notion', 'Rippling', 'Lattice'].map(co => (
-              <span key={co} className="text-sm font-black tracking-tight" style={{ color: `${N.muted}99` }}>{co}</span>
-            ))}
+          <p className="text-center text-xs font-semibold uppercase tracking-widest px-6" style={{ color: N.muted }}>Trusted by TA leaders from</p>
+          <div className="mt-4 overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_10%,black_90%,transparent)]">
+            <div className="flex w-max items-center gap-16 animate-marquee">
+              {[...logoNames, ...logoNames].map((co, i) => (
+                <span key={`${co}-${i}`} className="text-sm font-black tracking-tight whitespace-nowrap" style={{ color: `${N.muted}99` }}>{co}</span>
+              ))}
+            </div>
           </div>
         </ScrollReveal>
       </div>
