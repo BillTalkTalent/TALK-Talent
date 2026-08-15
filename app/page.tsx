@@ -295,7 +295,7 @@ export default async function LandingPage() {
             <div className="mt-4 overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_10%,black_90%,transparent)]">
               <div
                 className="flex w-max items-center gap-16 animate-marquee"
-                style={{ '--marquee-duration': `${Math.max(30, memberCompanies.length * 3)}s` } as React.CSSProperties}
+                style={{ '--marquee-duration': `${Math.max(60, memberCompanies.length * 6)}s` } as React.CSSProperties}
               >
                 {[...memberCompanies, ...memberCompanies].map((co, i) => (
                   <span key={`${co}-${i}`} className="text-sm font-black tracking-tight whitespace-nowrap" style={{ color: `${N.muted}99` }}>{co}</span>
