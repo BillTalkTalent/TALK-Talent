@@ -42,6 +42,28 @@ function Wordmark({ size = 32, redColor = N.red }: { size?: number; redColor?: s
 // allowlist, same pattern as the public event teaser route. virtual_url is
 // left out on purpose: that only gets shown to people who've actually
 // registered.
+// Compact large numbers for the fixed-width hero stat tiles (e.g. 13482 -> "13.4k").
+function compactNum(n: number): string {
+  if (n >= 1000) return `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k`
+  return String(n)
+}
+
+async function getHeroStats() {
+  const admin = createAdminClient()
+  const [members, events, discussions, jobs] = await Promise.all([
+    admin.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'approved').eq('is_bot', false),
+    admin.from('events').select('id', { count: 'exact', head: true }).eq('status', 'published').eq('is_test', false),
+    admin.from('forum_topics').select('id', { count: 'exact', head: true }),
+    admin.from('job_posts').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+  ])
+  return {
+    members: compactNum(members.count ?? 0),
+    events: compactNum(events.count ?? 0),
+    discussions: compactNum(discussions.count ?? 0),
+    jobs: compactNum(jobs.count ?? 0),
+  }
+}
+
 async function getUpcomingEvents() {
   const admin = createAdminClient()
   const { data } = await admin
@@ -56,7 +78,7 @@ async function getUpcomingEvents() {
 }
 
 export default async function LandingPage() {
-  const upcomingEvents = await getUpcomingEvents()
+  const [upcomingEvents, heroStats] = await Promise.all([getUpcomingEvents(), getHeroStats()])
 
   return (
     <div className="min-h-screen font-sans" style={{ background: N.pageBg, color: N.text }}>
@@ -186,10 +208,10 @@ export default async function LandingPage() {
               {/* Stats */}
               <div className="grid grid-cols-4 gap-3">
                 {[
-                  { num: '473', label: 'Members',    grad: `linear-gradient(135deg,${N.navy},${N.navyMid})` },
-                  { num: '12',  label: 'Events',     grad: 'linear-gradient(135deg,#7c3aed,#8b5cf6)' },
-                  { num: '953', label: 'Discussions',grad: 'linear-gradient(135deg,#0d9488,#14b8a6)' },
-                  { num: '34',  label: 'Jobs',       grad: 'linear-gradient(135deg,#d97706,#f59e0b)' },
+                  { num: heroStats.members,     label: 'Members',    grad: `linear-gradient(135deg,${N.navy},${N.navyMid})` },
+                  { num: heroStats.events,      label: 'Events',     grad: 'linear-gradient(135deg,#7c3aed,#8b5cf6)' },
+                  { num: heroStats.discussions, label: 'Discussions',grad: 'linear-gradient(135deg,#0d9488,#14b8a6)' },
+                  { num: heroStats.jobs,        label: 'Jobs',       grad: 'linear-gradient(135deg,#d97706,#f59e0b)' },
                 ].map(({ num, label, grad }) => (
                   <div key={label} className="rounded-xl p-4 text-white relative overflow-hidden" style={{ background: grad }}>
                     <div className="text-2xl font-black leading-none mb-1">{num}</div>
