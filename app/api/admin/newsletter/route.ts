@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { sendNewsletter } from '@/lib/newsletter-send'
 import { getActiveSponsor, buildSponsorTop, buildSponsorBottom } from '@/lib/newsletter-sponsor'
 import { getUpcomingEventsForNewsletter, buildUpcomingEventsBlock } from '@/lib/newsletter-events'
+import { getNewsletterStats, buildStatsBlock } from '@/lib/newsletter-stats'
 import { unsubUrl } from '@/lib/unsubscribe'
 import { Resend } from 'resend'
 
@@ -42,7 +43,7 @@ function compileSectionsToHtml(sections: Record<string, string>): string {
     }).join('\n')
 }
 
-function buildEmailHtml(subject: string, sections: Record<string, string>, memberName: string, unsubscribeUrl: string, intro = '', sponsorTop = '', sponsorBottom = '', eventsBlock = ''): string {
+function buildEmailHtml(subject: string, sections: Record<string, string>, memberName: string, unsubscribeUrl: string, intro = '', sponsorTop = '', sponsorBottom = '', eventsBlock = '', statsBlock = ''): string {
   const introLine = (intro || '').trim() || "Here's your weekly roundup from the TALK community."
   const sectionsHtml = compileSectionsToHtml(sections)
   return `<!DOCTYPE html>
@@ -89,6 +90,8 @@ function buildEmailHtml(subject: string, sections: Record<string, string>, membe
   ${sponsorTop}
 
   ${eventsBlock}
+
+  ${statsBlock}
 
   <!-- Greeting -->
   <tr><td style="background:#fff;padding:32px 36px 8px;">
@@ -150,7 +153,9 @@ export async function POST(req: NextRequest) {
     const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
     const upcomingEvents = await getUpcomingEventsForNewsletter(adminDb)
     const eventsBlock = buildUpcomingEventsBlock(upcomingEvents, origin)
-    const html = buildEmailHtml(subject || 'TALK newsletter', sections ?? {}, 'there', unsubUrl(origin, to), intro, sponsorTop, sponsorBottom, eventsBlock)
+    const stats = await getNewsletterStats(adminDb)
+    const statsBlock = buildStatsBlock(stats)
+    const html = buildEmailHtml(subject || 'TALK newsletter', sections ?? {}, 'there', unsubUrl(origin, to), intro, sponsorTop, sponsorBottom, eventsBlock, statsBlock)
     const resend = new Resend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({
       from: process.env.FROM_EMAIL ?? 'TALK Community <onboarding@resend.dev>',
@@ -201,13 +206,15 @@ export async function POST(req: NextRequest) {
   const sendOrigin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
   const upcomingEvents = await getUpcomingEventsForNewsletter(adminDb)
   const eventsBlock = buildUpcomingEventsBlock(upcomingEvents, sendOrigin)
+  const stats = await getNewsletterStats(adminDb)
+  const statsBlock = buildStatsBlock(stats)
 
   // Reaches all approved members (paginated), skips unsubscribes, throttled,
   // with a working unsubscribe link in every email.
   const { sent, skipped, total } = await sendNewsletter(
     adminDb,
     subject,
-    (firstName, unsubscribeUrl) => buildEmailHtml(subject, sections ?? {}, firstName, unsubscribeUrl, intro, sponsorTop, sponsorBottom, eventsBlock),
+    (firstName, unsubscribeUrl) => buildEmailHtml(subject, sections ?? {}, firstName, unsubscribeUrl, intro, sponsorTop, sponsorBottom, eventsBlock, statsBlock),
   )
 
   if (total === 0) return NextResponse.json({ error: 'No eligible members found' }, { status: 400 })

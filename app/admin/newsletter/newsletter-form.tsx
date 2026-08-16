@@ -69,6 +69,8 @@ export default function NewsletterForm({
   const [skipSponsor, setSkipSponsor] = useState(false)
   type UpcomingEvent = { id: string; title: string; event_date: string; timezone: string | null; location: string | null; is_virtual: boolean }
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([])
+  type PulseStats = { newMembers: number; forumPosts: number; eventRsvps: number; newJobs: number }
+  const [pulseStats, setPulseStats] = useState<PulseStats | null>(null)
   const [testEmail, setTestEmail] = useState('')
   const [sendingTest, setSendingTest] = useState(false)
 
@@ -105,6 +107,27 @@ export default function NewsletterForm({
       .order('event_date', { ascending: true })
       .limit(3)
       .then(({ data }: { data: UpcomingEvent[] | null }) => setUpcomingEvents(data ?? []))
+  }, [])
+
+  useEffect(() => {
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const db = createClient() as any
+    Promise.all([
+      db.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'approved').eq('is_bot', false).gte('created_at', sevenDaysAgo),
+      db.from('forum_topics').select('id', { count: 'exact', head: true }).gte('created_at', sevenDaysAgo),
+      db.from('forum_replies').select('id', { count: 'exact', head: true }).gte('created_at', sevenDaysAgo),
+      db.from('event_rsvps').select('id', { count: 'exact', head: true }).gte('created_at', sevenDaysAgo),
+      db.from('event_registrations').select('id', { count: 'exact', head: true }).eq('status', 'completed').gte('created_at', sevenDaysAgo),
+      db.from('job_posts').select('id', { count: 'exact', head: true }).gte('created_at', sevenDaysAgo),
+    ]).then(([newMembers, topics, replies, rsvps, regs, jobs]) => {
+      setPulseStats({
+        newMembers: newMembers.count ?? 0,
+        forumPosts: (topics.count ?? 0) + (replies.count ?? 0),
+        eventRsvps: (rsvps.count ?? 0) + (regs.count ?? 0),
+        newJobs: jobs.count ?? 0,
+      })
+    })
   }, [])
 
   const showSponsor = activeSponsor && !skipSponsor
@@ -377,6 +400,27 @@ export default function NewsletterForm({
                             </div>
                           )
                         })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {/* Community pulse stats */}
+                {pulseStats && Object.values(pulseStats).some(n => n > 0) && (
+                  <div className="bg-white px-8 pt-4 pb-1">
+                    <div className="rounded-xl border border-zinc-100 bg-zinc-50/60">
+                      <p className="px-5 pt-3.5 text-[10px] font-black uppercase tracking-[0.14em] text-zinc-400">This week in TALK</p>
+                      <div className="grid grid-cols-4">
+                        {[
+                          { n: pulseStats.newMembers, label: 'New members' },
+                          { n: pulseStats.forumPosts, label: 'Forum posts' },
+                          { n: pulseStats.eventRsvps, label: 'Event RSVPs' },
+                          { n: pulseStats.newJobs, label: 'New jobs' },
+                        ].map(t => (
+                          <div key={t.label} className="text-center py-3.5">
+                            <div className="text-xl font-black text-zinc-900 leading-none">{t.n.toLocaleString()}</div>
+                            <div className="text-[9px] font-bold uppercase tracking-wide text-zinc-400 mt-1.5">{t.label}</div>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>
