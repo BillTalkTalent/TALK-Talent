@@ -11,6 +11,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createClient } from '@/lib/supabase/client'
+import { formatInZone } from '@/lib/timezone'
 
 const NewsletterEditor = dynamic(() => import('@/components/newsletter-editor'), { ssr: false })
 
@@ -66,6 +67,8 @@ export default function NewsletterForm({
   }
   const [activeSponsor, setActiveSponsor] = useState<ActiveSponsor | null>(null)
   const [skipSponsor, setSkipSponsor] = useState(false)
+  type UpcomingEvent = { id: string; title: string; event_date: string; timezone: string | null; location: string | null; is_virtual: boolean }
+  const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([])
   const [testEmail, setTestEmail] = useState('')
   const [sendingTest, setSendingTest] = useState(false)
 
@@ -88,6 +91,20 @@ export default function NewsletterForm({
       .order('created_at', { ascending: false })
       .limit(1)
       .then(({ data }: { data: ActiveSponsor[] | null }) => setActiveSponsor(data?.[0] ?? null))
+  }, [])
+
+  useEffect(() => {
+    const nowIso = new Date().toISOString()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(createClient() as any)
+      .from('events')
+      .select('id, title, event_date, timezone, location, is_virtual')
+      .eq('status', 'published')
+      .eq('is_test', false)
+      .gte('event_date', nowIso)
+      .order('event_date', { ascending: true })
+      .limit(3)
+      .then(({ data }: { data: UpcomingEvent[] | null }) => setUpcomingEvents(data ?? []))
   }, [])
 
   const showSponsor = activeSponsor && !skipSponsor
@@ -333,6 +350,34 @@ export default function NewsletterForm({
                         : activeSponsor!.url
                         ? <p className="mt-3"><span className="text-xs font-bold text-[#0F1F35] border-b-2 border-[#E8503A] pb-px">Learn more →</span></p>
                         : null}
+                    </div>
+                  </div>
+                )}
+                {/* Upcoming events */}
+                {upcomingEvents.length > 0 && (
+                  <div className="bg-white px-8 pt-5 pb-1">
+                    <div className="rounded-xl border border-zinc-100 px-6 py-5">
+                      <p className="text-[10px] font-black uppercase tracking-[0.14em] text-zinc-400 mb-3">Upcoming events</p>
+                      <div className="space-y-3">
+                        {upcomingEvents.map(e => {
+                          const tz = e.timezone || 'America/New_York'
+                          const month = formatInZone(e.event_date, tz, { month: 'short', weekday: undefined, day: undefined, year: undefined, hour: undefined, minute: undefined, timeZoneName: undefined }).toUpperCase()
+                          const day = formatInZone(e.event_date, tz, { day: 'numeric', weekday: undefined, month: undefined, year: undefined, hour: undefined, minute: undefined, timeZoneName: undefined })
+                          const time = formatInZone(e.event_date, tz, { hour: 'numeric', minute: '2-digit', weekday: undefined, month: undefined, day: undefined, year: undefined })
+                          return (
+                            <div key={e.id} className="flex items-start gap-3">
+                              <div className="w-11 rounded-lg bg-violet-50 text-center py-1 shrink-0">
+                                <div className="text-[9px] font-black text-violet-600 uppercase">{month}</div>
+                                <div className="text-sm font-black text-zinc-900">{day}</div>
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-sm font-bold text-zinc-900 truncate">{e.title}</p>
+                                <p className="text-xs text-zinc-500 mt-0.5">{time} &middot; {e.is_virtual ? 'Virtual' : (e.location || 'In person')}</p>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
                     </div>
                   </div>
                 )}
