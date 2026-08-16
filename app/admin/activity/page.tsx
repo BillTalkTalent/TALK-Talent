@@ -1,5 +1,5 @@
+import Link from 'next/link'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { createClient } from '@/lib/supabase/server'
 import { formatDistanceToNow, format } from 'date-fns'
 import {
   Users, LogIn, UserPlus, Clock, Activity, MessageSquare, CalendarDays,
@@ -41,16 +41,35 @@ async function listAllAuthUsers(admin: ReturnType<typeof createAdminClient>): Pr
   return all
 }
 
+// PostgREST silently caps any unpaginated select at 1000 rows — with
+// 12,700+ profiles, a plain .select() here was only ever returning the
+// first 1000, which quietly undercounted every metric derived from
+// member status (approved counts, engagement rate, at-risk, activation).
+// Page through with .range() instead.
+async function listAllProfiles(admin: ReturnType<typeof createAdminClient>): Promise<Profile[]> {
+  const pageSize = 1000
+  const all: Profile[] = []
+  for (let from = 0; ; from += pageSize) {
+    const { data } = await admin
+      .from('profiles')
+      .select('id, full_name, status, role, is_bot')
+      .range(from, from + pageSize - 1)
+    const rows: Profile[] = data ?? []
+    all.push(...rows)
+    if (rows.length < pageSize) break
+  }
+  return all
+}
+
 export default async function AdminActivityPage() {
   const admin = createAdminClient()
-  const supabase = await createClient()
 
   const now = new Date()
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString()
 
   const [
     authUsers,
-    profilesResult,
+    profiles,
     forumTopicsTotal,
     forumTopics30d,
     forumReplies30d,
@@ -79,7 +98,7 @@ export default async function AdminActivityPage() {
     dailySnapshots,
   ] = await Promise.all([
     listAllAuthUsers(admin),
-    supabase.from('profiles').select('id, full_name, status, role, is_bot'),
+    listAllProfiles(admin),
     admin.from('forum_topics').select('id', { count: 'exact', head: true }),
     admin.from('forum_topics').select('id', { count: 'exact', head: true }).gte('created_at', thirtyDaysAgo),
     admin.from('forum_replies').select('id', { count: 'exact', head: true }).gte('created_at', thirtyDaysAgo),
@@ -125,7 +144,6 @@ export default async function AdminActivityPage() {
     (admin as any).from('activity_snapshots').select('snapshot_date, engagement_rate, usage_rate_30d, stickiness_rate').order('snapshot_date', { ascending: true }).limit(30),
   ])
 
-  const profiles = profilesResult.data ?? []
   const profileMap: Record<string, Profile> = {}
   for (const p of profiles) profileMap[p.id] = p as Profile
 
@@ -148,6 +166,13 @@ export default async function AdminActivityPage() {
       const bTime = b.last_login ?? b.joined_at
       return new Date(bTime).getTime() - new Date(aTime).getTime()
     })
+
+  // The full member list can run into the thousands — rendering all of it
+  // as one HTML table is what was making this page slow to load. This
+  // dashboard is for the activity deep-dive, not member management (that's
+  // /admin/members, which has its own paginated table), so only show the
+  // most-recently-active slice here and link out for the rest.
+  const recentMembers = members.slice(0, 100)
 
   const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
@@ -559,11 +584,16 @@ export default async function AdminActivityPage() {
 
       {/* Activity table */}
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
-            <Users className="size-4" />
-            All Members — sorted by most recent activity
-          </CardTitle>
+        <CardHeader className="pb-3 flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
+              <Users className="size-4" />
+              Most Recently Active — top {recentMembers.length.toLocaleString()} of {members.length.toLocaleString()} members
+            </CardTitle>
+          </div>
+          <Link href="/admin/members" className="text-xs font-semibold text-violet-600 hover:text-violet-700 shrink-0">
+            View full member directory →
+          </Link>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
@@ -578,7 +608,7 @@ export default async function AdminActivityPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-50">
-                {members.map((m) => (
+                {recentMembers.map((m) => (
                   <tr key={m.id} className="hover:bg-zinc-50/50 transition-colors">
                     <td className="py-3 pl-5 pr-4">
                       <div className="flex items-center gap-2">
