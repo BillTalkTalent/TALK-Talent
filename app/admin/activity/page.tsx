@@ -45,15 +45,24 @@ async function listAllAuthUsers(admin: ReturnType<typeof createAdminClient>): Pr
 // 12,700+ profiles, a plain .select() here was only ever returning the
 // first 1000, which quietly undercounted every metric derived from
 // member status (approved counts, engagement rate, at-risk, activation).
-// Page through with .range() instead.
+// Page through with .range() instead. An explicit .order() on a unique
+// column keeps each page's boundary stable — without one, Postgres doesn't
+// guarantee row order is consistent between requests, which can silently
+// skip or repeat rows across pages. A capped safety loop (200 pages = up
+// to 200k rows) and thrown errors (instead of treating an errored page the
+// same as an empty one) replace the previous version, which could stop
+// early and under-report the total without any error ever surfacing.
 async function listAllProfiles(admin: ReturnType<typeof createAdminClient>): Promise<Profile[]> {
   const pageSize = 1000
   const all: Profile[] = []
-  for (let from = 0; ; from += pageSize) {
-    const { data } = await admin
+  for (let page = 0; page < 200; page++) {
+    const from = page * pageSize
+    const { data, error } = await admin
       .from('profiles')
       .select('id, full_name, status, role, is_bot')
+      .order('id', { ascending: true })
       .range(from, from + pageSize - 1)
+    if (error) throw new Error(`listAllProfiles page ${page} failed: ${error.message}`)
     const rows: Profile[] = data ?? []
     all.push(...rows)
     if (rows.length < pageSize) break
