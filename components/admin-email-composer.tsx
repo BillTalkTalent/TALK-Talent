@@ -62,6 +62,12 @@ export default function AdminEmailComposer({
 
   const audienceLabel = `${selectedRole ? 'board members' : 'members'}${selectedChapter ? ` of the ${selectedChapter.name} chapter` : ''}`
 
+  // Sending to literally everyone (no chapter, no role filter) is reserved
+  // for the super admin — any admin can send once it's narrowed to a
+  // chapter and/or board members only.
+  const isEveryoneAudience = !selectedChapter && !selectedRole
+  const audienceLocked = !isSuperAdmin && isEveryoneAudience
+
   const [testState, setTestState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
   const [testTo, setTestTo] = useState<string | null>(null)
 
@@ -70,7 +76,7 @@ export default function AdminEmailComposer({
 
   const ready = subject.trim().length > 0 && body.trim().length > 0
   const countLoading = needsLiveCount && comboCount === null
-  const canSend = ready && confirmText.trim().toUpperCase() === 'SEND' && sendState !== 'sending' && !countLoading
+  const canSend = ready && confirmText.trim().toUpperCase() === 'SEND' && sendState !== 'sending' && !countLoading && !audienceLocked
 
   async function onTest() {
     setTestState('sending')
@@ -222,13 +228,15 @@ export default function AdminEmailComposer({
           {testState === 'error' && <span className="text-sm text-red-600">Test failed — check the fields.</span>}
         </div>
 
-        {/* Danger zone: send to everyone — super admin only */}
-        {!isSuperAdmin ? (
+        {/* Danger zone: blasting literally everyone is super-admin only —
+            a chapter and/or board-member scoped send is open to any admin */}
+        {audienceLocked ? (
           <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 flex items-start gap-2">
             <Lock className="size-4 text-zinc-400 mt-0.5 shrink-0" />
             <p className="text-sm text-zinc-500 leading-relaxed">
               Only the super admin can send to the full membership ({audienceCount.toLocaleString()}{' '}
-              people). Use the test send above to preview what you&apos;ve written.
+              people). Pick a chapter and/or &quot;Board members only&quot; above to send it yourself,
+              or use the test send above to preview what you&apos;ve written.
             </p>
           </div>
         ) : (

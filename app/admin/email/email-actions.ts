@@ -152,7 +152,14 @@ export async function sendToAllMembers(
   chapterId?: string | null,
   role?: AudienceRole | null,
 ): Promise<{ ok: boolean; sent: number; skipped: number; total: number; error?: string }> {
-  await requireSuperAdmin()
+  // Blasting literally everyone is reserved for the super admin. A send
+  // narrowed to a chapter and/or board members only is a smaller, more
+  // deliberate audience — any admin can send those.
+  if (!chapterId && !role) {
+    await requireSuperAdmin()
+  } else {
+    await requireAdmin()
+  }
   const subj = subject.trim()
   const bodyText = body.trim()
   if (!subj || !bodyText) return { ok: false, sent: 0, skipped: 0, total: 0, error: 'Subject and message are required.' }
