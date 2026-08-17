@@ -18,18 +18,34 @@ async function requireAdmin() {
 
 const isEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)
 
+// Chapter member ids for a chapter-scoped send — null chapterId means
+// "everyone," no membership filter applied.
+async function fetchChapterMemberIds(admin: ReturnType<typeof createAdminClient>, chapterId: string): Promise<string[]> {
+  const { data } = await admin.from('chapter_memberships').select('user_id').eq('chapter_id', chapterId)
+  return (data ?? []).map((r: { user_id: string }) => r.user_id)
+}
+
 // Pull every approved member's email, paginating past Supabase's 1k row cap.
-async function fetchApprovedEmails(admin: ReturnType<typeof createAdminClient>): Promise<string[]> {
+// Restricts to a single chapter's members when chapterId is given.
+async function fetchApprovedEmails(admin: ReturnType<typeof createAdminClient>, chapterId?: string | null): Promise<string[]> {
+  let memberIdFilter: string[] | null = null
+  if (chapterId) {
+    memberIdFilter = await fetchChapterMemberIds(admin, chapterId)
+    if (memberIdFilter.length === 0) return []
+  }
+
   const emails = new Set<string>()
   const pageSize = 1000
   for (let from = 0; ; from += pageSize) {
-    const { data, error } = await admin
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let query = (admin as any)
       .from('profiles')
       .select('email')
       .eq('status', 'approved')
       .eq('is_bot', false)
       .not('email', 'is', null)
-      .range(from, from + pageSize - 1)
+    if (memberIdFilter) query = query.in('id', memberIdFilter)
+    const { data, error } = await query.range(from, from + pageSize - 1)
     if (error || !data || data.length === 0) break
     for (const r of data as { email: string | null }[]) {
       const e = (r.email ?? '').toLowerCase().trim()
@@ -55,14 +71,39 @@ async function fetchUnsubscribed(admin: ReturnType<typeof createAdminClient>): P
   return set
 }
 
-// How many members a full send would actually reach (approved minus unsubscribed).
-export async function getAudienceCount(): Promise<{ total: number }> {
+// How many members a send would actually reach (approved minus unsubscribed),
+// optionally narrowed to one chapter.
+export async function getAudienceCount(chapterId?: string | null): Promise<{ total: number }> {
   await requireAdmin()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const admin = createAdminClient() as any
-  const [emails, unsub] = await Promise.all([fetchApprovedEmails(admin), fetchUnsubscribed(admin)])
+  const [emails, unsub] = await Promise.all([fetchApprovedEmails(admin, chapterId), fetchUnsubscribed(admin)])
   const total = emails.filter((e) => !unsub.has(e)).length
   return { total }
+}
+
+export type ChapterOption = { id: string; name: string; slug: string; memberCount: number }
+
+// Chapters + how many approved members are actually reachable in each —
+// powers the "Send to" audience picker so admins can target a specific
+// local chapter for local events instead of blasting everyone.
+export async function getChapters(): Promise<ChapterOption[]> {
+  await requireAdmin()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const admin = createAdminClient() as any
+  const { data: chapters } = await admin
+    .from('chapters')
+    .select('id, name, slug')
+    .order('sort_order', { ascending: true })
+  if (!chapters) return []
+
+  const withCounts = await Promise.all(
+    (chapters as { id: string; name: string; slug: string }[]).map(async (c) => {
+      const { total } = await getAudienceCount(c.id)
+      return { ...c, memberCount: total }
+    })
+  )
+  return withCounts
 }
 
 // Send a single preview to the signed-in admin — always safe, never touches members.
@@ -90,10 +131,13 @@ export async function sendTestEmail(subject: string, body: string): Promise<{ ok
   }
 }
 
-// Broadcast to all approved members (minus unsubscribes), in throttled batches.
+// Broadcast to approved members (minus unsubscribes), in throttled batches.
+// Narrowed to one chapter's members when chapterId is given — otherwise
+// reaches everyone.
 export async function sendToAllMembers(
   subject: string,
   body: string,
+  chapterId?: string | null,
 ): Promise<{ ok: boolean; sent: number; skipped: number; total: number; error?: string }> {
   await requireSuperAdmin()
   const subj = subject.trim()
@@ -102,7 +146,7 @@ export async function sendToAllMembers(
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const admin = createAdminClient() as any
-  const [allEmails, unsub] = await Promise.all([fetchApprovedEmails(admin), fetchUnsubscribed(admin)])
+  const [allEmails, unsub] = await Promise.all([fetchApprovedEmails(admin, chapterId), fetchUnsubscribed(admin)])
   const recipients = allEmails.filter((e) => !unsub.has(e))
   const skipped = allEmails.length - recipients.length
 
