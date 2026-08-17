@@ -2,6 +2,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect, unstable_rethrow } from 'next/navigation'
 import { format } from 'date-fns'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -9,6 +10,62 @@ import MembersTable from './members-table'
 import type { Profile } from '@/lib/supabase/types'
 import { RotateCcw, AlertCircle, AlertTriangle } from 'lucide-react'
 import { requireSuperAdmin } from '@/lib/admin-auth'
+
+export type UpdateProfileState = { error: string } | { ok: true } | null
+
+// Lets the super admin correct a member's profile directly — typo'd name,
+// stale company/title, wrong LinkedIn URL, etc. Modeled as a return value
+// (not a throw) per Next's guidance for expected/validation failures, so
+// the edit dialog can show the error inline via useActionState instead of
+// crashing the page the way an uncaught throw would.
+async function updateMemberProfile(
+  id: string,
+  _prevState: UpdateProfileState,
+  formData: FormData,
+): Promise<UpdateProfileState> {
+  'use server'
+  await requireSuperAdmin()
+  const supabase = await createClient()
+
+  const fullName = (formData.get('full_name') as string)?.trim()
+  const email = (formData.get('email') as string)?.trim().toLowerCase()
+  const company = (formData.get('company') as string)?.trim() || null
+  const title = (formData.get('title') as string)?.trim() || null
+  const linkedinUrl = (formData.get('linkedin_url') as string)?.trim() || null
+  const bio = (formData.get('bio') as string)?.trim() || null
+  const avatarUrl = (formData.get('avatar_url') as string)?.trim() || null
+
+  if (!fullName) return { error: 'Full name is required.' }
+  if (!email) return { error: 'Email is required.' }
+
+  const { data: current } = await supabase.from('profiles').select('email').eq('id', id).single()
+
+  // Email doubles as their login — keep auth.users in sync *before* touching
+  // profiles, so a rejected change (e.g. address already in use) doesn't
+  // leave profiles.email pointing at an address they can no longer log in with.
+  if (current?.email && current.email.toLowerCase() !== email) {
+    const admin = createAdminClient()
+    const { error: authError } = await admin.auth.admin.updateUserById(id, { email, email_confirm: true })
+    if (authError) return { error: `Failed to update email: ${authError.message}` }
+  }
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({
+      full_name: fullName,
+      email,
+      company,
+      title,
+      linkedin_url: linkedinUrl,
+      bio,
+      avatar_url: avatarUrl,
+    })
+    .eq('id', id)
+  if (error) return { error: `Failed to save profile: ${error.message}` }
+
+  revalidatePath('/admin/members')
+  return { ok: true }
+}
 
 async function setRole(id: string, role: 'member' | 'board_member' | 'admin') {
   'use server'
@@ -155,6 +212,7 @@ export default async function AdminMembersPage({
             setRole={setRole}
             setSuperAdmin={setSuperAdmin}
             suspendMember={suspendMember}
+            updateMemberProfile={updateMemberProfile}
             isSuperAdmin={isSuperAdmin}
             currentUserId={user?.id ?? ''}
             query={q}

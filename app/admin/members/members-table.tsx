@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input'
 import type { Profile } from '@/lib/supabase/types'
 import { Shield, Star, User, ChevronDown, Trash2, Search, ChevronLeft, ChevronRight, Crown } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import EditMemberDialog from './edit-member-dialog'
+import type { UpdateProfileState } from './page'
 
 type Role = 'member' | 'board_member' | 'admin'
 
@@ -15,6 +17,7 @@ interface MembersTableProps {
   setRole: (id: string, role: Role) => Promise<void>
   setSuperAdmin: (id: string, value: boolean) => Promise<void>
   suspendMember: (id: string) => Promise<void>
+  updateMemberProfile: (id: string, prevState: UpdateProfileState, formData: FormData) => Promise<UpdateProfileState>
   isSuperAdmin: boolean
   currentUserId: string
   query: string
@@ -131,6 +134,7 @@ export default function MembersTable({
   setRole,
   setSuperAdmin,
   suspendMember,
+  updateMemberProfile,
   isSuperAdmin,
   currentUserId,
   query,
@@ -230,15 +234,18 @@ export default function MembersTable({
                         <button type="button" onClick={() => setConfirmId(null)} className="text-xs px-2 py-1 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-zinc-50 transition-colors">Cancel</button>
                       </div>
                     ) : (
-                      <button
-                        type="button"
-                        onClick={() => setConfirmId(member.id)}
-                        disabled={member.id === currentUserId}
-                        className="p-1.5 rounded-lg text-zinc-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-30 disabled:hover:text-zinc-300 disabled:hover:bg-transparent"
-                        title="Remove member"
-                      >
-                        <Trash2 className="size-3.5" />
-                      </button>
+                      <div className="flex items-center gap-0.5">
+                        <EditMemberDialog member={member} updateMemberProfile={updateMemberProfile} />
+                        <button
+                          type="button"
+                          onClick={() => setConfirmId(member.id)}
+                          disabled={member.id === currentUserId}
+                          className="p-1.5 rounded-lg text-zinc-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-30 disabled:hover:text-zinc-300 disabled:hover:bg-transparent"
+                          title="Remove member"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </button>
+                      </div>
                     )}
                   </td>
                 </tr>
