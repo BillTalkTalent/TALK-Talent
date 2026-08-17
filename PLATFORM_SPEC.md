@@ -67,8 +67,14 @@ once when adding public event pages (see §5).
 matched by `linkedin_url`. When an existing member signs up or gets approved on the
 new platform, `match_legacy_member(profile_id)` (a Postgres function) looks for a
 staging row with a matching LinkedIn URL and backfills their profile — job title,
-company, TA level, chapter group, board-member status — so returning members don't
-start from a blank profile.
+company, board-member status, and (as of migration 055) **chapter membership**,
+derived from the staging row's `group_name` (e.g. "Boston") via
+`legacy_chapter_slug_map`, a hand-built mapping from the old site's city-only slugs
+(`boston`) to this platform's real state-prefixed geographic chapter slugs
+(`ma-boston`) — the two never matched directly, which is why every geographic
+chapter silently had zero members until migration 055 fixed both the one-time
+historical backfill (re-running the full original 12,864-member import through the
+corrected mapping) and the ongoing `match_legacy_member` path.
 
 ### Signup & duplicate detection
 
@@ -115,6 +121,21 @@ admin acts:
   them straight onto that event instead of the generic dashboard.
 - **Reject** → status flips to `rejected` with an optional note, and a polite
   rejection email goes out. Can be reversed later from Members → Rejected/Suspended.
+
+**LinkedIn URL is mandatory for approval.** Email was already fully enforced (a
+`not null` column, and Supabase Auth itself requires one to sign up at all).
+LinkedIn URL only had client-side `required` on the signup form — easy to bypass,
+and not enforced anywhere else. Enforcing it at profile *creation* would break two
+other flows that insert into `profiles` without a `linkedin_url` on hand yet: the
+"invite a colleague" flow (`app/api/invite/route.ts`) and the automated bot account
+(`lib/bot-account.ts`). Instead, a `before insert or update` trigger
+(`profiles_require_linkedin_for_approval`, migration 054) blocks the transition to
+`status = 'approved'` specifically — a member can't become approved without a
+non-empty `linkedin_url` on file, regardless of which path created their (still
+pending) row. Bots are exempt. Both approval actions (`app/admin/page.tsx` →
+`approveMember()`, `app/admin/members/page.tsx` → `reactivateMember()`) check the
+update's error and throw instead of silently sending a "you're approved" email for
+an approval the database actually rejected.
 
 ### Roles & the super admin tier
 
@@ -166,9 +187,16 @@ chapter memberships/leadership, recent forum activity, DM entry point.
 
 ### Chapters
 
-Nine topical chapters (Executive & Leadership, Campus & Early Careers, Sourcing &
-Research, DEI in Talent, Tech & AI in TA, Employer Brand, Operations & Analytics,
-High-Volume Recruiting, Startup & Scaleup TA), each with a matching forum category.
+Two kinds, distinguished by `chapters.type`:
+- **Topical** (9) — Executive & Leadership, Campus & Early Careers, Sourcing &
+  Research, DEI in Talent, Tech & AI in TA, Employer Brand, Operations & Analytics,
+  High-Volume Recruiting, Startup & Scaleup TA — each with a matching forum category.
+- **Geographic** (~80) — city/region chapters (migration 014), state-prefixed slugs
+  (`ma-boston`, `il-chicago`) to disambiguate same-named cities, plus `international`
+  and `national` catch-alls. This is where local in-person events get targeted — see
+  the "Email Members" chapter picker (§5) and the legacy-matching note (§2) for why
+  historical membership in these specifically needed a dedicated backfill.
+
 Members join/leave freely (`chapter_memberships`). Each chapter can have one or more
 **chapter leads** (`chapter_leads`) who — along with admins/board members — can edit
 the chapter and send email announcements to its members
@@ -259,10 +287,47 @@ DMs, polls, and mentorship events, each with its own opt-out in
 - **Month calendar view** (`/events` → Calendar tab) — a real calendar grid of the
   selected month with events laid out on their date, timezone-correct via
   `lib/timezone.ts` helpers rather than raw UTC day boundaries.
+- **Venue name** (`events.venue_name`, migration 056) — a dedicated field separate
+  from `location` (the address), so an in-person event can call out "Thinking Cup
+  Boston" distinctly instead of it being buried in one run-on address string. Every
+  display surface (event page, events list, homepage, dashboard, admin list,
+  event-reminder and newsletter emails, calendar exports, the Google Maps link)
+  shows `venue_name` when present and falls back to `location`.
+- **Test events** (`events.is_test`, migration 052) — admins can clone any real
+  event as a `[TEST] `-prefixed copy via **Clone as test** (`/admin/events`). A test
+  event is `status = 'published'` (so RLS lets a real, non-admin test account reach
+  it via direct link, unlike a `draft`) but excluded from every public/member-facing
+  listing (homepage, `/events`, admin dashboard, event-reminder cron) — it exists
+  purely to exercise the LinkedIn-share → apply → approve loop end-to-end without
+  exposing it to real members.
 
 ---
 
 ## 5. Content & Communications
+
+### Public marketing homepage
+
+`app/page.tsx` (`www.talktalent.com`) — real data, not the placeholder mockup it
+started as: `getHeroStats()` (approved members, published non-test events, forum
+topics, active jobs) and `getUpcomingEvents()` both use the service-role client with
+an explicit safe-column allowlist, since RLS would otherwise block an anonymous
+visitor entirely. `export const dynamic = 'force-dynamic'` is required — without it
+Next tries to statically prerender the page at build time and crashes on the missing
+Supabase env vars in a build environment that has none.
+
+- **"See TALK in action"** — up to 3 real upcoming events, same public-teaser pattern
+  as the individual event pages; the whole section hides if there are none.
+- **Company ticker** — an infinite auto-scrolling marquee (`animate-marquee` keyframe
+  in `globals.css`, list duplicated once for a seamless loop) of real companies
+  approved members work at (`profiles.company`, deduped case-insensitively, ranked by
+  frequency), not a hardcoded/placeholder logo list. Hides entirely if no member has
+  a company on file. Speed scales with the list length (`--marquee-duration`) so it
+  stays a readable pace regardless of how many companies there are.
+- **Scroll-triggered reveal** (`components/scroll-reveal.tsx`) — a single
+  `IntersectionObserver`-based component (no animation library) that fades + slides
+  content up the first time it scrolls into view; used on the social-proof bar, the
+  events/feature cards (staggered per item), the "why different" section, and the
+  closing CTA. Respects `prefers-reduced-motion`.
 
 ### Newsletter
 
@@ -273,11 +338,46 @@ send now. Sending (`sendNewsletter()` in `lib/newsletter-send.ts`) paginates pas
 Supabase's 1k-row cap, skips `email_unsubscribes`, throttles via Resend's batch
 endpoint. Scheduled sends fire from `/api/cron/send-newsletter`.
 
+Two auto-generated blocks sit between the sponsor masthead and the greeting, so an
+admin skipping a section doesn't mean the newsletter goes out empty of real content:
+- **Upcoming events** (`lib/newsletter-events.ts`) — up to 3 real, published,
+  non-test events (same query as the homepage), rendered as a date-tile list linking
+  back to each event. Renders nothing if there are none.
+- **"This week in TALK" stats** (`lib/newsletter-stats.ts`) — real weekly counts
+  (new members, forum posts, event RSVPs, new job posts) via cheap head-count
+  queries. Renders nothing if every count is zero.
+
+**Public teaser page** (`app/(app)/newsletter/[id]/page.tsx`) — same public-teaser +
+apply-to-join pattern as events (§4), wired the same way (a `/newsletter/` entry in
+`middleware.ts`'s `publicRoutes` plus a matching bypass in `(app)/layout.tsx`). Shows
+the intro, the real upcoming-events block, the real stats block, and a short excerpt
+of the TALK News section — Member Highlight/Industry News/Career Opportunities stay
+member-only, gated behind an "Apply for membership" / "Sign in" CTA. 404s for
+anything not `sent` or `scheduled`, so a draft can't leak via a guessed id; it goes
+live as soon as an edition is *scheduled* (not only once actually sent), so a link
+prepped ahead of a scheduled send resolves immediately instead of 404ing until the
+send fires.
+
+**LinkedIn sharing for a sent/scheduled edition** — two paths, because posting to a
+LinkedIn *company page* needs org-level Marketing Developer Platform access (a much
+higher approval bar than the personal `w_member_social` scope used elsewhere), which
+isn't set up:
+- **Personal profile** — the same `ShareOnLinkedInButton` used for events/jobs,
+  posting through the member's own LinkedIn OAuth connection.
+- **TALK Company Page (manual)** — `components/newsletter-share-tools.tsx` gives a
+  one-click **Copy link** (the public teaser URL) and **Download image** (the
+  newsletter share card as a PNG), so it can be posted to the company page by hand
+  through LinkedIn's own UI. Available on both the editor view (draft/scheduled) and
+  the read-only sent view, as soon as the edition has an id.
+
 ### Bulk "Email Members"
 
 A separate, simpler tool (`admin/email`) for one-off plain-text broadcasts outside
 the newsletter format — same unsubscribe/throttling machinery, requires typing "SEND"
-to confirm given the blast radius.
+to confirm given the blast radius. A **"Send to"** picker (all approved members, or
+one specific chapter) narrows the audience — `getChapters()` in
+`app/admin/email/email-actions.ts` returns each chapter with its live reachable
+(approved, non-unsubscribed) member count for the dropdown.
 
 ### Chapter announcements
 
@@ -294,8 +394,21 @@ email is bouncing.
 ### LinkedIn share cards
 
 `lib/share-card.tsx` renders branded share images via `next/og`'s `ImageResponse`
-(real Poppins font files, not system fallback) for forum topics and events, wired
-into a "Share on LinkedIn" button (`components/share-on-linkedin-button.tsx`).
+(real Poppins font files, not system fallback) for jobs, forum topics, and events,
+wired into a "Share on LinkedIn" button (`components/share-on-linkedin-button.tsx`).
+Icons are hand-copied lucide path data rendered as plain SVG, not the lucide-react
+components — those call `useContext` internally, which crashes under satori/next-og's
+renderer (it walks the element tree outside a real React render, so hooks have no
+dispatcher).
+
+`generateNewsletterCardPng()` is a richer, purpose-built variant for newsletter
+shares (`app/api/newsletter/[id]/card`): the same navy-gradient branding plus ambient
+glow-orb atmosphere (matching the homepage hero treatment), colorful icon-badge stat
+tiles, and — instead of that week's small deltas, which can look thin on a quiet
+week — one bold "13,000+ TA leaders" headline number and a "Read the full
+newsletter →" CTA pill. The route never returns a bare error: if the DB lookup,
+stats query, font fetch, or rendering itself fails, it falls back to the plain
+generic card rather than a broken-image icon.
 
 ---
 
@@ -348,13 +461,51 @@ All of `/admin/*` requires `role = 'admin'` (checked in both `middleware.ts` and
 | `/admin/forum` | Manage forum categories | No |
 | `/admin/news-brief` | AI-assisted draft-for-review posting | No |
 | `/admin/suggestions` | Review member invites & vendor suggestions | No |
-| `/admin/activity` | Roster with status/role badges, activity stats | No |
+| `/admin/activity` | Community-wide activity & engagement dashboard (below) | No |
 
 A regular admin sees every restricted control either hidden or shown disabled with a
 short explanation ("Only the super admin can…") rather than a control that just
 throws `Forbidden` — see `lib/admin-auth.ts` for the shared `requireSuperAdmin()`
 gate used server-side, mirrored by an `isSuperAdmin` prop threaded down to each
 affected client component.
+
+### `/admin/activity` — Community Activity dashboard
+
+Rebuilt from a basic member signup/login table into a deep-dive, in the process
+fixing two real bugs: `auth.admin.listUsers()` was capped at a single 500-row page
+(now paginates properly, `listAllAuthUsers()`), and a plain unpaginated `profiles`
+select was silently capped at 1,000 rows by PostgREST's default row limit even
+though the community has 12,700+ profiles (now paginates via `.range()` with an
+explicit `.order('id')` for stable page boundaries, `listAllProfiles()` — the
+original version had neither an explicit sort nor error handling, so a failed later
+page was silently indistinguishable from "no more rows" and the dashboard just kept
+showing a suspicious, unchanging round number).
+
+- **North Star metrics** — engaged-members % (has ever posted/RSVP'd/voted/etc.,
+  shown against both approved members and total profiles), 30-day usage % (logged in
+  in the last 30 days), and stickiness (DAU/MAU, active-today ÷ active-this-month).
+- **Activation & at-risk** — activation rate (of members who joined in the last 30
+  days, % who took a first action within 7 days) and an at-risk count (approved
+  members active before but not in the last 30 days — an early-warning list distinct
+  from "never logged in").
+- **Engagement trend** — a daily bar chart sourced from `activity_snapshots`, written
+  by a new daily cron (`/api/cron/activity-snapshot`) so the dashboard shows a real
+  trend instead of a single point-in-time read.
+- **Activity by Feature** — a 10-tile breakdown across forum, events, jobs, chat,
+  polls, mentorship, and vendor reviews.
+- **Most Engaging Areas** — distinct members who actually participated per feature,
+  last 30 days — reuses the same rows already fetched for the engaged-members metric,
+  no extra queries.
+- **Where Members Are Going** — page views by top-level route section, last 30 days,
+  sourced from a new `page_views` table. `components/page-view-tracker.tsx`, mounted
+  in `(app)/layout.tsx`, logs a row via a server action (`lib/log-page-view.ts`)
+  every time the route changes for a signed-in member. Not a click/scroll heatmap
+  (that needs a dedicated tool like PostHog with its own account) — this is real
+  route-level navigation data the app already has.
+- **Most Recently Active** — capped to the 100 most-recently-active members (was:
+  the entire roster rendered as one HTML table, which is what was making the page
+  slow to load with a community this size), with a link to `/admin/members` — the
+  dedicated, already-paginated member directory — for the full list.
 
 ---
 
@@ -369,9 +520,15 @@ they're safe to re-run against partially-applied state).
 **Forum & Chat**: `forum_categories`, `forum_topics`, `forum_replies`,
 `chat_channels`, `chat_messages`, `dm_conversations`, `dm_messages`
 
-**Events**: `events`, `event_rsvps`, `event_registrations`, `event_materials`
+**Events**: `events` (incl. `venue_name`, `is_test`), `event_rsvps`,
+`event_registrations`, `event_materials`
 
-**Chapters**: `chapters`, `chapter_memberships`, `chapter_leads`
+**Chapters**: `chapters`, `chapter_memberships`, `chapter_leads`,
+`legacy_chapter_slug_map` (old-site city slug → real chapter slug, migration 055)
+
+**Analytics**: `page_views` (route navigation, insert-your-own-row RLS, admin-only
+reads), `activity_snapshots` (daily north-star rollups, RLS enabled with zero
+policies — service-role only, same pattern as `linkedin_connections`)
 
 **Community features**: `polls`, `poll_options`, `poll_votes`, `mentorship_areas`,
 `mentorship_profiles`, `mentorship_area_selections`, `mentorship_requests`,
@@ -407,9 +564,14 @@ they're safe to re-run against partially-applied state).
 | `/api/cron/forum-digest` | Daily, 9am UTC | Email digest of the last 24h's forum activity |
 | `/api/cron/event-reminders` | Daily, 10am UTC | Reminder emails for events in the next 24–25h |
 | `/api/cron/send-newsletter` | Every request checks for due sends | Fires newsletters scheduled for "now" |
+| `/api/cron/activity-snapshot` | Daily, 11:55pm UTC | Writes the day's north-star numbers to `activity_snapshots` for the `/admin/activity` trend chart |
 
 ---
 
-*Last written: reflects the state of the codebase through the super-admin tier and
-TA news bot/News Brief work. Update this doc as part of shipping any feature that
-changes the picture above.*
+*Last written: reflects the state of the codebase through the rebuilt
+`/admin/activity` dashboard, the homepage redesign (real hero stats, company
+ticker, scroll reveal), the newsletter overhaul (real events/stats blocks, public
+teaser page, LinkedIn sharing, redesigned share card), mandatory LinkedIn URLs for
+approval, chapter email targeting, the geographic chapter-matching fix, and the
+event venue field. Update this doc as part of shipping any feature that changes the
+picture above.*
