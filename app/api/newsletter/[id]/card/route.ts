@@ -34,12 +34,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     subject = newsletter.subject || subject
     previewText = newsletter.preview_text
 
-    const { count } = await adminDb
-      .from('profiles')
-      .select('id', { count: 'exact', head: true })
-      .eq('status', 'approved')
-      .eq('is_bot', false)
-    const png = await generateNewsletterCardPng({ title: subject, subtitle: previewText, memberCount: count ?? 0 })
+    // Matches the "13,000+" figure already used in the homepage hero copy —
+    // Bill's call to keep this a fixed round number rather than the live
+    // (currently lower) approved-member count.
+    const png = await generateNewsletterCardPng({ title: subject, subtitle: previewText, memberCount: 13000 })
     return new Response(new Uint8Array(png), {
       headers: { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=300' },
     })
