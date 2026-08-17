@@ -210,24 +210,26 @@ export async function generateShareCardPng({
 // bordered boxes still read flat/corporate. This version adds the same
 // glow-orb atmosphere already used on the marketing homepage hero, and
 // treats each stat as a colorful icon badge rather than a spreadsheet row.
+// Rounds down to the nearest thousand with a "+" (e.g. 12,734 -> "12,000+")
+// so the headline number is always true — it undersells slightly rather
+// than needing a manual update to stay accurate as the community grows.
+function roundedMemberLabel(n: number): string {
+  if (n < 1000) return `${n}+`;
+  return `${Math.floor(n / 1000).toLocaleString()},000+`;
+}
+
 export async function generateNewsletterCardPng({
   title,
   subtitle,
-  stats,
+  memberCount,
 }: {
   title: string;
   subtitle?: string | null;
-  stats: { newMembers: number; forumPosts: number; eventRsvps: number; newJobs: number };
+  memberCount: number;
 }): Promise<Buffer> {
   const truncatedTitle = title.length > 60 ? `${title.slice(0, 57)}…` : title;
   const fonts = await loadFonts();
-  const hasStats = stats.newMembers + stats.forumPosts + stats.eventRsvps + stats.newJobs > 0;
-  const tiles = [
-    { n: stats.newMembers, label: "NEW MEMBERS", icon: "users" as const, color: "#8B5CF6" },
-    { n: stats.forumPosts, label: "FORUM POSTS", icon: "messageSquare" as const, color: "#14B8A6" },
-    { n: stats.eventRsvps, label: "EVENT RSVPS", icon: "calendarDays" as const, color: "#3B82F6" },
-    { n: stats.newJobs, label: "NEW JOBS", icon: "briefcase" as const, color: "#F59E0B" },
-  ];
+  const memberLabel = roundedMemberLabel(memberCount);
 
   const image = new ImageResponse(
     (
@@ -334,61 +336,45 @@ export async function generateNewsletterCardPng({
           </div>
         )}
 
-        {hasStats && (
-          <div style={{ display: "flex", flexDirection: "row", gap: "22px", width: "100%", marginTop: "64px" }}>
-            {tiles.map((t) => (
-              <div
-                key={t.label}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  flex: 1,
-                  background: `${t.color}1F`,
-                  border: `1.5px solid ${t.color}59`,
-                  borderRadius: "24px",
-                  padding: "28px 10px 24px",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: "64px",
-                    height: "64px",
-                    borderRadius: "50%",
-                    background: `${t.color}33`,
-                    marginBottom: "14px",
-                  }}
-                >
-                  {renderIcon(t.icon, 30, t.color)}
-                </div>
-                <div style={{ display: "flex", fontSize: "50px", fontWeight: 900, color: "#ffffff" }}>{t.n}</div>
-                <div
-                  style={{
-                    display: "flex",
-                    fontSize: "15px",
-                    fontWeight: 700,
-                    color: t.color,
-                    letterSpacing: "1px",
-                    marginTop: "8px",
-                    textAlign: "center",
-                  }}
-                >
-                  {t.label}
-                </div>
-              </div>
-            ))}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: "70px" }}>
+          <div
+            style={{
+              display: "flex",
+              fontSize: "168px",
+              fontWeight: 900,
+              lineHeight: 1,
+              letterSpacing: "-4px",
+              background: `linear-gradient(90deg, #ffffff, #93C5FD)`,
+              backgroundClip: "text",
+              color: "transparent",
+            }}
+          >
+            {memberLabel}
           </div>
-        )}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              marginTop: "18px",
+              padding: "10px 28px",
+              borderRadius: "999px",
+              background: `${RED}26`,
+            }}
+          >
+            {renderIcon("users", 24, RED)}
+            <div style={{ display: "flex", fontSize: "24px", fontWeight: 700, color: RED, letterSpacing: "1px", textTransform: "uppercase" }}>
+              TA Leaders and Growing
+            </div>
+          </div>
+        </div>
 
         <div
           style={{
             display: "flex",
             alignItems: "center",
             gap: "14px",
-            marginTop: hasStats ? "56px" : "80px",
+            marginTop: "70px",
             padding: "22px 44px",
             borderRadius: "999px",
             background: `linear-gradient(90deg, ${RED}, #F07058)`,
