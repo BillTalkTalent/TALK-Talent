@@ -79,8 +79,10 @@ let fontsPromise: Promise<{ name: string; data: ArrayBuffer; weight: 600 | 900; 
 // Satori (the renderer behind next/og) has no access to system or web
 // fonts, so without this every card falls back to a generic thin
 // sans-serif instead of the site's actual Poppins branding. Fetched once
-// per server instance and reused across requests.
-function loadFonts() {
+// per server instance and reused across requests. Never throws — a
+// transient fetch failure shouldn't take down card generation entirely,
+// it should just render with satori's default fallback font instead.
+async function loadFonts() {
   if (!fontsPromise) {
     fontsPromise = Promise.all([
       fetch(`${FONT_BASE}/Poppins-Black.ttf`).then((r) => r.arrayBuffer()),
@@ -89,8 +91,16 @@ function loadFonts() {
       { name: "Poppins", data: black, weight: 900 as const, style: "normal" as const },
       { name: "Poppins", data: semibold, weight: 600 as const, style: "normal" as const },
     ]);
+    // Don't cache a rejected promise — let the next call retry the fetch.
+    fontsPromise.catch(() => {
+      fontsPromise = null;
+    });
   }
-  return fontsPromise;
+  try {
+    return await fontsPromise;
+  } catch {
+    return [];
+  }
 }
 
 export async function generateShareCardPng({
