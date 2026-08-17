@@ -109,15 +109,19 @@ function EventTypeBadge({ isVirtual, eventType }: { isVirtual?: boolean; eventTy
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+function inPersonLocationText(e: any): string {
+  return [e.venue_name, e.location].filter(Boolean).join(', ')
+}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function buildGoogleCalendarUrl(e: any): string {
   const fmt = (d: string) => new Date(d).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'')
-  const p = new URLSearchParams({ action:'TEMPLATE', text: e.title??'', dates:`${fmt(e.event_date)}/${fmt(e.end_date??e.event_date)}`, details: e.description??'', location: e.is_virtual?(e.virtual_url??'Online'):(e.location??'') })
+  const p = new URLSearchParams({ action:'TEMPLATE', text: e.title??'', dates:`${fmt(e.event_date)}/${fmt(e.end_date??e.event_date)}`, details: e.description??'', location: e.is_virtual?(e.virtual_url??'Online'):inPersonLocationText(e) })
   return `https://calendar.google.com/calendar/render?${p}`
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function buildIcalDataUri(e: any): string {
   const fmt = (d: string) => new Date(d).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'')
-  const ics = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nSUMMARY:${e.title??''}\r\nDTSTART:${fmt(e.event_date)}\r\nDTEND:${fmt(e.end_date??e.event_date)}\r\nDESCRIPTION:${(e.description??'').slice(0,200)}\r\nLOCATION:${e.is_virtual?(e.virtual_url??'Online'):(e.location??'')}\r\nEND:VEVENT\r\nEND:VCALENDAR`
+  const ics = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nSUMMARY:${e.title??''}\r\nDTSTART:${fmt(e.event_date)}\r\nDTEND:${fmt(e.end_date??e.event_date)}\r\nDESCRIPTION:${(e.description??'').slice(0,200)}\r\nLOCATION:${e.is_virtual?(e.virtual_url??'Online'):inPersonLocationText(e)}\r\nEND:VEVENT\r\nEND:VCALENDAR`
   return `data:text/calendar;charset=utf8,${encodeURIComponent(ics)}`
 }
 
@@ -169,9 +173,13 @@ function PublicEventTeaser({ event, eventId }: { event: PaidEvent; eventId: stri
 
           <EventWhen event={event} />
 
-          {!event.is_virtual && event.location && (
-            <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <MapPin className="size-4" /> {event.location}
+          {!event.is_virtual && (event.venue_name || event.location) && (
+            <span className="flex items-start gap-1.5 text-sm text-muted-foreground">
+              <MapPin className="size-4 shrink-0 mt-0.5" />
+              <span>
+                {event.venue_name && <span className="font-semibold text-foreground block">{event.venue_name}</span>}
+                {event.location}
+              </span>
             </span>
           )}
 
@@ -462,8 +470,9 @@ export default function EventDetailPage() {
   const isPaid = event.is_paid && event.price != null;
   const isRegistered = registrationStatus === "completed";
 
-  const mapsHref = event.location
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`
+  const mapsQuery = [event.venue_name, event.location].filter(Boolean).join(", ");
+  const mapsHref = mapsQuery
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsQuery)}`
     : null;
 
   return (
@@ -539,7 +548,7 @@ export default function EventDetailPage() {
               {event.is_virtual ? (
                 <><Monitor className="size-4 text-zinc-400" /> Virtual event</>
               ) : (
-                <><MapPin className="size-4 text-zinc-400" /> {event.location ?? "Location TBD"}</>
+                <><MapPin className="size-4 text-zinc-400" /> {event.venue_name ?? event.location ?? "Location TBD"}</>
               )}
             </span>
             <span className="flex items-center gap-1.5">
@@ -603,7 +612,12 @@ export default function EventDetailPage() {
                     <MapPin className="size-4" style={{ color: "#1E4B82" }} />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-zinc-800">{event.location ?? "Location TBD"}</p>
+                    <p className="text-sm font-semibold text-zinc-800">
+                      {event.venue_name ?? event.location ?? "Location TBD"}
+                    </p>
+                    {event.venue_name && event.location && (
+                      <p className="text-xs text-zinc-500 mt-0.5">{event.location}</p>
+                    )}
                     <p className="text-xs text-zinc-500 mt-0.5">Arrive any time after the start — no check-in link needed</p>
                   </div>
                 </div>
@@ -694,7 +708,7 @@ export default function EventDetailPage() {
             card={{
               eyebrow: "Event",
               title: event.title,
-              subtitle: `${format(new Date(event.event_date), "MMM d, yyyy")} · ${event.is_virtual ? "Virtual" : (event.location ?? "In Person")}`,
+              subtitle: `${format(new Date(event.event_date), "MMM d, yyyy")} · ${event.is_virtual ? "Virtual" : (event.venue_name ?? event.location ?? "In Person")}`,
             }}
           />
           {isAdmin && <EmailRsvpsButton eventId={event.id} isPaid={isPaid} />}

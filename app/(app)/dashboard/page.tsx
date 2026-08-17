@@ -476,7 +476,7 @@ export default async function DashboardPage() {
                         {event.is_virtual ? (
                           <><Monitor className="size-3" /> Virtual</>
                         ) : (
-                          <><MapPin className="size-3" /> {event.location ?? "TBD"}</>
+                          <><MapPin className="size-3" /> {event.venue_name ?? event.location ?? "TBD"}</>
                         )}
                         <span className="mx-1">·</span>
                         {timeLabel}

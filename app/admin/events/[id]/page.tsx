@@ -26,6 +26,7 @@ async function updateEvent(id: string, formData: FormData) {
   await (supabase as any).from('events').update({
     title: formData.get('title') as string,
     description: (formData.get('description') as string) || null,
+    venue_name: (formData.get('venue_name') as string) || null,
     location: (formData.get('location') as string) || null,
     event_type: (formData.get('event_type') as string) || 'in_person',
     is_virtual: ((formData.get('event_type') as string) || 'in_person') !== 'in_person',
@@ -98,10 +99,14 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
-              <Input id="location" name="location" defaultValue={event.location ?? ''} placeholder="City, Venue" />
+              <Label htmlFor="venue_name">Venue name</Label>
+              <Input id="venue_name" name="venue_name" defaultValue={event.venue_name ?? ''} placeholder="e.g. Thinking Cup Boston" />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="location">Address</Label>
+              <Input id="location" name="location" defaultValue={event.location ?? ''} placeholder="85 Newbury St, Boston, MA 02116" />
+            </div>
+            <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="virtual_url">Virtual URL</Label>
               <Input id="virtual_url" name="virtual_url" type="url" defaultValue={event.virtual_url ?? ''} placeholder="https://zoom.us/…" />
             </div>

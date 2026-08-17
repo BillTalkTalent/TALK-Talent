@@ -38,6 +38,7 @@ async function cloneAsTestEvent(id: string) {
     .insert({
       title: `[TEST] ${source.title}`,
       description: source.description,
+      venue_name: source.venue_name,
       location: source.location,
       event_type: source.event_type,
       is_virtual: source.is_virtual,
@@ -131,8 +132,10 @@ export default async function AdminEventsPage() {
                           hour: 'numeric', minute: '2-digit',
                         })}
                       </p>
-                      {event.location && (
-                        <p className="text-xs text-zinc-400">{event.location}</p>
+                      {(event.venue_name || event.location) && (
+                        <p className="text-xs text-zinc-400">
+                          {[event.venue_name, event.location].filter(Boolean).join(' · ')}
+                        </p>
                       )}
                       {event.max_attendees && (
                         <p className="text-xs text-zinc-400">Max {event.max_attendees} attendees</p>

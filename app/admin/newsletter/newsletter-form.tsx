@@ -70,7 +70,7 @@ export default function NewsletterForm({
   }
   const [activeSponsor, setActiveSponsor] = useState<ActiveSponsor | null>(null)
   const [skipSponsor, setSkipSponsor] = useState(false)
-  type UpcomingEvent = { id: string; title: string; event_date: string; timezone: string | null; location: string | null; is_virtual: boolean }
+  type UpcomingEvent = { id: string; title: string; event_date: string; timezone: string | null; venue_name: string | null; location: string | null; is_virtual: boolean }
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([])
   type PulseStats = { newMembers: number; forumPosts: number; eventRsvps: number; newJobs: number }
   const [pulseStats, setPulseStats] = useState<PulseStats | null>(null)
@@ -103,7 +103,7 @@ export default function NewsletterForm({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ;(createClient() as any)
       .from('events')
-      .select('id, title, event_date, timezone, location, is_virtual')
+      .select('id, title, event_date, timezone, venue_name, location, is_virtual')
       .eq('status', 'published')
       .eq('is_test', false)
       .gte('event_date', nowIso)
@@ -434,7 +434,7 @@ export default function NewsletterForm({
                               </div>
                               <div className="min-w-0">
                                 <p className="text-sm font-bold text-zinc-900 truncate">{e.title}</p>
-                                <p className="text-xs text-zinc-500 mt-0.5">{time} &middot; {e.is_virtual ? 'Virtual' : (e.location || 'In person')}</p>
+                                <p className="text-xs text-zinc-500 mt-0.5">{time} &middot; {e.is_virtual ? 'Virtual' : (e.venue_name || e.location || 'In person')}</p>
                               </div>
                             </div>
                           )

@@ -96,6 +96,7 @@ export default function CreateEventForm() {
       const { error: insertError } = await (supabase as any).from("events").insert({
         title: fd.get("title") as string,
         description: (fd.get("description") as string) || null,
+        venue_name: (fd.get("venue_name") as string) || null,
         location: (fd.get("location") as string) || null,
         event_type: eventType,
         is_virtual: isVirtual,
@@ -183,12 +184,16 @@ export default function CreateEventForm() {
         />
       </div>
 
-      {/* Location / Virtual URL */}
+      {/* Venue name / Address */}
       <div className="space-y-2">
-        <Label htmlFor="location">Location</Label>
-        <Input id="location" name="location" placeholder="City, Venue" />
+        <Label htmlFor="venue_name">Venue name</Label>
+        <Input id="venue_name" name="venue_name" placeholder="e.g. Thinking Cup Boston" />
       </div>
       <div className="space-y-2">
+        <Label htmlFor="location">Address</Label>
+        <Input id="location" name="location" placeholder="85 Newbury St, Boston, MA 02116" />
+      </div>
+      <div className="space-y-2 sm:col-span-2">
         <Label htmlFor="virtual_url">Virtual URL</Label>
         <Input id="virtual_url" name="virtual_url" type="url" placeholder="https://zoom.us/…" />
       </div>

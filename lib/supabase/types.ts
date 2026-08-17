@@ -131,6 +131,7 @@ export type Database = {
           id: string;
           title: string;
           description: string | null;
+          venue_name: string | null;
           location: string | null;
           is_virtual: boolean;
           virtual_url: string | null;
@@ -149,6 +150,7 @@ export type Database = {
           id?: string;
           title: string;
           description?: string | null;
+          venue_name?: string | null;
           location?: string | null;
           is_virtual?: boolean;
           virtual_url?: string | null;

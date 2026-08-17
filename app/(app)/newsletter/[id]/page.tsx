@@ -116,7 +116,7 @@ export default async function PublicNewsletterPage({ params }: { params: Promise
                       <p className="text-sm font-bold leading-snug line-clamp-2" style={{ color: N.text }}>{e.title}</p>
                     </div>
                     <div className="flex items-center gap-1.5 text-xs" style={{ color: N.muted }}>
-                      {e.is_virtual ? <><Monitor className="size-3.5" /> Virtual</> : <><MapPin className="size-3.5" /> <span className="truncate">{e.location ?? 'In person'}</span></>}
+                      {e.is_virtual ? <><Monitor className="size-3.5" /> Virtual</> : <><MapPin className="size-3.5" /> <span className="truncate">{e.venue_name ?? e.location ?? 'In person'}</span></>}
                     </div>
                   </Link>
                 )

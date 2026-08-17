@@ -12,6 +12,7 @@ export type NewsletterEvent = {
   title: string
   event_date: string
   timezone: string | null
+  venue_name: string | null
   location: string | null
   is_virtual: boolean
 }
@@ -20,7 +21,7 @@ export type NewsletterEvent = {
 export async function getUpcomingEventsForNewsletter(adminDb: any, limit = 3): Promise<NewsletterEvent[]> {
   const { data } = await adminDb
     .from('events')
-    .select('id, title, event_date, timezone, location, is_virtual')
+    .select('id, title, event_date, timezone, venue_name, location, is_virtual')
     .eq('status', 'published')
     .eq('is_test', false)
     .gte('event_date', new Date().toISOString())
@@ -46,7 +47,7 @@ export function buildUpcomingEventsBlock(events: NewsletterEvent[], origin: stri
     const time = formatInZone(e.event_date, tz, {
       hour: 'numeric', minute: '2-digit', weekday: undefined, month: undefined, day: undefined, year: undefined,
     })
-    const where = e.is_virtual ? 'Virtual' : (e.location || 'In person')
+    const where = e.is_virtual ? 'Virtual' : (e.venue_name || e.location || 'In person')
     const url = `${origin}/events/${e.id}`
     return `
       <tr>

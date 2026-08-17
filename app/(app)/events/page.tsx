@@ -105,7 +105,7 @@ function EventCard({ event, attendeeCount }: { event: PaidEvent; attendeeCount: 
               {event.is_virtual ? (
                 <><Monitor className="size-3" /> Virtual · {timeLabel}</>
               ) : (
-                <><MapPin className="size-3" /> {event.location ?? "TBD"} · {timeLabel}</>
+                <><MapPin className="size-3" /> {event.venue_name ?? event.location ?? "TBD"} · {timeLabel}</>
               )}
             </span>
             <span className="flex items-center gap-1 text-xs font-medium text-zinc-500">

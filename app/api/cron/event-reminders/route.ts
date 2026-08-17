@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
   const db = admin as any
   const { data: events } = await db
     .from('events')
-    .select('id, title, event_date, timezone, location, is_virtual, virtual_url')
+    .select('id, title, event_date, timezone, venue_name, location, is_virtual, virtual_url')
     .eq('status', 'published')
     .eq('is_test', false)
     .gte('event_date', in24h.toISOString())
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
       weekday: 'long', month: 'long', day: 'numeric',
       hour: 'numeric', minute: '2-digit',
     })
-    const locationLine = event.is_virtual ? 'Virtual event' : (event.location ?? 'Location TBD')
+    const locationLine = event.is_virtual ? 'Virtual event' : (event.venue_name ?? event.location ?? 'Location TBD')
 
     // Send in batches of 50
     const emails = rsvps

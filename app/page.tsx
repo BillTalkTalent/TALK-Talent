@@ -99,7 +99,7 @@ async function getUpcomingEvents() {
   const admin = createAdminClient()
   const { data } = await admin
     .from('events')
-    .select('id, title, event_date, location, is_virtual, image_url, is_paid, price, currency, timezone')
+    .select('id, title, event_date, venue_name, location, is_virtual, image_url, is_paid, price, currency, timezone')
     .eq('status', 'published')
     .eq('is_test', false)
     .gte('event_date', new Date().toISOString())
@@ -360,7 +360,7 @@ export default async function LandingPage() {
                         {event.is_virtual ? (
                           <><Monitor className="size-3.5" /> Virtual</>
                         ) : (
-                          <><MapPin className="size-3.5" /> <span className="truncate">{event.location ?? 'In person'}</span></>
+                          <><MapPin className="size-3.5" /> <span className="truncate">{event.venue_name ?? event.location ?? 'In person'}</span></>
                         )}
                         {isPaid && (
                           <span className="ml-auto font-bold" style={{ color: N.red }}>{formatPrice(event.price!, event.currency)}</span>
