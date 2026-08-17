@@ -45,7 +45,10 @@ async function reactivateMember(id: string) {
   'use server'
   await requireSuperAdmin()
   const supabase = await createClient()
-  await supabase.from('profiles').update({ status: 'approved', rejection_note: null }).eq('id', id)
+  const { error } = await supabase.from('profiles').update({ status: 'approved', rejection_note: null }).eq('id', id)
+  if (error) {
+    throw new Error(error.message.includes('LinkedIn') ? error.message : `Failed to reactivate member: ${error.message}`)
+  }
   // Auto-fill profile from legacy staging data (matched by linkedin_url)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await (supabase as any).rpc('match_legacy_member', { p_profile_id: id })

@@ -39,6 +39,14 @@ export default function SignupForm() {
 
   async function handleFormSubmit(e: React.FormEvent) {
     e.preventDefault()
+
+    // Belt-and-suspenders on top of the inputs' `required` attribute —
+    // catches whitespace-only submissions too.
+    if (!email.trim() || !linkedinUrl.trim()) {
+      toast.error('Email and LinkedIn URL are both required.')
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -69,7 +77,10 @@ export default function SignupForm() {
       email,
       password,
       options: {
-        data: { full_name: fullName },
+        // linkedin_url here (not just the follow-up upsert below) lets the
+        // auto-create-profile DB trigger set it on the very first insert —
+        // see migration 054.
+        data: { full_name: fullName, linkedin_url: linkedinUrl },
       },
     })
 

@@ -24,8 +24,18 @@ async function approveMember(id: string) {
     .eq('id', id)
     .single()
 
-  // 2. Approve them
-  await supabase.from('profiles').update({ status: 'approved' }).eq('id', id)
+  // 2. Approve them — the DB blocks this (profiles_require_linkedin_for_approval
+  // trigger) if they have no LinkedIn URL on file, so surface that clearly
+  // instead of silently sending a "you're approved" email for an approval
+  // that didn't actually happen.
+  const { error: approveError } = await supabase.from('profiles').update({ status: 'approved' }).eq('id', id)
+  if (approveError) {
+    throw new Error(
+      approveError.message.includes('LinkedIn')
+        ? approveError.message
+        : `Failed to approve member: ${approveError.message}`
+    )
+  }
 
   // 2a. Auto-fill profile from legacy staging data (matched by linkedin_url)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
