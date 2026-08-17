@@ -1,82 +1,94 @@
 import { revalidatePath } from 'next/cache'
+import { redirect, unstable_rethrow } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Users, Clock, Calendar, Building2, Lock } from 'lucide-react'
+import { Users, Clock, Calendar, Building2, Lock, AlertTriangle } from 'lucide-react'
 import { Resend } from 'resend'
 import AdminMemberSearch from '@/components/admin-member-search'
 import { requireSuperAdmin } from '@/lib/admin-auth'
 
 async function approveMember(id: string) {
   'use server'
-  await requireSuperAdmin()
-  const supabase = await createClient()
-  const admin = createAdminClient()
+  try {
+    await requireSuperAdmin()
+    const supabase = await createClient()
+    const admin = createAdminClient()
 
-  // 1. Fetch the member's profile so we have email + name
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: profile } = await (supabase as any)
-    .from('profiles')
-    .select('email, full_name, interested_event_id')
-    .eq('id', id)
-    .single()
+    // 1. Fetch the member's profile so we have email + name
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: profile } = await (supabase as any)
+      .from('profiles')
+      .select('email, full_name, interested_event_id')
+      .eq('id', id)
+      .single()
 
-  // 2. Approve them — the DB blocks this (profiles_require_linkedin_for_approval
-  // trigger) if they have no LinkedIn URL on file, so surface that clearly
-  // instead of silently sending a "you're approved" email for an approval
-  // that didn't actually happen.
-  const { error: approveError } = await supabase.from('profiles').update({ status: 'approved' }).eq('id', id)
-  if (approveError) {
-    throw new Error(
-      approveError.message.includes('LinkedIn')
-        ? approveError.message
-        : `Failed to approve member: ${approveError.message}`
-    )
-  }
-
-  // 2a. Auto-fill profile from legacy staging data (matched by linkedin_url)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (supabase as any).rpc('match_legacy_member', { p_profile_id: id })
-
-  // 3. Send approval email with a magic link so they can log straight in
-  if (profile?.email) {
-    try {
-      const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
-
-      // Generate a magic link (one-click login) — if they signed up wanting
-      // to attend a specific event, drop them straight back on it instead
-      // of the generic dashboard.
-      const destination = profile.interested_event_id
-        ? `${origin}/events/${profile.interested_event_id}`
-        : `${origin}/dashboard`
-      const { data: linkData } = await admin.auth.admin.generateLink({
-        type: 'magiclink',
-        email: profile.email,
-        options: { redirectTo: destination },
-      })
-      const loginUrl = linkData?.properties?.action_link ?? `${origin}/login`
-
-      const firstName = profile.full_name?.split(' ')[0] ?? 'there'
-      const resend = new Resend(process.env.RESEND_API_KEY)
-      const from = process.env.FROM_EMAIL ?? 'TALK Community <onboarding@resend.dev>'
-
-      await resend.emails.send({
-        from,
-        replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
-        to: profile.email,
-        subject: "You're in — welcome to TALK! 🎉",
-        html: buildApprovalEmail(firstName, loginUrl, origin),
-      })
-    } catch (err) {
-      // Don't block the approval if email fails — log and continue
-      console.error('[approveMember] email error:', err)
+    // 2. Approve them — the DB blocks this (profiles_require_linkedin_for_approval
+    // trigger) if they have no LinkedIn URL on file, so surface that clearly
+    // instead of silently sending a "you're approved" email for an approval
+    // that didn't actually happen.
+    const { error: approveError } = await supabase.from('profiles').update({ status: 'approved' }).eq('id', id)
+    if (approveError) {
+      throw new Error(
+        approveError.message.includes('LinkedIn')
+          ? approveError.message
+          : `Failed to approve member: ${approveError.message}`
+      )
     }
-  }
 
-  revalidatePath('/admin')
+    // 2a. Auto-fill profile from legacy staging data (matched by linkedin_url)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any).rpc('match_legacy_member', { p_profile_id: id })
+
+    // 3. Send approval email with a magic link so they can log straight in
+    if (profile?.email) {
+      try {
+        const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
+
+        // Generate a magic link (one-click login) — if they signed up wanting
+        // to attend a specific event, drop them straight back on it instead
+        // of the generic dashboard.
+        const destination = profile.interested_event_id
+          ? `${origin}/events/${profile.interested_event_id}`
+          : `${origin}/dashboard`
+        const { data: linkData } = await admin.auth.admin.generateLink({
+          type: 'magiclink',
+          email: profile.email,
+          options: { redirectTo: destination },
+        })
+        const loginUrl = linkData?.properties?.action_link ?? `${origin}/login`
+
+        const firstName = profile.full_name?.split(' ')[0] ?? 'there'
+        const resend = new Resend(process.env.RESEND_API_KEY)
+        const from = process.env.FROM_EMAIL ?? 'TALK Community <onboarding@resend.dev>'
+
+        await resend.emails.send({
+          from,
+          replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
+          to: profile.email,
+          subject: "You're in — welcome to TALK! 🎉",
+          html: buildApprovalEmail(firstName, loginUrl, origin),
+        })
+      } catch (err) {
+        // Don't block the approval if email fails — log and continue
+        console.error('[approveMember] email error:', err)
+      }
+    }
+
+    revalidatePath('/admin')
+  } catch (err) {
+    // An expected failure here (most commonly: no LinkedIn URL on file)
+    // shouldn't throw — an uncaught error in a Server Action bubbles to the
+    // nearest error boundary and replaces the *entire* app with the generic
+    // error screen, taking down every other pending approval with it.
+    // Surface it as a banner on the same page instead.
+    unstable_rethrow(err)
+    const message = err instanceof Error ? err.message : 'Failed to approve member'
+    redirect(`/admin?error=${encodeURIComponent(message)}`)
+  }
 }
 
 // A signup recognized themself among possible existing-profile matches
@@ -209,39 +221,51 @@ function buildApprovalEmail(firstName: string, loginUrl: string, origin: string)
 
 async function rejectMember(formData: FormData) {
   'use server'
-  await requireSuperAdmin()
-  const id = formData.get('id') as string
-  const note = (formData.get('note') as string)?.trim() || 'Does not meet community criteria'
-  const supabase = await createClient()
-  const admin = createAdminClient()
+  try {
+    await requireSuperAdmin()
+    const id = formData.get('id') as string
+    const note = (formData.get('note') as string)?.trim() || 'Does not meet community criteria'
+    const supabase = await createClient()
+    const admin = createAdminClient()
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('email, full_name')
-    .eq('id', id)
-    .single()
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('email, full_name')
+      .eq('id', id)
+      .single()
 
-  await supabase.from('profiles').update({ status: 'rejected', rejection_note: note }).eq('id', id)
-
-  if (profile?.email) {
-    try {
-      const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
-      const firstName = profile.full_name?.split(' ')[0] ?? 'there'
-      const resend = new Resend(process.env.RESEND_API_KEY)
-      const from = process.env.FROM_EMAIL ?? 'TALK Community <onboarding@resend.dev>'
-      await resend.emails.send({
-        from,
-        replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
-        to: profile.email,
-        subject: 'Your TALK membership application',
-        html: buildRejectionEmail(firstName, origin),
-      })
-    } catch (err) {
-      console.error('[rejectMember] email error:', err)
+    const { error: rejectError } = await supabase
+      .from('profiles')
+      .update({ status: 'rejected', rejection_note: note })
+      .eq('id', id)
+    if (rejectError) {
+      throw new Error(`Failed to reject member: ${rejectError.message}`)
     }
-  }
 
-  revalidatePath('/admin')
+    if (profile?.email) {
+      try {
+        const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
+        const firstName = profile.full_name?.split(' ')[0] ?? 'there'
+        const resend = new Resend(process.env.RESEND_API_KEY)
+        const from = process.env.FROM_EMAIL ?? 'TALK Community <onboarding@resend.dev>'
+        await resend.emails.send({
+          from,
+          replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
+          to: profile.email,
+          subject: 'Your TALK membership application',
+          html: buildRejectionEmail(firstName, origin),
+        })
+      } catch (err) {
+        console.error('[rejectMember] email error:', err)
+      }
+    }
+
+    revalidatePath('/admin')
+  } catch (err) {
+    unstable_rethrow(err)
+    const message = err instanceof Error ? err.message : 'Failed to reject member'
+    redirect(`/admin?error=${encodeURIComponent(message)}`)
+  }
 }
 
 function buildRejectionEmail(firstName: string, origin: string): string {
@@ -281,7 +305,12 @@ function buildRejectionEmail(firstName: string, origin: string): string {
 </html>`
 }
 
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>
+}) {
+  const { error: actionError } = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -323,6 +352,13 @@ export default async function AdminPage() {
 
   return (
     <div className="space-y-6">
+      {actionError && (
+        <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+          <AlertTriangle className="size-4 text-red-500 shrink-0 mt-0.5" />
+          <p className="text-sm font-semibold text-red-800">{actionError}</p>
+        </div>
+      )}
+
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map(({ label, value, icon: Icon }) => (
