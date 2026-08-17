@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { format } from 'date-fns'
 import NewsletterForm from '../newsletter-form'
+import { ShareOnLinkedInButton } from '@/components/share-on-linkedin-button'
+import { buildLinkedInShareText } from '@/lib/linkedin-share-text'
 
 export default async function EditNewsletterPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -49,7 +51,19 @@ export default async function EditNewsletterPage({ params }: { params: Promise<{
 
       {newsletter.status === 'sent' ? (
         <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm p-8">
-          <p className="text-sm font-semibold text-zinc-500 mb-4">This edition was already sent — read-only view</p>
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm font-semibold text-zinc-500">This edition was already sent — read-only view</p>
+            <ShareOnLinkedInButton
+              defaultText={buildLinkedInShareText(
+                `${newsletter.subject}\n\n${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'}/newsletter/${newsletter.id}`
+              )}
+              card={{
+                eyebrow: 'TALK Newsletter',
+                title: newsletter.subject,
+                subtitle: newsletter.preview_text || undefined,
+              }}
+            />
+          </div>
           <div
             className="prose prose-sm max-w-none text-zinc-700"
             dangerouslySetInnerHTML={{ __html: newsletter.body_html }}

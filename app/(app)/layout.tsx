@@ -10,11 +10,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
-    // middleware.ts lets /events/[id] through logged-out so it can show a
-    // public teaser instead of a login wall — render bare here too (no
-    // member-only nav/footer chrome) rather than redirecting.
+    // middleware.ts lets /events/[id] and /newsletter/[id] through logged-out
+    // so they can show a public teaser instead of a login wall — render bare
+    // here too (no member-only nav/footer chrome) rather than redirecting.
     const pathname = (await headers()).get('x-pathname') ?? ''
-    if (pathname.startsWith('/events/')) {
+    if (pathname.startsWith('/events/') || pathname.startsWith('/newsletter/')) {
       return <>{children}</>
     }
     redirect('/login')
