@@ -1,4 +1,5 @@
 import { revalidatePath } from 'next/cache'
+import { redirect, unstable_rethrow } from 'next/navigation'
 import { format } from 'date-fns'
 import { createClient } from '@/lib/supabase/server'
 import { Badge } from '@/components/ui/badge'
@@ -6,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import MembersTable from './members-table'
 import type { Profile } from '@/lib/supabase/types'
-import { RotateCcw, AlertCircle } from 'lucide-react'
+import { RotateCcw, AlertCircle, AlertTriangle } from 'lucide-react'
 import { requireSuperAdmin } from '@/lib/admin-auth'
 
 async function setRole(id: string, role: 'member' | 'board_member' | 'admin') {
@@ -43,16 +44,27 @@ async function suspendMember(id: string) {
 
 async function reactivateMember(id: string) {
   'use server'
-  await requireSuperAdmin()
-  const supabase = await createClient()
-  const { error } = await supabase.from('profiles').update({ status: 'approved', rejection_note: null }).eq('id', id)
-  if (error) {
-    throw new Error(error.message.includes('LinkedIn') ? error.message : `Failed to reactivate member: ${error.message}`)
+  try {
+    await requireSuperAdmin()
+    const supabase = await createClient()
+    const { error } = await supabase.from('profiles').update({ status: 'approved', rejection_note: null }).eq('id', id)
+    if (error) {
+      throw new Error(error.message.includes('LinkedIn') ? error.message : `Failed to reactivate member: ${error.message}`)
+    }
+    // Auto-fill profile from legacy staging data (matched by linkedin_url)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any).rpc('match_legacy_member', { p_profile_id: id })
+    revalidatePath('/admin/members')
+  } catch (err) {
+    // Same failure mode as approveMember (app/admin/page.tsx): an uncaught
+    // throw here — most commonly the profiles_require_linkedin_for_approval
+    // trigger blocking a member with no LinkedIn URL on file — would bubble
+    // to the root error boundary and crash the entire app instead of just
+    // this one row.
+    unstable_rethrow(err)
+    const message = err instanceof Error ? err.message : 'Failed to reactivate member'
+    redirect(`/admin/members?error=${encodeURIComponent(message)}`)
   }
-  // Auto-fill profile from legacy staging data (matched by linkedin_url)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (supabase as any).rpc('match_legacy_member', { p_profile_id: id })
-  revalidatePath('/admin/members')
 }
 
 const PAGE_SIZE = 50
@@ -60,10 +72,11 @@ const PAGE_SIZE = 50
 export default async function AdminMembersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; page?: string }>
+  searchParams: Promise<{ q?: string; page?: string; error?: string }>
 }) {
   const sp = await searchParams
   const q = (sp.q ?? '').trim()
+  const actionError = sp.error
   const pageNum = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
   const fromRow = (pageNum - 1) * PAGE_SIZE
 
@@ -119,6 +132,13 @@ export default async function AdminMembersPage({
 
   return (
     <div className="space-y-6">
+      {actionError && (
+        <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+          <AlertTriangle className="size-4 text-red-500 shrink-0 mt-0.5" />
+          <p className="text-sm font-semibold text-red-800">{actionError}</p>
+        </div>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
