@@ -12,6 +12,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createClient } from '@/lib/supabase/client'
 import { formatInZone } from '@/lib/timezone'
+import { ShareOnLinkedInButton } from '@/components/share-on-linkedin-button'
+import { NewsletterShareTools } from '@/components/newsletter-share-tools'
+import { buildLinkedInShareText } from '@/lib/linkedin-share-text'
 
 const NewsletterEditor = dynamic(() => import('@/components/newsletter-editor'), { ssr: false })
 
@@ -261,6 +264,45 @@ export default function NewsletterForm({
           />
         </div>
       </div>
+
+      {/* LinkedIn sharing — available once this edition has been saved (has
+          an id) even before it's sent, so the link/image can be prepped
+          ahead of time. The public /newsletter/[id] page goes live as soon
+          as this edition is scheduled or sent (still 404s for a plain
+          unscheduled draft), so a link prepped for a scheduled send works
+          immediately — no window where it 404s before send time. */}
+      {id && (
+        <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm px-6 py-4 space-y-3">
+          <p className="text-[11px] text-zinc-400">
+            Prep your LinkedIn post now. The link works as soon as this edition is scheduled or sent —
+            if it&apos;s still an unscheduled draft, save/schedule it first.
+          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-[11px] font-semibold text-zinc-400">For the TALK Company Page (post manually)</span>
+            <NewsletterShareTools
+              publicUrl={`${typeof window !== 'undefined' ? window.location.origin : ''}/newsletter/${id}`}
+              card={{
+                eyebrow: 'TALK Newsletter',
+                title: subject || 'TALK newsletter',
+                subtitle: previewText || undefined,
+              }}
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-[11px] font-semibold text-zinc-400">Or post to your own profile</span>
+            <ShareOnLinkedInButton
+              defaultText={buildLinkedInShareText(
+                `${subject || 'TALK newsletter'}\n\n${typeof window !== 'undefined' ? window.location.origin : ''}/newsletter/${id}`
+              )}
+              card={{
+                eyebrow: 'TALK Newsletter',
+                title: subject || 'TALK newsletter',
+                subtitle: previewText || undefined,
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Sponsor banner */}
       <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm px-6 py-4 flex items-center justify-between gap-4">

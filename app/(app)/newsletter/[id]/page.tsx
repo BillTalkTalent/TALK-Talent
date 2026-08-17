@@ -39,8 +39,10 @@ export default async function PublicNewsletterPage({ params }: { params: Promise
     .eq('id', id)
     .single()
 
-  // Don't leak drafts/scheduled editions via a guessed or leaked ID.
-  if (!newsletter || newsletter.status !== 'sent') notFound()
+  // Live once scheduled (so a link prepped ahead of a scheduled send
+  // resolves right away, not just after it fires) or sent. Still 404s for
+  // plain drafts, so an in-progress edit can't leak via a guessed ID.
+  if (!newsletter || (newsletter.status !== 'sent' && newsletter.status !== 'scheduled')) notFound()
 
   const [upcomingEvents, stats] = await Promise.all([
     getUpcomingEventsForNewsletter(adminDb, 3),
