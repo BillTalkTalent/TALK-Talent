@@ -281,11 +281,7 @@ export default function NewsletterForm({
             <span className="text-[11px] font-semibold text-zinc-400">For the TALK Company Page (post manually)</span>
             <NewsletterShareTools
               publicUrl={`${typeof window !== 'undefined' ? window.location.origin : ''}/newsletter/${id}`}
-              card={{
-                eyebrow: 'TALK Newsletter',
-                title: subject || 'TALK newsletter',
-                subtitle: previewText || undefined,
-              }}
+              newsletterId={id}
             />
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -299,6 +295,7 @@ export default function NewsletterForm({
                 title: subject || 'TALK newsletter',
                 subtitle: previewText || undefined,
               }}
+              newsletterId={id}
             />
           </div>
         </div>

@@ -59,11 +59,7 @@ export default async function EditNewsletterPage({ params }: { params: Promise<{
                 <span className="text-[11px] font-semibold text-zinc-400">For the TALK Company Page (post manually)</span>
                 <NewsletterShareTools
                   publicUrl={`${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'}/newsletter/${newsletter.id}`}
-                  card={{
-                    eyebrow: 'TALK Newsletter',
-                    title: newsletter.subject,
-                    subtitle: newsletter.preview_text || undefined,
-                  }}
+                  newsletterId={newsletter.id}
                 />
               </div>
               <div className="flex items-center gap-3">
@@ -77,6 +73,7 @@ export default async function EditNewsletterPage({ params }: { params: Promise<{
                     title: newsletter.subject,
                     subtitle: newsletter.preview_text || undefined,
                   }}
+                  newsletterId={newsletter.id}
                 />
               </div>
             </div>

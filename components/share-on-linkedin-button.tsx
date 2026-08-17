@@ -28,18 +28,27 @@ export type ShareCard = { eyebrow: string; title: string; subtitle?: string | nu
 export function ShareOnLinkedInButton({
   defaultText,
   card,
+  newsletterId,
 }: {
   defaultText: string
   card: ShareCard
+  // When sharing a newsletter, use the richer stats-filled card
+  // (app/api/newsletter/[id]/card) instead of the generic title-only one.
+  newsletterId?: string
 }) {
   const [connected, setConnected] = useState<boolean | null>(null)
   const [open, setOpen] = useState(false)
   const [text, setText] = useState(defaultText)
   const [loading, setLoading] = useState(false)
 
-  const previewParams = new URLSearchParams({ eyebrow: card.eyebrow, title: card.title })
-  if (card.subtitle) previewParams.set('subtitle', card.subtitle)
-  const previewUrl = `/api/linkedin/card-preview?${previewParams.toString()}`
+  let previewUrl: string
+  if (newsletterId) {
+    previewUrl = `/api/newsletter/${newsletterId}/card`
+  } else {
+    const previewParams = new URLSearchParams({ eyebrow: card.eyebrow, title: card.title })
+    if (card.subtitle) previewParams.set('subtitle', card.subtitle)
+    previewUrl = `/api/linkedin/card-preview?${previewParams.toString()}`
+  }
 
   useEffect(() => {
     fetch('/api/linkedin/status')
@@ -65,7 +74,7 @@ export function ShareOnLinkedInButton({
       const res = await fetch('/api/linkedin/share', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, card }),
+        body: JSON.stringify({ text, card, newsletterId }),
       })
       const data = await res.json()
 

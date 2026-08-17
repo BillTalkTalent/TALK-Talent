@@ -127,3 +127,151 @@ export async function generateShareCardPng({
 
   return Buffer.from(await image.arrayBuffer());
 }
+
+// Richer variant for newsletter LinkedIn shares — the generic card above is
+// just a floating title with a lot of dead navy space, which reads flat on
+// a feed. This fills that space with real "this week in TALK" numbers
+// instead, giving it something concrete to stop a scroll on.
+export async function generateNewsletterCardPng({
+  title,
+  subtitle,
+  stats,
+}: {
+  title: string;
+  subtitle?: string | null;
+  stats: { newMembers: number; forumPosts: number; eventRsvps: number; newJobs: number };
+}): Promise<Buffer> {
+  const truncatedTitle = title.length > 60 ? `${title.slice(0, 57)}…` : title;
+  const fonts = await loadFonts();
+  const hasStats = stats.newMembers + stats.forumPosts + stats.eventRsvps + stats.newJobs > 0;
+  const tiles = [
+    { n: stats.newMembers, label: "NEW MEMBERS" },
+    { n: stats.forumPosts, label: "FORUM POSTS" },
+    { n: stats.eventRsvps, label: "EVENT RSVPS" },
+    { n: stats.newJobs, label: "NEW JOBS" },
+  ];
+
+  const image = new ImageResponse(
+    (
+      <div
+        style={{
+          width: "1200px",
+          height: "1200px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "flex-start",
+          background: `linear-gradient(160deg, ${NAVY_A} 0%, ${NAVY_B} 55%, ${NAVY_C} 100%)`,
+          padding: "100px 90px 70px",
+          fontFamily: "Poppins",
+        }}
+      >
+        <div style={{ display: "flex", fontSize: "64px", fontWeight: 900, letterSpacing: "-2px" }}>
+          <span style={{ color: RED }}>TA</span>
+          <span style={{ color: "#ffffff" }}>LK</span>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            fontSize: "22px",
+            fontWeight: 600,
+            color: "#93C5FD",
+            textTransform: "uppercase",
+            letterSpacing: "3px",
+            padding: "9px 26px",
+            border: "2px solid rgba(147,197,253,0.4)",
+            borderRadius: "999px",
+            marginTop: "32px",
+          }}
+        >
+          TALK Newsletter
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            fontSize: "54px",
+            fontWeight: 900,
+            color: "#ffffff",
+            textAlign: "center",
+            lineHeight: 1.2,
+            marginTop: "50px",
+          }}
+        >
+          {truncatedTitle}
+        </div>
+
+        {subtitle && (
+          <div
+            style={{
+              display: "flex",
+              fontSize: "28px",
+              fontWeight: 600,
+              color: "rgba(255,255,255,0.6)",
+              textAlign: "center",
+              marginTop: "18px",
+            }}
+          >
+            {subtitle}
+          </div>
+        )}
+
+        {hasStats && (
+          <div style={{ display: "flex", flexDirection: "row", gap: "20px", width: "100%", marginTop: "70px" }}>
+            {tiles.map((t) => (
+              <div
+                key={t.label}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  flex: 1,
+                  background: "rgba(255,255,255,0.06)",
+                  border: "1px solid rgba(255,255,255,0.14)",
+                  borderRadius: "20px",
+                  padding: "32px 12px",
+                }}
+              >
+                <div style={{ display: "flex", fontSize: "58px", fontWeight: 900, color: RED }}>{t.n}</div>
+                <div
+                  style={{
+                    display: "flex",
+                    fontSize: "16px",
+                    fontWeight: 600,
+                    color: "rgba(255,255,255,0.55)",
+                    letterSpacing: "1px",
+                    marginTop: "10px",
+                    textAlign: "center",
+                  }}
+                >
+                  {t.label}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "10px",
+            marginTop: "auto",
+          }}
+        >
+          <div style={{ display: "flex", fontSize: "28px", fontWeight: 600, color: "rgba(255,255,255,0.8)" }}>
+            The private community for TA leaders.
+          </div>
+          <div style={{ display: "flex", fontSize: "22px", fontWeight: 600, color: "rgba(147,197,253,0.8)" }}>
+            talktalent.com
+          </div>
+        </div>
+      </div>
+    ),
+    { width: 1200, height: 1200, fonts }
+  );
+
+  return Buffer.from(await image.arrayBuffer());
+}

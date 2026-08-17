@@ -26,7 +26,7 @@ type CardInput = { eyebrow: string; title: string; subtitle?: string | null }
 // whoever uploads them, so this can't be generated once and reused across
 // different members' posts. Returns the image urn, or null if anything
 // fails (the post still goes out, just without the branded image).
-async function uploadShareCardImage(token: string, memberUrn: string, card: CardInput): Promise<string | null> {
+async function uploadShareCardImage(token: string, memberUrn: string, card: CardInput, richImageUrl?: string): Promise<string | null> {
   try {
     const initRes = await fetch('https://api.linkedin.com/rest/images?action=initializeUpload', {
       method: 'POST',
@@ -41,7 +41,13 @@ async function uploadShareCardImage(token: string, memberUrn: string, card: Card
     const imageUrn: string | undefined = initData?.value?.image
     if (!uploadUrl || !imageUrn) return null
 
-    const imageBytes = await generateShareCardPng(card)
+    let imageBytes: ArrayBuffer | Buffer
+    if (richImageUrl) {
+      const richRes = await fetch(richImageUrl)
+      imageBytes = richRes.ok ? await richRes.arrayBuffer() : await generateShareCardPng(card)
+    } else {
+      imageBytes = await generateShareCardPng(card)
+    }
     const putRes = await fetch(uploadUrl, {
       method: 'PUT',
       headers: { Authorization: `Bearer ${token}` },
@@ -62,7 +68,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'not_signed_in' }, { status: 401 })
   }
 
-  const { text, card } = await req.json()
+  const { text, card, newsletterId } = await req.json()
   if (!text || typeof text !== 'string' || !text.trim()) {
     return NextResponse.json({ error: 'missing_text' }, { status: 400 })
   }
@@ -81,7 +87,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'not_connected' }, { status: 409 })
   }
 
-  const imageUrn = await uploadShareCardImage(connection.access_token, connection.member_urn, card)
+  const richImageUrl = typeof newsletterId === 'string' && newsletterId
+    ? `${req.nextUrl.origin}/api/newsletter/${newsletterId}/card`
+    : undefined
+  const imageUrn = await uploadShareCardImage(connection.access_token, connection.member_urn, card, richImageUrl)
 
   const linkedinRes = await fetch('https://api.linkedin.com/rest/posts', {
     method: 'POST',

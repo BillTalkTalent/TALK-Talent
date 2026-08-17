@@ -13,17 +13,17 @@ import { Copy, Check, Download, Loader2 } from 'lucide-react'
 // share-card image.
 export function NewsletterShareTools({
   publicUrl,
-  card,
+  newsletterId,
+  downloadName,
 }: {
   publicUrl: string
-  card: { eyebrow: string; title: string; subtitle?: string | null }
+  newsletterId: string
+  downloadName?: string
 }) {
   const [copied, setCopied] = useState(false)
   const [downloading, setDownloading] = useState(false)
 
-  const previewParams = new URLSearchParams({ eyebrow: card.eyebrow, title: card.title })
-  if (card.subtitle) previewParams.set('subtitle', card.subtitle)
-  const imageUrl = `/api/linkedin/card-preview?${previewParams.toString()}`
+  const imageUrl = `/api/newsletter/${newsletterId}/card`
 
   async function copyLink() {
     try {
@@ -45,7 +45,7 @@ export function NewsletterShareTools({
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `talk-newsletter-${card.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40)}.png`
+      a.download = downloadName ?? `talk-newsletter-${newsletterId}.png`
       document.body.appendChild(a)
       a.click()
       a.remove()
