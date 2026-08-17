@@ -25,9 +25,19 @@ async function fetchChapterMemberIds(admin: ReturnType<typeof createAdminClient>
   return (data ?? []).map((r: { user_id: string }) => r.user_id)
 }
 
+// Only role that's meaningful to target directly — everyone else is 'member'
+// or 'admin', and admins aren't a mailing audience in their own right.
+export type AudienceRole = 'board_member'
+
 // Pull every approved member's email, paginating past Supabase's 1k row cap.
-// Restricts to a single chapter's members when chapterId is given.
-async function fetchApprovedEmails(admin: ReturnType<typeof createAdminClient>, chapterId?: string | null): Promise<string[]> {
+// Restricts to a single chapter's members when chapterId is given, and/or to
+// a single role (e.g. board members) when role is given — the two combine,
+// so "board members in the Boston chapter" is just both filters at once.
+async function fetchApprovedEmails(
+  admin: ReturnType<typeof createAdminClient>,
+  chapterId?: string | null,
+  role?: AudienceRole | null,
+): Promise<string[]> {
   let memberIdFilter: string[] | null = null
   if (chapterId) {
     memberIdFilter = await fetchChapterMemberIds(admin, chapterId)
@@ -45,6 +55,7 @@ async function fetchApprovedEmails(admin: ReturnType<typeof createAdminClient>, 
       .eq('is_bot', false)
       .not('email', 'is', null)
     if (memberIdFilter) query = query.in('id', memberIdFilter)
+    if (role) query = query.eq('role', role)
     const { data, error } = await query.range(from, from + pageSize - 1)
     if (error || !data || data.length === 0) break
     for (const r of data as { email: string | null }[]) {
@@ -72,12 +83,12 @@ async function fetchUnsubscribed(admin: ReturnType<typeof createAdminClient>): P
 }
 
 // How many members a send would actually reach (approved minus unsubscribed),
-// optionally narrowed to one chapter.
-export async function getAudienceCount(chapterId?: string | null): Promise<{ total: number }> {
+// optionally narrowed to one chapter and/or one role.
+export async function getAudienceCount(chapterId?: string | null, role?: AudienceRole | null): Promise<{ total: number }> {
   await requireAdmin()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const admin = createAdminClient() as any
-  const [emails, unsub] = await Promise.all([fetchApprovedEmails(admin, chapterId), fetchUnsubscribed(admin)])
+  const [emails, unsub] = await Promise.all([fetchApprovedEmails(admin, chapterId, role), fetchUnsubscribed(admin)])
   const total = emails.filter((e) => !unsub.has(e)).length
   return { total }
 }
@@ -132,12 +143,14 @@ export async function sendTestEmail(subject: string, body: string): Promise<{ ok
 }
 
 // Broadcast to approved members (minus unsubscribes), in throttled batches.
-// Narrowed to one chapter's members when chapterId is given — otherwise
-// reaches everyone.
+// Narrowed to one chapter's members when chapterId is given, and/or to one
+// role (e.g. board members only) when role is given — otherwise reaches
+// everyone.
 export async function sendToAllMembers(
   subject: string,
   body: string,
   chapterId?: string | null,
+  role?: AudienceRole | null,
 ): Promise<{ ok: boolean; sent: number; skipped: number; total: number; error?: string }> {
   await requireSuperAdmin()
   const subj = subject.trim()
@@ -146,7 +159,7 @@ export async function sendToAllMembers(
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const admin = createAdminClient() as any
-  const [allEmails, unsub] = await Promise.all([fetchApprovedEmails(admin, chapterId), fetchUnsubscribed(admin)])
+  const [allEmails, unsub] = await Promise.all([fetchApprovedEmails(admin, chapterId, role), fetchUnsubscribed(admin)])
   const recipients = allEmails.filter((e) => !unsub.has(e))
   const skipped = allEmails.length - recipients.length
 

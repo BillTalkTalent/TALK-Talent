@@ -8,7 +8,11 @@ import { createClient } from '@/lib/supabase/server'
 export const maxDuration = 300
 
 export default async function EmailMembersPage() {
-  const [{ total }, chapters] = await Promise.all([getAudienceCount(), getChapters()])
+  const [{ total }, chapters, { total: boardMemberCount }] = await Promise.all([
+    getAudienceCount(),
+    getChapters(),
+    getAudienceCount(null, 'board_member'),
+  ])
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -26,10 +30,15 @@ export default async function EmailMembersPage() {
           <ArrowLeft className="size-4" /> Back to admin
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-zinc-900">Email Members</h1>
-        <p className="text-sm text-zinc-500">Send a community-wide email through TALK, or target a single chapter.</p>
+        <p className="text-sm text-zinc-500">Send a community-wide email through TALK, target a single chapter, or reach board members only.</p>
       </div>
 
-      <AdminEmailComposer audienceCount={total} chapters={chapters} isSuperAdmin={isSuperAdmin} />
+      <AdminEmailComposer
+        audienceCount={total}
+        chapters={chapters}
+        boardMemberCount={boardMemberCount}
+        isSuperAdmin={isSuperAdmin}
+      />
     </div>
   )
 }
