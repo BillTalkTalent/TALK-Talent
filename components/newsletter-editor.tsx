@@ -21,9 +21,10 @@ import { cn } from '@/lib/utils'
 interface NewsletterEditorProps {
   content: string
   onChange: (html: string) => void
+  uploadFolder?: string
 }
 
-export default function NewsletterEditor({ content, onChange }: NewsletterEditorProps) {
+export default function NewsletterEditor({ content, onChange, uploadFolder = 'newsletter' }: NewsletterEditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
 
@@ -54,7 +55,7 @@ export default function NewsletterEditor({ content, onChange }: NewsletterEditor
     try {
       const supabase = createClient()
       const ext = file.name.split('.').pop()
-      const path = `newsletter/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      const path = `${uploadFolder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
       const { error } = await supabase.storage.from('event-images').upload(path, file, { upsert: false })
       if (error) throw error
       const { data } = supabase.storage.from('event-images').getPublicUrl(path)

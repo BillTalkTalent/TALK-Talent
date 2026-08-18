@@ -6,7 +6,7 @@ const ORIGIN = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
 
 /** Wrap any content block in the standard TALK email shell.
  *  Pass `unsubscribeUrl` for bulk/community mail (CAN-SPAM requires it). */
-export function emailShell(body: string, unsubscribeUrl?: string): string {
+export function emailShell(body: string, unsubscribeUrl?: string, headStyle?: string): string {
   // NOTE: email clients strip CSS gradients — use SOLID colors only.
   // Navy background matches the site; the white "LK" is now visible on navy.
   return `<!DOCTYPE html>
@@ -14,6 +14,7 @@ export function emailShell(body: string, unsubscribeUrl?: string): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  ${headStyle ? `<style>${headStyle}</style>` : ''}
 </head>
 <body style="margin:0;padding:0;background:#0F1F35;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#0F1F35;padding:36px 16px;">
@@ -96,6 +97,44 @@ export function buildBulkText(opts: { bodyText: string; unsubscribeUrl: string }
 — TALK Talent Community
 
 Unsubscribe: ${opts.unsubscribeUrl}`
+}
+
+// ─── Rich-text "Email Members" composer (Tiptap HTML body) ────────────────
+
+const BULK_PROSE_STYLE = `
+  .bulk-prose h2,.bulk-prose h3{color:#0F1F35;margin:1.4em 0 0.5em;}
+  .bulk-prose p{margin:0 0 1em;font-size:15px;color:#374151;line-height:1.7;}
+  .bulk-prose ul,.bulk-prose ol{padding-left:1.4em;margin:0 0 1em;color:#374151;}
+  .bulk-prose li{margin-bottom:0.4em;line-height:1.6;}
+  .bulk-prose a{color:#E8503A;}
+  .bulk-prose strong{color:#0F1F35;}
+  .bulk-prose hr{border:none;border-top:1px solid #EDF2F7;margin:1.6em 0;}
+  .bulk-prose img{max-width:100%;border-radius:8px;}
+`
+
+/** HTML broadcast built from the rich-text editor's output (already HTML). */
+export function buildBulkEmailHtml(opts: { bodyHtml: string; unsubscribeUrl: string }): string {
+  return emailShell(`<div class="bulk-prose">${opts.bodyHtml}</div>`, opts.unsubscribeUrl, BULK_PROSE_STYLE)
+}
+
+/** Plain-text counterpart, stripped down from the same HTML body. */
+export function buildBulkTextFromHtml(bodyHtml: string, unsubscribeUrl: string): string {
+  const text = bodyHtml
+    .replace(/<\/(p|div|h[1-6]|li)>/gi, '\n\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+
+  return `${text}
+
+— TALK Talent Community
+
+Unsubscribe: ${unsubscribeUrl}`
 }
 
 // ─── Pre-built email payloads ──────────────────────────────────────────────

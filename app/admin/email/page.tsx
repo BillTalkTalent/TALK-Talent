@@ -24,7 +24,7 @@ export default async function EmailMembersPage() {
   const isSuperAdmin = !!viewerProfile?.is_superadmin
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6 max-w-3xl">
       <div>
         <Link href="/admin" className="inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-800">
           <ArrowLeft className="size-4" /> Back to admin
