@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import AppTopNav from '@/components/app-topnav'
 import AppFooter from '@/components/app-footer'
 import PageViewTracker from '@/components/page-view-tracker'
+import IntercomMessenger from '@/components/intercom-messenger'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -47,6 +48,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex flex-col h-screen overflow-hidden" style={{ background: '#F5F8FC' }}>
       <PageViewTracker />
+      <IntercomMessenger
+        userId={user.id}
+        email={profile.email}
+        name={profile.full_name}
+        createdAt={user.created_at}
+      />
       <AppTopNav profile={profile} />
       <main className="flex-1 overflow-y-auto">
         {children}
