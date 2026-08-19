@@ -2,13 +2,20 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { format } from "date-fns";
-import { Lightbulb, Mail, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { Lightbulb, Mail, CheckCircle2, XCircle, Clock, MessageSquarePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 async function updateSuggestionStatus(id: string, status: string) {
   "use server";
   const supabase = createAdminClient() as any; // eslint-disable-line @typescript-eslint/no-explicit-any
   await supabase.from("vendor_suggestions").update({ status }).eq("id", id);
+  revalidatePath("/admin/suggestions");
+}
+
+async function updateTopicStatus(id: string, status: string) {
+  "use server";
+  const supabase = createAdminClient() as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  await supabase.from("topic_suggestions").update({ status }).eq("id", id);
   revalidatePath("/admin/suggestions");
 }
 
@@ -34,10 +41,18 @@ type Invitation = {
   profiles: { full_name: string | null } | null;
 };
 
+type TopicSuggestion = {
+  id: string;
+  topic: string;
+  status: string;
+  created_at: string;
+  profiles: { full_name: string | null; email: string } | null;
+};
+
 export default async function AdminSuggestionsPage() {
   const adminDb = createAdminClient() as any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
-  const [suggestionsResult, invitationsResult] = await Promise.all([
+  const [suggestionsResult, invitationsResult, topicsResult] = await Promise.all([
     adminDb
       .from("vendor_suggestions")
       .select("*, profiles(full_name, email)")
@@ -46,13 +61,36 @@ export default async function AdminSuggestionsPage() {
       .from("invitations")
       .select("*, profiles(full_name)")
       .order("created_at", { ascending: false }),
+    adminDb
+      .from("topic_suggestions")
+      .select("*, profiles(full_name, email)")
+      .order("created_at", { ascending: false }),
   ]);
 
   const suggestions: Suggestion[] = suggestionsResult.data ?? [];
   const invitations: Invitation[] = invitationsResult.data ?? [];
+  const topics: TopicSuggestion[] = topicsResult.data ?? [];
 
   const pending = suggestions.filter((s) => s.status === "pending");
   const reviewed = suggestions.filter((s) => s.status !== "pending");
+
+  const pendingTopics = topics.filter((t) => t.status === "pending");
+  const otherTopics = topics.filter((t) => t.status !== "pending");
+
+  const topicStatusBadge = (status: string) => {
+    const map: Record<string, { label: string; cls: string }> = {
+      pending: { label: "Pending", cls: "bg-amber-50 text-amber-700 border-amber-200" },
+      reviewed: { label: "Reviewed", cls: "bg-blue-50 text-blue-700 border-blue-200" },
+      planned: { label: "Planned ✓", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+      declined: { label: "Declined", cls: "bg-zinc-100 text-zinc-500 border-zinc-200" },
+    };
+    const s = map[status] ?? map.pending;
+    return (
+      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${s.cls}`}>
+        {s.label}
+      </span>
+    );
+  };
 
   const statusBadge = (status: string) => {
     const map: Record<string, { label: string; cls: string }> = {
@@ -139,6 +177,62 @@ export default async function AdminSuggestionsPage() {
                     <form action={updateSuggestionStatus.bind(null, s.id, "rejected")}>
                       <Button size="sm" type="submit" variant="ghost" className="gap-1.5 text-zinc-400 hover:text-red-500">
                         <XCircle className="size-3.5" /> Reject
+                      </Button>
+                    </form>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Topic Suggestions */}
+      <section className="space-y-4">
+        <div className="flex items-center gap-2">
+          <MessageSquarePlus className="size-5 text-[#E8503A]" />
+          <h2 className="text-base font-bold text-zinc-900">
+            Topic Suggestions
+            {pendingTopics.length > 0 && (
+              <span className="ml-2 text-xs font-bold text-white bg-[#E8503A] px-2 py-0.5 rounded-full">
+                {pendingTopics.length} new
+              </span>
+            )}
+          </h2>
+        </div>
+
+        {topics.length === 0 ? (
+          <p className="text-sm text-zinc-400 italic">No topic suggestions yet.</p>
+        ) : (
+          <div className="space-y-3">
+            {[...pendingTopics, ...otherTopics].map((t) => (
+              <div key={t.id} className="rounded-xl border border-zinc-100 bg-white shadow-sm p-4 space-y-2">
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {topicStatusBadge(t.status)}
+                  </div>
+                  <p className="text-xs text-zinc-400 shrink-0">
+                    {t.profiles?.full_name ?? "Unknown"} · {format(new Date(t.created_at), "MMM d, yyyy")}
+                  </p>
+                </div>
+
+                <p className="text-sm text-zinc-700 leading-relaxed">{t.topic}</p>
+
+                {t.status === "pending" && (
+                  <div className="flex items-center gap-2 pt-1">
+                    <form action={updateTopicStatus.bind(null, t.id, "planned")}>
+                      <Button size="sm" type="submit" className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white">
+                        <CheckCircle2 className="size-3.5" /> Mark as Planned
+                      </Button>
+                    </form>
+                    <form action={updateTopicStatus.bind(null, t.id, "reviewed")}>
+                      <Button size="sm" type="submit" variant="outline" className="gap-1.5">
+                        <Clock className="size-3.5" /> Mark as Reviewed
+                      </Button>
+                    </form>
+                    <form action={updateTopicStatus.bind(null, t.id, "declined")}>
+                      <Button size="sm" type="submit" variant="ghost" className="gap-1.5 text-zinc-400 hover:text-red-500">
+                        <XCircle className="size-3.5" /> Decline
                       </Button>
                     </form>
                   </div>
