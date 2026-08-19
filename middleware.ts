@@ -41,7 +41,11 @@ export async function middleware(request: NextRequest) {
   // /newsletter/ is the same pattern for a sent newsletter's public teaser
   // (the landing page a LinkedIn share link points to) — see
   // app/(app)/newsletter/[id]/page.tsx.
-  const publicRoutes = ["/login", "/signup", "/claim", "/auth/callback", "/auth/reset-password", "/forgot-password", "/mockup", "/pending", "/privacy", "/terms", "/unsubscribe", "/api/auth", "/api/notify-admin-signup", "/api/unsubscribe", "/api/webhooks", "/events/", "/api/events/", "/api/signup/", "/newsletter/"];
+  // /api/cron/ is Vercel's scheduler hitting these on its own — no browser
+  // session, just the CRON_SECRET header each route checks itself. Without
+  // this, every cron job gets redirected to /login before its own auth
+  // check ever runs, and silently never fires.
+  const publicRoutes = ["/login", "/signup", "/claim", "/auth/callback", "/auth/reset-password", "/forgot-password", "/mockup", "/pending", "/privacy", "/terms", "/unsubscribe", "/api/auth", "/api/notify-admin-signup", "/api/unsubscribe", "/api/webhooks", "/api/cron/", "/events/", "/api/events/", "/api/signup/", "/newsletter/"];
   if (publicRoutes.some((r) => pathname.startsWith(r))) {
     // app/(app)/layout.tsx has its own independent auth redirect and can't
     // see the matched route below it, so hand it the pathname explicitly —
