@@ -1,14 +1,57 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { Resend } from 'resend'
 import { formatInZone } from '@/lib/timezone'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { getUpcomingEventsForNewsletter } from '@/lib/newsletter-events'
+import { buildEventDigestEmail, buildEventDigestText } from '@/lib/event-digest'
+import { unsubUrl } from '@/lib/unsubscribe'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import CreateEventForm from './create-event-form'
 import DeleteEventButton from './delete-event-button'
+import SendTestDigestButton from './send-test-digest-button'
 import { ImageIcon, Pencil, FlaskConical } from 'lucide-react'
+
+// Previews the weekly "what's coming up" digest (app/api/cron/event-digest)
+// by sending it to just the calling admin's own inbox — same content and
+// audience-resolution the real Thursday send uses, minus actually reaching
+// the membership.
+async function sendEventDigestTest(): Promise<{ ok: boolean; to?: string; error?: string }> {
+  'use server'
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+  const { data: profile } = await supabase.from('profiles').select('email').eq('id', user.id).single()
+  const to = profile?.email ?? user.email
+  if (!to) return { ok: false, error: 'No email on your account.' }
+
+  const admin = createAdminClient()
+  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const events = await getUpcomingEventsForNewsletter(admin as any, 25)
+  if (events.length === 0) return { ok: false, error: 'No upcoming events to preview right now.' }
+
+  const resend = new Resend(process.env.RESEND_API_KEY)
+  const from = process.env.FROM_EMAIL ?? 'TALK Community <onboarding@resend.dev>'
+  const u = unsubUrl(origin, to)
+  try {
+    await resend.emails.send({
+      from,
+      replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
+      to,
+      subject: `[TEST] ${events.length} upcoming event${events.length > 1 ? 's' : ''} at TALK`,
+      html: buildEventDigestEmail(events, origin, u),
+      text: buildEventDigestText(events, origin, u),
+    })
+    return { ok: true, to }
+  } catch {
+    return { ok: false, error: 'Send failed — check RESEND_API_KEY.' }
+  }
+}
 
 async function deleteEvent(id: string) {
   'use server'
@@ -79,6 +122,20 @@ export default async function AdminEventsPage() {
 
   return (
     <div className="space-y-6">
+      {/* Weekly event digest preview */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Weekly Event Digest</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <p className="text-sm text-zinc-500">
+            Every published, upcoming event goes out automatically to all approved members every
+            Thursday at 9am ET. Send yourself a preview with today&apos;s real event list.
+          </p>
+          <SendTestDigestButton sendTest={sendEventDigestTest} />
+        </CardContent>
+      </Card>
+
       {/* Create event form */}
       <Card>
         <CardHeader>
