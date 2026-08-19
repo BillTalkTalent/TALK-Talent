@@ -111,7 +111,15 @@ export async function sendToAllMembers(
   }
 
   const admin = createAdminClient()
-  const { sent, skipped, total } = await sendBulkEmail(admin, { subject: subj, bodyHtml, chapterId, role })
+  const { sent, skipped, total } = await sendBulkEmail(admin, {
+    subject: subj,
+    chapterId,
+    role,
+    renderEmail: (u) => ({
+      html: buildBulkEmailHtml({ bodyHtml, unsubscribeUrl: u }),
+      text: buildBulkTextFromHtml(bodyHtml, u),
+    }),
+  })
   return { ok: sent > 0, sent, skipped, total }
 }
 

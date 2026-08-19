@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendBulkEmail } from '@/lib/send-bulk-email'
+import { buildBulkEmailHtml, buildBulkTextFromHtml } from '@/lib/email'
 import type { AudienceRole } from '@/lib/email-audience'
 
 export const maxDuration = 300
@@ -36,9 +37,12 @@ export async function GET(request: NextRequest) {
     try {
       const { sent, skipped, total } = await sendBulkEmail(admin, {
         subject: row.subject,
-        bodyHtml: row.body_html,
         chapterId: row.chapter_id,
         role: row.audience_role as AudienceRole | null,
+        renderEmail: (u) => ({
+          html: buildBulkEmailHtml({ bodyHtml: row.body_html, unsubscribeUrl: u }),
+          text: buildBulkTextFromHtml(row.body_html, u),
+        }),
       })
       await adminDb.from('scheduled_emails').update({
         status: 'sent',

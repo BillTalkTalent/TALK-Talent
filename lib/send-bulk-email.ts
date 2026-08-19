@@ -1,16 +1,23 @@
-// Shared "actually send an Email Members broadcast" logic — used by the
-// immediate-send server action (app/admin/email/email-actions.ts) and the
-// scheduled-send cron job (app/api/cron/send-member-emails), so the
-// batching/throttling behavior can't drift between the two paths.
+// Shared "resolve an audience and batch-send an email to it" logic — used by
+// the Email Members immediate-send action and its cron
+// (app/api/cron/send-member-emails), and by the weekly event digest
+// (app/api/cron/event-digest), so the batching/throttling behavior can't
+// drift between them.
 import { Resend } from 'resend'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { buildBulkEmailHtml, buildBulkTextFromHtml } from '@/lib/email'
 import { unsubUrl } from '@/lib/unsubscribe'
 import { resolveAudience, type AudienceRole } from '@/lib/email-audience'
 
 export async function sendBulkEmail(
   admin: ReturnType<typeof createAdminClient>,
-  opts: { subject: string; bodyHtml: string; chapterId?: string | null; role?: AudienceRole | null },
+  opts: {
+    subject: string
+    chapterId?: string | null
+    role?: AudienceRole | null
+    // Each recipient gets their own signed unsubscribe link, so the HTML/text
+    // body is rendered per-recipient rather than built once up front.
+    renderEmail: (unsubscribeUrl: string) => { html: string; text: string }
+  },
 ): Promise<{ sent: number; skipped: number; total: number }> {
   const { recipients, skipped } = await resolveAudience(admin, opts.chapterId, opts.role)
 
@@ -26,14 +33,8 @@ export async function sendBulkEmail(
     const chunk = recipients.slice(i, i + 100)
     const batch = chunk.map((to) => {
       const u = unsubUrl(origin, to)
-      return {
-        from,
-        replyTo,
-        to,
-        subject: opts.subject,
-        html: buildBulkEmailHtml({ bodyHtml: opts.bodyHtml, unsubscribeUrl: u }),
-        text: buildBulkTextFromHtml(opts.bodyHtml, u),
-      }
+      const { html, text } = opts.renderEmail(u)
+      return { from, replyTo, to, subject: opts.subject, html, text }
     })
     try {
       const { error } = await resend.batch.send(batch)
