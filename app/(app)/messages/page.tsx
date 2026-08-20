@@ -42,6 +42,17 @@ export default function MessagesPage() {
 
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  // Read via a ref (not the currentUser state directly) inside openConversation
+  // below — otherwise openConversation's identity changes every time
+  // currentUser changes, which retriggers the init effect that *sets*
+  // currentUser (see its dependency array), forming a loop that keeps
+  // snapping the active conversation back to the first one in the list on
+  // every cycle — exactly the "can't click into any conversation" bug.
+  const currentUserRef = useRef<Profile | null>(null);
+  useEffect(() => {
+    currentUserRef.current = currentUser;
+  }, [currentUser]);
+
   const scrollToBottom = useCallback(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
@@ -133,12 +144,13 @@ export default function MessagesPage() {
       setMessages((data as MessageWithSender[]) ?? []);
 
       // Mark all unread messages in this conversation as read
-      if (currentUser) {
+      const me = currentUserRef.current;
+      if (me) {
         await supabase
           .from("dm_messages")
           .update({ is_read: true })
           .eq("conversation_id", convId)
-          .neq("sender_id", currentUser.id)
+          .neq("sender_id", me.id)
           .eq("is_read", false);
 
         // Clear unread count badge in sidebar immediately (optimistic)
@@ -147,7 +159,7 @@ export default function MessagesPage() {
         );
       }
     },
-    [supabase, currentUser]
+    [supabase]
   );
 
   const getOrCreateConversation = useCallback(
