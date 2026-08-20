@@ -364,14 +364,16 @@ export type Database = {
       dm_conversations: {
         Row: {
           id: string;
-          participant_a: string;
-          participant_b: string;
+          participant_a: string | null;
+          participant_b: string | null;
+          created_by: string | null;
           created_at: string;
         };
         Insert: {
           id?: string;
-          participant_a: string;
-          participant_b: string;
+          participant_a?: string | null;
+          participant_b?: string | null;
+          created_by?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["dm_conversations"]["Insert"]>;
         Relationships: [
@@ -385,6 +387,34 @@ export type Database = {
           {
             foreignKeyName: "dm_conversations_participant_b_fkey";
             columns: ["participant_b"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      conversation_participants: {
+        Row: {
+          conversation_id: string;
+          user_id: string;
+          created_at: string;
+        };
+        Insert: {
+          conversation_id: string;
+          user_id: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["conversation_participants"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "conversation_participants_conversation_id_fkey";
+            columns: ["conversation_id"];
+            isOneToOne: false;
+            referencedRelation: "dm_conversations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "conversation_participants_user_id_fkey";
+            columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];

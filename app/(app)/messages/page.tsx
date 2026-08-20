@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format, formatDistanceToNow } from "date-fns";
-import { Send, MessageSquare, UserPlus } from "lucide-react";
+import { Send, MessageSquare, UserPlus, X, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { DmConversation, DmMessage, Profile } from "@/lib/supabase/types";
 
@@ -23,8 +23,22 @@ function getInitials(name: string | null): string {
     .toUpperCase();
 }
 
-type ConversationWithOther = DmConversation & { otherUser: Profile | null; lastMessage: string | null; lastAt: string | null; unreadCount: number };
+// participant_a/participant_b are legacy columns (see migration 061) — group
+// membership now lives in conversation_participants, so every conversation
+// carries a `participants` list instead of a single `otherUser`.
+type ConversationWithParticipants = DmConversation & {
+  participants: Profile[];
+  lastMessage: string | null;
+  lastAt: string | null;
+  unreadCount: number;
+};
 type MessageWithSender = DmMessage & { profiles: Profile | null };
+
+function conversationTitle(participants: Profile[], viewerId: string | undefined): string {
+  const others = participants.filter((p) => p.id !== viewerId);
+  if (others.length === 0) return "Unknown";
+  return others.map((p) => p.full_name ?? "Unknown").join(", ");
+}
 
 export default function MessagesPage() {
   const searchParams = useSearchParams();
@@ -32,20 +46,29 @@ export default function MessagesPage() {
   const supabase = createClient();
 
   const [currentUser, setCurrentUser] = useState<Profile | null>(null);
-  const [conversations, setConversations] = useState<ConversationWithOther[]>([]);
+  const [conversations, setConversations] = useState<ConversationWithParticipants[]>([]);
   const [activeConvId, setActiveConvId] = useState<string | null>(null);
   const [messages, setMessages] = useState<MessageWithSender[]>([]);
-  const [otherUser, setOtherUser] = useState<Profile | null>(null);
+  const [activeParticipants, setActiveParticipants] = useState<Profile[]>([]);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // "New message" — search members by name to start a conversation
+  // "New message" — search members by name, select one or more, then start
   const [newMsgOpen, setNewMsgOpen] = useState(false);
   const [newMsgQuery, setNewMsgQuery] = useState("");
   const [newMsgResults, setNewMsgResults] = useState<Profile[]>([]);
+  const [newMsgSelected, setNewMsgSelected] = useState<Profile[]>([]);
   const [newMsgSearching, setNewMsgSearching] = useState(false);
+  const [newMsgStarting, setNewMsgStarting] = useState(false);
   const newMsgRef = useRef<HTMLDivElement>(null);
+
+  // "Add person" — same search pattern, scoped to the open conversation
+  const [addPersonOpen, setAddPersonOpen] = useState(false);
+  const [addPersonQuery, setAddPersonQuery] = useState("");
+  const [addPersonResults, setAddPersonResults] = useState<Profile[]>([]);
+  const [addPersonSearching, setAddPersonSearching] = useState(false);
+  const addPersonRef = useRef<HTMLDivElement>(null);
 
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -59,18 +82,27 @@ export default function MessagesPage() {
 
   const loadConversations = useCallback(
     async (userId: string) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: myRows } = await (supabase as any)
+        .from("conversation_participants")
+        .select("conversation_id")
+        .eq("user_id", userId);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const convIds = ((myRows ?? []) as any[]).map((r) => r.conversation_id);
+      if (convIds.length === 0) return [];
+
       const { data: convs } = await supabase
         .from("dm_conversations")
         .select("*")
-        .or(`participant_a.eq.${userId},participant_b.eq.${userId}`)
+        .in("id", convIds)
         .order("created_at", { ascending: false });
 
       if (!convs) return [];
 
-      const convIds = convs.map((c) => c.id);
-
-      // Batch fetch: last messages and unread counts for all conversations
-      const [allLastMsgs, unreadMsgs] = await Promise.all([
+      // Batch fetch: last messages, unread counts, and every conversation's
+      // full participant list (self included; filtered out for display).
+      const [allLastMsgs, unreadMsgs, allParticipants] = await Promise.all([
         supabase
           .from("dm_messages")
           .select("conversation_id, content, created_at, sender_id, is_read")
@@ -82,9 +114,13 @@ export default function MessagesPage() {
           .in("conversation_id", convIds)
           .neq("sender_id", userId)
           .eq("is_read", false),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (supabase as any)
+          .from("conversation_participants")
+          .select("conversation_id, user_id")
+          .in("conversation_id", convIds),
       ]);
 
-      // Build maps
       const lastMsgMap: Record<string, { content: string; created_at: string }> = {};
       for (const msg of allLastMsgs.data ?? []) {
         if (!lastMsgMap[msg.conversation_id]) {
@@ -97,38 +133,34 @@ export default function MessagesPage() {
         unreadCountMap[msg.conversation_id] = (unreadCountMap[msg.conversation_id] ?? 0) + 1;
       }
 
-      // Batch fetch other user profiles
-      const otherIds = convs.map((conv) =>
-        conv.participant_a === userId ? conv.participant_b : conv.participant_a
-      );
-      const { data: otherProfiles } = await supabase
-        .from("profiles")
-        .select("*")
-        .in("id", otherIds);
-
+      const participantRows = (allParticipants.data ?? []) as { conversation_id: string; user_id: string }[];
+      const allUserIds = Array.from(new Set(participantRows.map((r) => r.user_id)));
+      const { data: profiles } = await supabase.from("profiles").select("*").in("id", allUserIds);
       const profileMap: Record<string, Profile> = {};
-      for (const p of otherProfiles ?? []) {
-        profileMap[p.id] = p;
+      for (const p of profiles ?? []) profileMap[p.id] = p;
+
+      const participantsByConv: Record<string, Profile[]> = {};
+      for (const row of participantRows) {
+        const p = profileMap[row.user_id];
+        if (!p) continue;
+        (participantsByConv[row.conversation_id] ??= []).push(p);
       }
 
-      return convs.map((conv) => {
-        const otherId = conv.participant_a === userId ? conv.participant_b : conv.participant_a;
-        return {
-          ...conv,
-          otherUser: profileMap[otherId] ?? null,
-          lastMessage: lastMsgMap[conv.id]?.content ?? null,
-          lastAt: lastMsgMap[conv.id]?.created_at ?? null,
-          unreadCount: unreadCountMap[conv.id] ?? 0,
-        };
-      });
+      return convs.map((conv) => ({
+        ...conv,
+        participants: participantsByConv[conv.id] ?? [],
+        lastMessage: lastMsgMap[conv.id]?.content ?? null,
+        lastAt: lastMsgMap[conv.id]?.created_at ?? null,
+        unreadCount: unreadCountMap[conv.id] ?? 0,
+      }));
     },
     [supabase]
   );
 
   const openConversation = useCallback(
-    async (convId: string, other: Profile | null, viewerId: string) => {
+    async (convId: string, participants: Profile[], viewerId: string) => {
       setActiveConvId(convId);
-      setOtherUser(other);
+      setActiveParticipants(participants);
 
       const { data } = await supabase
         .from("dm_messages")
@@ -150,9 +182,6 @@ export default function MessagesPage() {
         .eq("conversation_id", convId)
         .neq("sender_id", viewerId)
         .eq("is_read", false);
-      // This silently failed for a long time (missing RLS update policy —
-      // see migration 060) with no visible symptom beyond a badge that
-      // never cleared. Surface it going forward instead of swallowing it.
       if (markReadError) console.error("Failed to mark DM messages as read:", markReadError.message);
 
       // Clear unread count badge in sidebar immediately (optimistic)
@@ -163,86 +192,222 @@ export default function MessagesPage() {
     [supabase]
   );
 
-  const getOrCreateConversation = useCallback(
+  // Exact-match dedup for 1:1 conversations only — a group that happens to
+  // include both of these two users is not the same thing as a private DM
+  // between them, so this only returns a conversation whose participant set
+  // is exactly {myId, otherId}.
+  const findExactConversation = useCallback(
     async (myId: string, otherId: string): Promise<string | null> => {
-      const { data: existing } = await supabase
-        .from("dm_conversations")
-        .select("*")
-        .or(
-          `and(participant_a.eq.${myId},participant_b.eq.${otherId}),and(participant_a.eq.${otherId},participant_b.eq.${myId})`
-        )
-        .single();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: mine } = await (supabase as any)
+        .from("conversation_participants")
+        .select("conversation_id")
+        .eq("user_id", myId);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const myConvIds = ((mine ?? []) as any[]).map((r) => r.conversation_id);
+      if (myConvIds.length === 0) return null;
 
-      if (existing) return existing.id;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: theirs } = await (supabase as any)
+        .from("conversation_participants")
+        .select("conversation_id")
+        .eq("user_id", otherId)
+        .in("conversation_id", myConvIds);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const shared = ((theirs ?? []) as any[]).map((r) => r.conversation_id);
+      if (shared.length === 0) return null;
 
-      // The table enforces a canonical ordering (participant_a < participant_b),
-      // so order the pair before inserting — otherwise the CHECK constraint
-      // rejects the row whenever my id sorts after theirs, and the DM silently
-      // fails to open.
-      const [a, b] = myId < otherId ? [myId, otherId] : [otherId, myId];
-      const { data: created, error } = await supabase
-        .from("dm_conversations")
-        .insert({ participant_a: a, participant_b: b })
-        .select()
-        .single();
-
-      if (error) console.error("Failed to create DM conversation:", error.message);
-      return created?.id ?? null;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: allRows } = await (supabase as any)
+        .from("conversation_participants")
+        .select("conversation_id")
+        .in("conversation_id", shared);
+      const counts: Record<string, number> = {};
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      for (const r of (allRows ?? []) as any[]) counts[r.conversation_id] = (counts[r.conversation_id] ?? 0) + 1;
+      const exact = shared.find((id) => counts[id] === 2);
+      return exact ?? null;
     },
     [supabase]
   );
 
-  // Debounced member search that powers "New message" — approved members
-  // only, matching the same visibility RLS already grants for browsing.
-  useEffect(() => {
-    if (!newMsgOpen) return;
-    const q = newMsgQuery.trim();
-    if (q.length < 2) {
-      Promise.resolve().then(() => {
-        setNewMsgResults([]);
-        setNewMsgSearching(false);
-      });
-      return;
-    }
-    Promise.resolve().then(() => setNewMsgSearching(true));
-    const timeout = setTimeout(async () => {
-      let query = supabase
-        .from("profiles")
-        .select("*")
-        .eq("status", "approved")
-        .eq("is_bot", false)
-        .ilike("full_name", `%${q}%`)
-        .limit(8);
-      if (currentUser) query = query.neq("id", currentUser.id);
-      const { data } = await query;
-      setNewMsgResults((data as Profile[]) ?? []);
-      setNewMsgSearching(false);
-    }, 300);
-    return () => clearTimeout(timeout);
-  }, [newMsgQuery, newMsgOpen, supabase, currentUser]);
+  const getOrCreateConversation = useCallback(
+    async (myId: string, otherId: string): Promise<string | null> => {
+      const existingId = await findExactConversation(myId, otherId);
+      if (existingId) return existingId;
 
-  // Close the "New message" panel on outside click
+      const { data: created, error } = await supabase
+        .from("dm_conversations")
+        .insert({ created_by: myId })
+        .select()
+        .single();
+      if (error || !created) {
+        console.error("Failed to create DM conversation:", error?.message);
+        return null;
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: partErr } = await (supabase as any)
+        .from("conversation_participants")
+        .insert([
+          { conversation_id: created.id, user_id: myId },
+          { conversation_id: created.id, user_id: otherId },
+        ]);
+      if (partErr) console.error("Failed to add DM participants:", partErr.message);
+
+      return created.id;
+    },
+    [supabase, findExactConversation]
+  );
+
+  const createGroupConversation = useCallback(
+    async (myId: string, otherIds: string[]): Promise<string | null> => {
+      const { data: created, error } = await supabase
+        .from("dm_conversations")
+        .insert({ created_by: myId })
+        .select()
+        .single();
+      if (error || !created) {
+        console.error("Failed to create group conversation:", error?.message);
+        return null;
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: partErr } = await (supabase as any)
+        .from("conversation_participants")
+        .insert([myId, ...otherIds].map((uid) => ({ conversation_id: created.id, user_id: uid })));
+      if (partErr) console.error("Failed to add group participants:", partErr.message);
+
+      return created.id;
+    },
+    [supabase]
+  );
+
+  const addParticipant = useCallback(
+    async (convId: string, userId: string) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any)
+        .from("conversation_participants")
+        .insert({ conversation_id: convId, user_id: userId });
+      if (error) {
+        console.error("Failed to add participant:", error.message);
+        return false;
+      }
+      return true;
+    },
+    [supabase]
+  );
+
+  // Debounced member search shared by "New message" and "Add person" —
+  // approved members only, matching the same visibility RLS already grants
+  // for browsing.
+  function useMemberSearch(
+    open: boolean,
+    query: string,
+    excludeIds: string[],
+    setResults: (p: Profile[]) => void,
+    setSearching: (b: boolean) => void
+  ) {
+    useEffect(() => {
+      if (!open) return;
+      const q = query.trim();
+      if (q.length < 2) {
+        Promise.resolve().then(() => {
+          setResults([]);
+          setSearching(false);
+        });
+        return;
+      }
+      Promise.resolve().then(() => setSearching(true));
+      const timeout = setTimeout(async () => {
+        let sq = supabase
+          .from("profiles")
+          .select("*")
+          .eq("status", "approved")
+          .eq("is_bot", false)
+          .ilike("full_name", `%${q}%`)
+          .limit(8);
+        if (excludeIds.length > 0) sq = sq.not("id", "in", `(${excludeIds.join(",")})`);
+        const { data } = await sq;
+        setResults((data as Profile[]) ?? []);
+        setSearching(false);
+      }, 300);
+      return () => clearTimeout(timeout);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [open, query, excludeIds.join(",")]);
+  }
+
+  useMemberSearch(
+    newMsgOpen,
+    newMsgQuery,
+    [currentUser?.id, ...newMsgSelected.map((p) => p.id)].filter(Boolean) as string[],
+    setNewMsgResults,
+    setNewMsgSearching
+  );
+
+  useMemberSearch(
+    addPersonOpen,
+    addPersonQuery,
+    activeParticipants.map((p) => p.id),
+    setAddPersonResults,
+    setAddPersonSearching
+  );
+
+  // Close the "New message" / "Add person" panels on outside click
   useEffect(() => {
     function handle(e: MouseEvent) {
       if (newMsgRef.current && !newMsgRef.current.contains(e.target as Node)) {
         setNewMsgOpen(false);
+      }
+      if (addPersonRef.current && !addPersonRef.current.contains(e.target as Node)) {
+        setAddPersonOpen(false);
       }
     }
     document.addEventListener("mousedown", handle);
     return () => document.removeEventListener("mousedown", handle);
   }, []);
 
-  async function startConversationWith(other: Profile) {
-    if (!currentUser) return;
-    const convId = await getOrCreateConversation(currentUser.id, other.id);
+  function toggleNewMsgSelected(p: Profile) {
+    setNewMsgSelected((prev) =>
+      prev.some((x) => x.id === p.id) ? prev.filter((x) => x.id !== p.id) : [...prev, p]
+    );
+    setNewMsgQuery("");
+    setNewMsgResults([]);
+  }
+
+  async function startSelectedConversation() {
+    if (!currentUser || newMsgSelected.length === 0) return;
+    setNewMsgStarting(true);
+    const convId =
+      newMsgSelected.length === 1
+        ? await getOrCreateConversation(currentUser.id, newMsgSelected[0].id)
+        : await createGroupConversation(currentUser.id, newMsgSelected.map((p) => p.id));
+
     if (convId) {
-      await openConversation(convId, other, currentUser.id);
       const refreshed = await loadConversations(currentUser.id);
       setConversations(refreshed);
+      const conv = refreshed.find((c) => c.id === convId);
+      await openConversation(convId, conv?.participants ?? [currentUser, ...newMsgSelected], currentUser.id);
     }
+    setNewMsgStarting(false);
     setNewMsgOpen(false);
     setNewMsgQuery("");
     setNewMsgResults([]);
+    setNewMsgSelected([]);
+  }
+
+  async function handleAddPerson(p: Profile) {
+    if (!activeConvId || !currentUser) return;
+    const ok = await addParticipant(activeConvId, p.id);
+    if (ok) {
+      const refreshed = await loadConversations(currentUser.id);
+      setConversations(refreshed);
+      const conv = refreshed.find((c) => c.id === activeConvId);
+      if (conv) setActiveParticipants(conv.participants);
+    }
+    setAddPersonOpen(false);
+    setAddPersonQuery("");
+    setAddPersonResults([]);
   }
 
   useEffect(() => {
@@ -266,18 +431,13 @@ export default function MessagesPage() {
         // Open or create DM with this user
         const convId = await getOrCreateConversation(user.id, withUserId);
         if (convId) {
-          const { data: otherProfile } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", withUserId)
-            .single();
-          await openConversation(convId, otherProfile ?? null, user.id);
-          // Refresh convs to include new one
           const refreshed = await loadConversations(user.id);
           setConversations(refreshed);
+          const conv = refreshed.find((c) => c.id === convId);
+          await openConversation(convId, conv?.participants ?? [], user.id);
         }
       } else if (convs.length > 0) {
-        await openConversation(convs[0].id, convs[0].otherUser, user.id);
+        await openConversation(convs[0].id, convs[0].participants, user.id);
       }
 
       setLoading(false);
@@ -350,7 +510,7 @@ export default function MessagesPage() {
     setDraft("");
     setSending(false);
 
-    // Fire-and-forget: email + in-app notification for the recipient
+    // Fire-and-forget: email + in-app notification for the recipient(s)
     fetch("/api/dm/notify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -377,6 +537,9 @@ export default function MessagesPage() {
     );
   }
 
+  const activeOthers = activeParticipants.filter((p) => p.id !== currentUser?.id);
+  const isGroupActive = activeParticipants.length > 2;
+
   return (
     <div className="flex h-full min-h-0 overflow-hidden">
       {/* Conversation list */}
@@ -394,6 +557,21 @@ export default function MessagesPage() {
 
           {newMsgOpen && (
             <div className="absolute top-full left-2 right-2 mt-1 rounded-xl border bg-background shadow-lg z-20 p-2">
+              {newMsgSelected.length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-1.5">
+                  {newMsgSelected.map((p) => (
+                    <span
+                      key={p.id}
+                      className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary text-xs px-2 py-0.5"
+                    >
+                      {p.full_name?.split(" ")[0] ?? "Unknown"}
+                      <button type="button" onClick={() => toggleNewMsgSelected(p)}>
+                        <X className="size-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
               <Input
                 autoFocus
                 placeholder="Search members by name…"
@@ -413,7 +591,7 @@ export default function MessagesPage() {
                     <button
                       key={p.id}
                       type="button"
-                      onClick={() => startConversationWith(p)}
+                      onClick={() => toggleNewMsgSelected(p)}
                       className="w-full flex items-center gap-2.5 rounded-md px-2 py-1.5 text-left hover:bg-muted transition-colors"
                     >
                       <Avatar size="sm">
@@ -432,6 +610,20 @@ export default function MessagesPage() {
                   ))}
                 </div>
               )}
+              {newMsgSelected.length > 0 && (
+                <Button
+                  size="sm"
+                  className="w-full mt-2"
+                  onClick={startSelectedConversation}
+                  disabled={newMsgStarting}
+                >
+                  {newMsgStarting
+                    ? "Starting…"
+                    : newMsgSelected.length === 1
+                      ? "Start conversation"
+                      : `Start group (${newMsgSelected.length + 1} people)`}
+                </Button>
+              )}
             </div>
           )}
         </div>
@@ -442,52 +634,58 @@ export default function MessagesPage() {
             </div>
           ) : (
             <nav className="p-2 space-y-0.5">
-              {conversations.map((conv) => (
-                <button
-                  key={conv.id}
-                  onClick={() => currentUser && openConversation(conv.id, conv.otherUser, currentUser.id)}
-                  className={cn(
-                    "w-full flex items-center gap-2.5 rounded-md px-2.5 py-2 text-left transition-colors",
-                    conv.id === activeConvId
-                      ? "bg-primary/10 text-primary"
-                      : "hover:bg-muted"
-                  )}
-                >
-                  <Avatar size="sm">
-                    {conv.otherUser?.avatar_url && (
-                      <AvatarImage
-                        src={conv.otherUser.avatar_url}
-                        alt={conv.otherUser.full_name ?? ""}
-                      />
+              {conversations.map((conv) => {
+                const others = conv.participants.filter((p) => p.id !== currentUser?.id);
+                const isGroup = conv.participants.length > 2;
+                const title = conversationTitle(conv.participants, currentUser?.id);
+                return (
+                  <button
+                    key={conv.id}
+                    onClick={() => currentUser && openConversation(conv.id, conv.participants, currentUser.id)}
+                    className={cn(
+                      "w-full flex items-center gap-2.5 rounded-md px-2.5 py-2 text-left transition-colors",
+                      conv.id === activeConvId
+                        ? "bg-primary/10 text-primary"
+                        : "hover:bg-muted"
                     )}
-                    <AvatarFallback>
-                      {getInitials(conv.otherUser?.full_name ?? null)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0 flex-1">
-                    <p className={cn("text-sm truncate", conv.unreadCount > 0 && conv.id !== activeConvId ? "font-bold" : "font-medium")}>
-                      {conv.otherUser?.full_name ?? "Unknown"}
-                    </p>
-                    {conv.lastMessage && (
-                      <p className={cn("text-xs truncate", conv.unreadCount > 0 && conv.id !== activeConvId ? "text-foreground font-medium" : "text-muted-foreground")}>
-                        {conv.lastMessage}
+                  >
+                    {isGroup ? (
+                      <div className="size-8 shrink-0 rounded-full bg-muted flex items-center justify-center">
+                        <Users className="size-4 text-muted-foreground" />
+                      </div>
+                    ) : (
+                      <Avatar size="sm">
+                        {others[0]?.avatar_url && (
+                          <AvatarImage src={others[0].avatar_url} alt={others[0].full_name ?? ""} />
+                        )}
+                        <AvatarFallback>{getInitials(others[0]?.full_name ?? null)}</AvatarFallback>
+                      </Avatar>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className={cn("text-sm truncate", conv.unreadCount > 0 && conv.id !== activeConvId ? "font-bold" : "font-medium")}>
+                        {title}
                       </p>
-                    )}
-                  </div>
-                  <div className="flex flex-col items-end gap-1 shrink-0">
-                    {conv.lastAt && (
-                      <span className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(conv.lastAt), { addSuffix: false })}
-                      </span>
-                    )}
-                    {conv.unreadCount > 0 && conv.id !== activeConvId && (
-                      <span className="min-w-[18px] h-4.5 px-1 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-[9px] font-black">
-                        {conv.unreadCount > 9 ? "9+" : conv.unreadCount}
-                      </span>
-                    )}
-                  </div>
-                </button>
-              ))}
+                      {conv.lastMessage && (
+                        <p className={cn("text-xs truncate", conv.unreadCount > 0 && conv.id !== activeConvId ? "text-foreground font-medium" : "text-muted-foreground")}>
+                          {conv.lastMessage}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      {conv.lastAt && (
+                        <span className="text-xs text-muted-foreground">
+                          {formatDistanceToNow(new Date(conv.lastAt), { addSuffix: false })}
+                        </span>
+                      )}
+                      {conv.unreadCount > 0 && conv.id !== activeConvId && (
+                        <span className="min-w-[18px] h-4.5 px-1 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-[9px] font-black">
+                          {conv.unreadCount > 9 ? "9+" : conv.unreadCount}
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
             </nav>
           )}
         </ScrollArea>
@@ -503,17 +701,73 @@ export default function MessagesPage() {
         ) : (
           <>
             {/* Header */}
-            <div className="border-b px-4 py-3 flex items-center gap-3">
-              <Avatar size="sm">
-                {otherUser?.avatar_url && (
-                  <AvatarImage src={otherUser.avatar_url} alt={otherUser.full_name ?? ""} />
+            <div className="border-b px-4 py-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                {isGroupActive ? (
+                  <div className="size-8 shrink-0 rounded-full bg-muted flex items-center justify-center">
+                    <Users className="size-4 text-muted-foreground" />
+                  </div>
+                ) : (
+                  <Avatar size="sm">
+                    {activeOthers[0]?.avatar_url && (
+                      <AvatarImage src={activeOthers[0].avatar_url} alt={activeOthers[0].full_name ?? ""} />
+                    )}
+                    <AvatarFallback>{getInitials(activeOthers[0]?.full_name ?? null)}</AvatarFallback>
+                  </Avatar>
                 )}
-                <AvatarFallback>{getInitials(otherUser?.full_name ?? null)}</AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="text-sm font-medium">{otherUser?.full_name ?? "Unknown"}</p>
-                {otherUser?.title && (
-                  <p className="text-xs text-muted-foreground">{otherUser.title}</p>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate">
+                    {conversationTitle(activeParticipants, currentUser?.id)}
+                  </p>
+                  {!isGroupActive && activeOthers[0]?.title && (
+                    <p className="text-xs text-muted-foreground truncate">{activeOthers[0].title}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="relative shrink-0" ref={addPersonRef}>
+                <button
+                  type="button"
+                  onClick={() => setAddPersonOpen((v) => !v)}
+                  className="p-1.5 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  title="Add person"
+                >
+                  <UserPlus className="size-4" />
+                </button>
+                {addPersonOpen && (
+                  <div className="absolute top-full right-0 mt-1 w-72 rounded-xl border bg-background shadow-lg z-20 p-2">
+                    <Input
+                      autoFocus
+                      placeholder="Add a person by name…"
+                      value={addPersonQuery}
+                      onChange={(e) => setAddPersonQuery(e.target.value)}
+                      className="mb-1.5"
+                    />
+                    {addPersonQuery.trim().length < 2 ? (
+                      <p className="text-xs text-muted-foreground px-2 py-1.5">Type at least 2 characters…</p>
+                    ) : addPersonSearching ? (
+                      <p className="text-xs text-muted-foreground px-2 py-1.5">Searching…</p>
+                    ) : addPersonResults.length === 0 ? (
+                      <p className="text-xs text-muted-foreground px-2 py-1.5">No members found.</p>
+                    ) : (
+                      <div className="max-h-64 overflow-y-auto space-y-0.5">
+                        {addPersonResults.map((p) => (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => handleAddPerson(p)}
+                            className="w-full flex items-center gap-2.5 rounded-md px-2 py-1.5 text-left hover:bg-muted transition-colors"
+                          >
+                            <Avatar size="sm">
+                              {p.avatar_url && <AvatarImage src={p.avatar_url} alt={p.full_name ?? ""} />}
+                              <AvatarFallback>{getInitials(p.full_name)}</AvatarFallback>
+                            </Avatar>
+                            <p className="text-sm font-medium truncate">{p.full_name ?? "Unknown"}</p>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
@@ -556,23 +810,30 @@ export default function MessagesPage() {
                         ) : (
                           <div className="size-6 shrink-0" />
                         )}
-                        <div
-                          className={cn(
-                            "max-w-[70%] rounded-2xl px-3 py-2 text-sm",
-                            isMe
-                              ? "bg-primary text-primary-foreground rounded-br-sm"
-                              : "bg-muted rounded-bl-sm"
+                        <div className={cn("flex flex-col", isMe ? "items-end" : "items-start")}>
+                          {isGroupActive && !isMe && !isGrouped && (
+                            <p className="text-xs text-muted-foreground mb-0.5 px-1">
+                              {msg.profiles?.full_name ?? "Unknown"}
+                            </p>
                           )}
-                        >
-                          <p className="whitespace-pre-wrap break-words">{msg.content}</p>
-                          <p
+                          <div
                             className={cn(
-                              "text-xs mt-1",
-                              isMe ? "text-primary-foreground/70" : "text-muted-foreground"
+                              "max-w-[70%] rounded-2xl px-3 py-2 text-sm",
+                              isMe
+                                ? "bg-primary text-primary-foreground rounded-br-sm"
+                                : "bg-muted rounded-bl-sm"
                             )}
                           >
-                            {format(new Date(msg.created_at), "h:mm a")}
-                          </p>
+                            <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                            <p
+                              className={cn(
+                                "text-xs mt-1",
+                                isMe ? "text-primary-foreground/70" : "text-muted-foreground"
+                              )}
+                            >
+                              {format(new Date(msg.created_at), "h:mm a")}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     );
@@ -586,7 +847,7 @@ export default function MessagesPage() {
             <div className="border-t p-3">
               <div className="flex gap-2 items-end">
                 <Textarea
-                  placeholder={`Message ${otherUser?.full_name ?? "…"}`}
+                  placeholder={`Message ${conversationTitle(activeParticipants, currentUser?.id)}`}
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
                   onKeyDown={handleKeyDown}

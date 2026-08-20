@@ -80,12 +80,14 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
   // stale count no matter how many conversations got opened.
   const fetchUnreadDmCount = useCallback(async () => {
     const supabase = createClient()
-    const { data: convs } = await supabase
-      .from('dm_conversations')
-      .select('id')
-      .or(`participant_a.eq.${profile.id},participant_b.eq.${profile.id}`)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: convs } = await (supabase as any)
+      .from('conversation_participants')
+      .select('conversation_id')
+      .eq('user_id', profile.id)
 
-    const convIds = (convs ?? []).map(c => c.id)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const convIds = (convs ?? []).map((c: any) => c.conversation_id)
     if (convIds.length === 0) {
       setUnreadCount(0)
       return
@@ -111,12 +113,14 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
     let cancelled = false
     let channel: ReturnType<typeof supabase.channel> | null = null
 
-    supabase
-      .from('dm_conversations')
-      .select('id')
-      .or(`participant_a.eq.${profile.id},participant_b.eq.${profile.id}`)
-      .then(({ data: convs }) => {
-        const convIds = (convs ?? []).map(c => c.id)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(supabase as any)
+      .from('conversation_participants')
+      .select('conversation_id')
+      .eq('user_id', profile.id)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .then(({ data: convs }: { data: any[] | null }) => {
+        const convIds = (convs ?? []).map((c) => c.conversation_id)
         if (cancelled || convIds.length === 0) return
         const filter = `conversation_id=in.(${convIds.join(',')})`
         channel = supabase
