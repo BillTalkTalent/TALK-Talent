@@ -3,7 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   Home,
   Users,
@@ -71,53 +71,77 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
   const [moreOpen, setMoreOpen] = useState(false)
   const moreRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
+  // Always recompute from the DB's actual is_read state rather than
+  // hand-tracking a local counter — a counter that's only ever incremented
+  // (on new messages) or zeroed (on visiting /messages) drifts from reality
+  // the moment anything marks a message read *without* going through that
+  // zero-reset (e.g. opening a second or third conversation while already
+  // on /messages), which is exactly why the badge could keep reading a
+  // stale count no matter how many conversations got opened.
+  const fetchUnreadDmCount = useCallback(async () => {
     const supabase = createClient()
+    const { data: convs } = await supabase
+      .from('dm_conversations')
+      .select('id')
+      .or(`participant_a.eq.${profile.id},participant_b.eq.${profile.id}`)
 
-    async function fetchUnread() {
-      // Count messages in my conversations where I'm not the sender and is_read = false
-      const { data: convs } = await supabase
-        .from('dm_conversations')
-        .select('id')
-        .or(`participant_a.eq.${profile.id},participant_b.eq.${profile.id}`)
-
-      if (!convs || convs.length === 0) return
-
-      const convIds = convs.map(c => c.id)
-      const { count } = await supabase
-        .from('dm_messages')
-        .select('id', { count: 'exact', head: true })
-        .in('conversation_id', convIds)
-        .neq('sender_id', profile.id)
-        .eq('is_read', false)
-
-      setUnreadCount(count ?? 0)
+    const convIds = (convs ?? []).map(c => c.id)
+    if (convIds.length === 0) {
+      setUnreadCount(0)
+      return
     }
 
-    fetchUnread()
+    const { count } = await supabase
+      .from('dm_messages')
+      .select('id', { count: 'exact', head: true })
+      .in('conversation_id', convIds)
+      .neq('sender_id', profile.id)
+      .eq('is_read', false)
 
-    // Subscribe to new messages
-    const channel = supabase
-      .channel('nav-unread')
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'dm_messages',
-      }, (payload) => {
-        const msg = payload.new as { sender_id: string }
-        if (msg.sender_id !== profile.id) {
-          setUnreadCount(c => c + 1)
-        }
-      })
-      .subscribe()
-
-    return () => { supabase.removeChannel(channel) }
+    setUnreadCount(count ?? 0)
   }, [profile.id])
 
-  // Reset unread when visiting messages
   useEffect(() => {
-    if (pathname.startsWith('/messages')) setUnreadCount(0)
-  }, [pathname])
+    Promise.resolve().then(() => fetchUnreadDmCount())
+
+    // Re-fetch on both new messages and read-receipt updates — scoped via
+    // `in.(...)` to conversations I'm actually part of, not every DM sent
+    // by anyone on the platform.
+    const supabase = createClient()
+    let cancelled = false
+    let channel: ReturnType<typeof supabase.channel> | null = null
+
+    supabase
+      .from('dm_conversations')
+      .select('id')
+      .or(`participant_a.eq.${profile.id},participant_b.eq.${profile.id}`)
+      .then(({ data: convs }) => {
+        const convIds = (convs ?? []).map(c => c.id)
+        if (cancelled || convIds.length === 0) return
+        const filter = `conversation_id=in.(${convIds.join(',')})`
+        channel = supabase
+          .channel('nav-unread')
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'dm_messages', filter }, fetchUnreadDmCount)
+          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'dm_messages', filter }, fetchUnreadDmCount)
+          .subscribe()
+      })
+
+    return () => {
+      cancelled = true
+      if (channel) supabase.removeChannel(channel)
+    }
+  }, [fetchUnreadDmCount, profile.id])
+
+  // Re-sync (not just zero) whenever the messages page is entered or left,
+  // so the badge reflects whatever was actually marked read there.
+  const prevOnMessages = useRef(false)
+  useEffect(() => {
+    const onMessages = pathname.startsWith('/messages')
+    if (onMessages !== prevOnMessages.current) {
+      prevOnMessages.current = onMessages
+      Promise.resolve().then(() => fetchUnreadDmCount())
+    }
+  }, [pathname, fetchUnreadDmCount])
 
   // Close the More menu whenever the route changes
   useEffect(() => {
