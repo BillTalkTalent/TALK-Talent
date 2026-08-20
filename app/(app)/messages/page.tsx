@@ -42,17 +42,6 @@ export default function MessagesPage() {
 
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Read via a ref (not the currentUser state directly) inside openConversation
-  // below — otherwise openConversation's identity changes every time
-  // currentUser changes, which retriggers the init effect that *sets*
-  // currentUser (see its dependency array), forming a loop that keeps
-  // snapping the active conversation back to the first one in the list on
-  // every cycle — exactly the "can't click into any conversation" bug.
-  const currentUserRef = useRef<Profile | null>(null);
-  useEffect(() => {
-    currentUserRef.current = currentUser;
-  }, [currentUser]);
-
   const scrollToBottom = useCallback(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
@@ -130,7 +119,7 @@ export default function MessagesPage() {
   );
 
   const openConversation = useCallback(
-    async (convId: string, other: Profile | null) => {
+    async (convId: string, other: Profile | null, viewerId: string) => {
       setActiveConvId(convId);
       setOtherUser(other);
 
@@ -143,21 +132,22 @@ export default function MessagesPage() {
 
       setMessages((data as MessageWithSender[]) ?? []);
 
-      // Mark all unread messages in this conversation as read
-      const me = currentUserRef.current;
-      if (me) {
-        await supabase
-          .from("dm_messages")
-          .update({ is_read: true })
-          .eq("conversation_id", convId)
-          .neq("sender_id", me.id)
-          .eq("is_read", false);
+      // Mark all unread messages in this conversation as read. viewerId is
+      // passed in explicitly (not read from currentUser state/ref) so this
+      // always fires correctly — including for the very first conversation
+      // auto-opened on page load, before currentUser state has settled from
+      // its initial null.
+      await supabase
+        .from("dm_messages")
+        .update({ is_read: true })
+        .eq("conversation_id", convId)
+        .neq("sender_id", viewerId)
+        .eq("is_read", false);
 
-        // Clear unread count badge in sidebar immediately (optimistic)
-        setConversations((prev) =>
-          prev.map((c) => c.id === convId ? { ...c, unreadCount: 0 } : c)
-        );
-      }
+      // Clear unread count badge in sidebar immediately (optimistic)
+      setConversations((prev) =>
+        prev.map((c) => c.id === convId ? { ...c, unreadCount: 0 } : c)
+      );
     },
     [supabase]
   );
@@ -217,13 +207,13 @@ export default function MessagesPage() {
             .select("*")
             .eq("id", withUserId)
             .single();
-          await openConversation(convId, otherProfile ?? null);
+          await openConversation(convId, otherProfile ?? null, user.id);
           // Refresh convs to include new one
           const refreshed = await loadConversations(user.id);
           setConversations(refreshed);
         }
       } else if (convs.length > 0) {
-        await openConversation(convs[0].id, convs[0].otherUser);
+        await openConversation(convs[0].id, convs[0].otherUser, user.id);
       }
 
       setLoading(false);
@@ -340,7 +330,7 @@ export default function MessagesPage() {
               {conversations.map((conv) => (
                 <button
                   key={conv.id}
-                  onClick={() => openConversation(conv.id, conv.otherUser)}
+                  onClick={() => currentUser && openConversation(conv.id, conv.otherUser, currentUser.id)}
                   className={cn(
                     "w-full flex items-center gap-2.5 rounded-md px-2.5 py-2 text-left transition-colors",
                     conv.id === activeConvId
