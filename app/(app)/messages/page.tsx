@@ -253,7 +253,12 @@ export default function MessagesPage() {
             .select("*")
             .eq("id", newMsg.sender_id ?? "")
             .single();
-          setMessages((prev) => [...prev, { ...newMsg, profiles: sender ?? null }]);
+          // Own messages are already appended optimistically in sendMessage
+          // below — skip re-adding once the realtime event for them arrives,
+          // or they'd show twice.
+          setMessages((prev) =>
+            prev.some((m) => m.id === newMsg.id) ? prev : [...prev, { ...newMsg, profiles: sender ?? null }]
+          );
         }
       )
       .subscribe();
@@ -268,12 +273,25 @@ export default function MessagesPage() {
     setSending(true);
     const content = draft.trim();
 
-    await supabase.from("dm_messages").insert({
-      conversation_id: activeConvId,
-      sender_id: currentUser.id,
-      content,
-      is_read: false,
-    });
+    const { data: inserted } = await supabase
+      .from("dm_messages")
+      .insert({
+        conversation_id: activeConvId,
+        sender_id: currentUser.id,
+        content,
+        is_read: false,
+      })
+      .select("*, profiles(*)")
+      .single();
+
+    // Show it immediately rather than waiting on the realtime round-trip —
+    // this is what actually guarantees the sender sees their own message
+    // without a manual refresh, independent of realtime being connected.
+    // The subscription above skips re-adding it once that event arrives.
+    if (inserted) {
+      const msg = inserted as MessageWithSender;
+      setMessages((prev) => (prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]));
+    }
 
     setDraft("");
     setSending(false);
