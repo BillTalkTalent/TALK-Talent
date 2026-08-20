@@ -5,11 +5,11 @@ import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { format, formatDistanceToNow } from "date-fns";
-import { Send, MessageSquare } from "lucide-react";
+import { Send, MessageSquare, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { DmConversation, DmMessage, Profile } from "@/lib/supabase/types";
 
@@ -39,6 +39,13 @@ export default function MessagesPage() {
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // "New message" — search members by name to start a conversation
+  const [newMsgOpen, setNewMsgOpen] = useState(false);
+  const [newMsgQuery, setNewMsgQuery] = useState("");
+  const [newMsgResults, setNewMsgResults] = useState<Profile[]>([]);
+  const [newMsgSearching, setNewMsgSearching] = useState(false);
+  const newMsgRef = useRef<HTMLDivElement>(null);
 
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -185,6 +192,59 @@ export default function MessagesPage() {
     [supabase]
   );
 
+  // Debounced member search that powers "New message" — approved members
+  // only, matching the same visibility RLS already grants for browsing.
+  useEffect(() => {
+    if (!newMsgOpen) return;
+    const q = newMsgQuery.trim();
+    if (q.length < 2) {
+      Promise.resolve().then(() => {
+        setNewMsgResults([]);
+        setNewMsgSearching(false);
+      });
+      return;
+    }
+    Promise.resolve().then(() => setNewMsgSearching(true));
+    const timeout = setTimeout(async () => {
+      let query = supabase
+        .from("profiles")
+        .select("*")
+        .eq("status", "approved")
+        .eq("is_bot", false)
+        .ilike("full_name", `%${q}%`)
+        .limit(8);
+      if (currentUser) query = query.neq("id", currentUser.id);
+      const { data } = await query;
+      setNewMsgResults((data as Profile[]) ?? []);
+      setNewMsgSearching(false);
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [newMsgQuery, newMsgOpen, supabase, currentUser]);
+
+  // Close the "New message" panel on outside click
+  useEffect(() => {
+    function handle(e: MouseEvent) {
+      if (newMsgRef.current && !newMsgRef.current.contains(e.target as Node)) {
+        setNewMsgOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, []);
+
+  async function startConversationWith(other: Profile) {
+    if (!currentUser) return;
+    const convId = await getOrCreateConversation(currentUser.id, other.id);
+    if (convId) {
+      await openConversation(convId, other, currentUser.id);
+      const refreshed = await loadConversations(currentUser.id);
+      setConversations(refreshed);
+    }
+    setNewMsgOpen(false);
+    setNewMsgQuery("");
+    setNewMsgResults([]);
+  }
+
   useEffect(() => {
     const init = async () => {
       const {
@@ -321,8 +381,59 @@ export default function MessagesPage() {
     <div className="flex h-full min-h-0 overflow-hidden">
       {/* Conversation list */}
       <aside className="w-64 shrink-0 border-r flex flex-col">
-        <div className="p-3 border-b">
+        <div className="p-3 border-b flex items-center justify-between relative" ref={newMsgRef}>
           <h2 className="text-sm font-semibold">Direct Messages</h2>
+          <button
+            type="button"
+            onClick={() => setNewMsgOpen((v) => !v)}
+            className="p-1.5 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            title="New message"
+          >
+            <UserPlus className="size-4" />
+          </button>
+
+          {newMsgOpen && (
+            <div className="absolute top-full left-2 right-2 mt-1 rounded-xl border bg-background shadow-lg z-20 p-2">
+              <Input
+                autoFocus
+                placeholder="Search members by name…"
+                value={newMsgQuery}
+                onChange={(e) => setNewMsgQuery(e.target.value)}
+                className="mb-1.5"
+              />
+              {newMsgQuery.trim().length < 2 ? (
+                <p className="text-xs text-muted-foreground px-2 py-1.5">Type at least 2 characters…</p>
+              ) : newMsgSearching ? (
+                <p className="text-xs text-muted-foreground px-2 py-1.5">Searching…</p>
+              ) : newMsgResults.length === 0 ? (
+                <p className="text-xs text-muted-foreground px-2 py-1.5">No members found.</p>
+              ) : (
+                <div className="max-h-64 overflow-y-auto space-y-0.5">
+                  {newMsgResults.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => startConversationWith(p)}
+                      className="w-full flex items-center gap-2.5 rounded-md px-2 py-1.5 text-left hover:bg-muted transition-colors"
+                    >
+                      <Avatar size="sm">
+                        {p.avatar_url && <AvatarImage src={p.avatar_url} alt={p.full_name ?? ""} />}
+                        <AvatarFallback>{getInitials(p.full_name)}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">{p.full_name ?? "Unknown"}</p>
+                        {(p.title || p.company) && (
+                          <p className="text-xs text-muted-foreground truncate">
+                            {[p.title, p.company].filter(Boolean).join(" · ")}
+                          </p>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
         <ScrollArea className="flex-1">
           {conversations.length === 0 ? (
