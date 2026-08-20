@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, Users, Star, Globe, Mail, Pencil } from 'lucide-react'
+import { ArrowLeft, Users, Star, Globe, Mail, Pencil, LayoutDashboard } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import ChapterBoard from './chapter-board'
 
@@ -79,12 +79,20 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
           <ArrowLeft className="size-4" /> All Chapters
         </Link>
         {canEdit && (
-          <Link
-            href={`/chapters/${slug}/edit`}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-zinc-600 bg-zinc-100 hover:bg-zinc-200 transition-colors border border-zinc-200"
-          >
-            <Pencil className="size-3.5" /> Edit Chapter
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/chapters/${slug}/manage`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-white bg-[#1E4B82] hover:bg-[#1a4272] transition-colors"
+            >
+              <LayoutDashboard className="size-3.5" /> Manage Chapter
+            </Link>
+            <Link
+              href={`/chapters/${slug}/edit`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-zinc-600 bg-zinc-100 hover:bg-zinc-200 transition-colors border border-zinc-200"
+            >
+              <Pencil className="size-3.5" /> Edit Chapter
+            </Link>
+          </div>
         )}
       </div>
 

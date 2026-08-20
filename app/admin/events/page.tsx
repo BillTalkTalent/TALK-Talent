@@ -120,6 +120,11 @@ export default async function AdminEventsPage() {
     .select('*')
     .order('event_date', { ascending: false })
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: chapters } = await (supabase as any).from('chapters').select('id, name')
+  const chapterNameById: Record<string, string> = {}
+  for (const c of chapters ?? []) chapterNameById[c.id] = c.name
+
   return (
     <div className="space-y-6">
       {/* Weekly event digest preview */}
@@ -176,6 +181,16 @@ export default async function AdminEventsPage() {
                         <p className="font-medium text-zinc-900">{event.title}</p>
                         <Badge variant={statusVariant[event.status] ?? 'outline'}>{event.status}</Badge>
                         {event.is_virtual && <Badge variant="outline">Virtual</Badge>}
+                        {(() => {
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                          const chapterId = (event as any).chapter_id as string | null
+                          const chapterName = chapterId ? chapterNameById[chapterId] : null
+                          return chapterName ? (
+                            <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50">
+                              {chapterName} chapter
+                            </Badge>
+                          ) : null
+                        })()}
                         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                         {(event as any).is_test && (
                           <Badge variant="outline" className="gap-1 text-amber-600 border-amber-200 bg-amber-50">
