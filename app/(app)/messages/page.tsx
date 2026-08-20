@@ -137,12 +137,16 @@ export default function MessagesPage() {
       // always fires correctly — including for the very first conversation
       // auto-opened on page load, before currentUser state has settled from
       // its initial null.
-      await supabase
+      const { error: markReadError } = await supabase
         .from("dm_messages")
         .update({ is_read: true })
         .eq("conversation_id", convId)
         .neq("sender_id", viewerId)
         .eq("is_read", false);
+      // This silently failed for a long time (missing RLS update policy —
+      // see migration 060) with no visible symptom beyond a badge that
+      // never cleared. Surface it going forward instead of swallowing it.
+      if (markReadError) console.error("Failed to mark DM messages as read:", markReadError.message);
 
       // Clear unread count badge in sidebar immediately (optimistic)
       setConversations((prev) =>
