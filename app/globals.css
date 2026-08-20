@@ -48,42 +48,53 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* TALK brand tokens, derived from the actual colors used across the app
+   (topnav gradient navy #0F1F35→#162D4A, coral accent #E8503A, active-state
+   blue #1E4B82) instead of the "Electric Teal" shadcn scaffold this project
+   started from. Those placeholder values are still what most components see
+   today: this block used to be duplicated below inside `@layer base`, and
+   CSS Cascade Layers gives unlayered declarations priority over layered
+   ones regardless of source order — so that second, brand-correct copy was
+   silently dead, and `bg-primary`/`bg-accent`/etc. have been resolving to
+   the leftover teal/violet placeholders this whole time. That's also why
+   most pages stopped trusting these tokens and hardcode hex colors
+   (`bg-[#E8503A]`) inline instead. This is now the one definition. */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --background: oklch(0.985 0.004 75);
+  --foreground: oklch(0.205 0.01 275);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.205 0.01 275);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  /* Electric Teal primary #F07058 */
-  --primary: oklch(0.78 0.15 175);
-  --primary-foreground: oklch(0.1 0 0);
-  --secondary: oklch(0.95 0.02 276.966);
-  --secondary-foreground: oklch(0.511 0.262 276.966);
-  --muted: oklch(0.96 0.008 276.966);
-  --muted-foreground: oklch(0.52 0.04 276.966);
-  /* Amber accent */
-  --accent: oklch(0.85 0.18 85);
-  --accent-foreground: oklch(0.25 0.06 85);
+  --popover-foreground: oklch(0.205 0.01 275);
+  /* Coral #E8503A */
+  --primary: oklch(0.636 0.192 31.1);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.96 0.006 275);
+  --secondary-foreground: oklch(0.35 0.02 275);
+  --muted: oklch(0.965 0.005 75);
+  --muted-foreground: oklch(0.52 0.015 275);
+  /* Active/selected blue #1E4B82 */
+  --accent: oklch(0.412 0.105 255.2);
+  --accent-foreground: oklch(0.99 0 0);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.918 0.012 276.966);
-  --input: oklch(0.918 0.012 276.966);
-  --ring: oklch(0.511 0.262 276.966);
-  --chart-1: oklch(0.511 0.262 276.966);
-  --chart-2: oklch(0.85 0.18 85);
-  --chart-3: oklch(0.65 0.18 276.966);
-  --chart-4: oklch(0.75 0.14 85);
-  --chart-5: oklch(0.35 0.18 276.966);
+  --border: oklch(0.93 0.005 275);
+  --input: oklch(0.93 0.005 275);
+  --ring: oklch(0.546 0.215 262.9);
+  --chart-1: oklch(0.636 0.192 31.1);
+  --chart-2: oklch(0.412 0.105 255.2);
+  --chart-3: oklch(0.555 0.146 49);
+  --chart-4: oklch(0.541 0.247 293);
+  --chart-5: oklch(0.596 0.127 163.2);
   --radius: 0.625rem;
-  /* Sidebar — deep indigo */
-  --sidebar: oklch(0.245 0.09 276.966);
-  --sidebar-foreground: oklch(0.92 0.02 276.966);
-  --sidebar-primary: oklch(0.85 0.18 85);
-  --sidebar-primary-foreground: oklch(0.25 0.06 85);
-  --sidebar-accent: oklch(0.32 0.1 276.966);
-  --sidebar-accent-foreground: oklch(0.95 0.02 276.966);
-  --sidebar-border: oklch(0.32 0.1 276.966);
-  --sidebar-ring: oklch(0.85 0.18 85);
+  /* Sidebar — navy, matching the topnav gradient */
+  --sidebar: oklch(0.238 0.048 256.7);
+  --sidebar-foreground: oklch(0.95 0.01 255);
+  --sidebar-primary: oklch(0.636 0.192 31.1);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.412 0.105 255.2);
+  --sidebar-accent-foreground: oklch(0.99 0 0);
+  --sidebar-border: oklch(0.294 0.061 255.1);
+  --sidebar-ring: oklch(0.546 0.215 262.9);
 }
 
 .dark {
@@ -121,35 +132,6 @@
 }
 
 @layer base {
-  :root {
-    /* TALK brand — original teal palette */
-    --background: oklch(0.97 0.008 150);          /* warm white */
-    --foreground: oklch(0.22 0.04 168);            /* dark forest text */
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.22 0.04 168);
-    --primary: oklch(0.78 0.15 175);              /* Teal #F07058 */
-    --primary-foreground: oklch(0.1 0 0);
-    --secondary: oklch(0.93 0.03 183);
-    --secondary-foreground: oklch(0.42 0.07 168);
-    --muted: oklch(0.94 0.02 183);
-    --muted-foreground: oklch(0.52 0.05 183);
-    --accent: oklch(0.77 0.05 222);
-    --accent-foreground: oklch(0.3 0.05 183);
-    --ring: oklch(0.78 0.15 175);
-    --border: oklch(0.90 0.025 183);
-    --input: oklch(0.90 0.025 183);
-    --radius: 0.625rem;
-    /* Sidebar vars (kept for compat) */
-    --sidebar: oklch(0.42 0.07 168);
-    --sidebar-foreground: oklch(0.95 0.02 183);
-    --sidebar-primary: oklch(0.78 0.15 175);
-    --sidebar-primary-foreground: oklch(0.1 0 0);
-    --sidebar-accent: oklch(0.50 0.07 168);
-    --sidebar-accent-foreground: oklch(0.95 0.02 183);
-    --sidebar-border: oklch(0.50 0.07 168);
-    --sidebar-ring: oklch(0.78 0.15 175);
-  }
-
   /* Smoother scrollbar for webkit browsers (vertical only) */
   ::-webkit-scrollbar {
     width: 6px;
@@ -159,16 +141,16 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: oklch(0.78 0.02 276.966);
+    background: oklch(0.82 0.008 275);
     border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: oklch(0.62 0.06 276.966);
+    background: oklch(0.68 0.012 275);
   }
 
   /* Better link focus styles */
   a:focus-visible {
-    outline: 2px solid oklch(0.511 0.262 276.966);
+    outline: 2px solid var(--ring);
     outline-offset: 3px;
     border-radius: 3px;
   }
