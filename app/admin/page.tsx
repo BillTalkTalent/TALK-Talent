@@ -423,21 +423,23 @@ export default async function AdminPage({
                   <div className="min-w-0 space-y-1">
                     <p className="font-medium text-zinc-900">{member.full_name}</p>
                     <p className="text-sm text-zinc-500">{member.email}</p>
-                    {member.linkedin_url ? (
+                    {member.linkedin_url && (
                       <a
                         href={member.linkedin_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-blue-600 hover:underline break-all"
+                        className="text-sm text-blue-600 hover:underline break-all block"
                       >
                         {member.linkedin_url}
                       </a>
-                    ) : isSuperAdmin ? (
+                    )}
+                    {isSuperAdmin ? (
                       <form action={setLinkedinUrl.bind(null, member.id)} className="flex items-center gap-1.5 pt-0.5">
                         <input
                           type="url"
                           name="linkedin_url"
-                          placeholder="No LinkedIn on file — paste URL…"
+                          defaultValue={member.linkedin_url ?? ''}
+                          placeholder={member.linkedin_url ? 'Wrong link? Paste the correct URL…' : 'No LinkedIn on file — paste URL…'}
                           required
                           className="text-xs border border-amber-200 rounded-lg px-2 py-1 w-64 focus:outline-none focus:border-amber-400 text-zinc-700 placeholder:text-zinc-400"
                         />
@@ -445,11 +447,13 @@ export default async function AdminPage({
                           type="submit"
                           className="text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1 hover:bg-amber-100 transition-colors shrink-0"
                         >
-                          Save
+                          {member.linkedin_url ? 'Update' : 'Save'}
                         </button>
                       </form>
                     ) : (
-                      <p className="text-xs text-zinc-400 italic">No LinkedIn on file</p>
+                      !member.linkedin_url && (
+                        <p className="text-xs text-zinc-400 italic">No LinkedIn on file</p>
+                      )
                     )}
                     {member.claimed_match_id && (
                       <p className="text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2 py-1 inline-block">
