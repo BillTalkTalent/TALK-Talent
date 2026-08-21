@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format, formatDistanceToNow } from "date-fns";
-import { Send, MessageSquare, UserPlus, X, Users } from "lucide-react";
+import { Send, MessageSquare, UserPlus, X, Users, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { DmConversation, DmMessage, Profile } from "@/lib/supabase/types";
 
@@ -556,8 +556,14 @@ export default function MessagesPage() {
 
   return (
     <div className="flex h-full min-h-0 overflow-hidden">
-      {/* Conversation list */}
-      <aside className="w-64 shrink-0 border-r flex flex-col">
+      {/* Conversation list — full width on mobile until a thread is open,
+          a fixed sidebar alongside the thread from sm: up */}
+      <aside
+        className={cn(
+          "w-full sm:w-64 sm:shrink-0 border-r flex-col",
+          activeConvId ? "hidden sm:flex" : "flex"
+        )}
+      >
         <div className="p-3 border-b flex items-center justify-between relative" ref={newMsgRef}>
           <h2 className="text-sm font-semibold">Direct Messages</h2>
           <button
@@ -705,8 +711,14 @@ export default function MessagesPage() {
         </ScrollArea>
       </aside>
 
-      {/* Message area */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      {/* Message area — full width on mobile once a thread is open, flexes
+          alongside the sidebar from sm: up */}
+      <div
+        className={cn(
+          "flex-1 flex-col overflow-hidden",
+          activeConvId ? "flex" : "hidden sm:flex"
+        )}
+      >
         {!activeConvId ? (
           <div className="flex flex-1 items-center justify-center gap-2 text-muted-foreground">
             <MessageSquare className="size-5" />
@@ -717,6 +729,14 @@ export default function MessagesPage() {
             {/* Header */}
             <div className="border-b px-4 py-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
+                <button
+                  type="button"
+                  onClick={() => setActiveConvId(null)}
+                  className="sm:hidden p-1.5 -ml-1.5 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors shrink-0"
+                  title="Back to conversations"
+                >
+                  <ArrowLeft className="size-4" />
+                </button>
                 {isGroupActive ? (
                   <div className="size-8 shrink-0 rounded-full bg-muted flex items-center justify-center">
                     <Users className="size-4 text-muted-foreground" />
@@ -824,7 +844,19 @@ export default function MessagesPage() {
                         ) : (
                           <div className="size-6 shrink-0" />
                         )}
-                        <div className={cn("flex flex-col", isMe ? "items-end" : "items-start")}>
+                        {/* max-w-[70%] + min-w-0 live here, on the actual flex
+                            item, not on the bubble div nested inside it — a
+                            percentage max-width only resolves correctly
+                            against a containing block with a definite width,
+                            and a shrink-to-fit flex item (the bubble's old
+                            home) doesn't have one. Left on the bubble, the
+                            70% was undefined-behavior CSS that browsers
+                            commonly collapsed to near-zero, breaking even
+                            short words mid-letter. min-w-0 lets this item
+                            still shrink below its content's natural size for
+                            long unbroken strings (e.g. URLs), leaving
+                            break-words below as the actual wrap mechanism. */}
+                        <div className={cn("flex flex-col max-w-[70%] min-w-0", isMe ? "items-end" : "items-start")}>
                           {isGroupActive && !isMe && !isGrouped && (
                             <p className="text-xs text-muted-foreground mb-0.5 px-1">
                               {msg.profiles?.full_name ?? "Unknown"}
@@ -832,7 +864,7 @@ export default function MessagesPage() {
                           )}
                           <div
                             className={cn(
-                              "max-w-[70%] rounded-2xl px-3 py-2 text-sm",
+                              "rounded-2xl px-3 py-2 text-sm",
                               isMe
                                 ? "bg-primary text-primary-foreground rounded-br-sm"
                                 : "bg-muted rounded-bl-sm"
