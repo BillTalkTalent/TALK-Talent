@@ -348,15 +348,15 @@ export default async function DashboardPage() {
       {unreadCount > 0 && (
         <Link
           href="/notifications"
-          className="flex items-center justify-between gap-3 rounded-2xl border border-[#F07058]/30 bg-[#F07058]/10 px-5 py-3 hover:bg-[#F07058]/15 transition-colors"
+          className="flex items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/10 px-5 py-3 hover:bg-primary/15 transition-colors"
         >
           <div className="flex items-center gap-3">
-            <Bell className="size-5 text-[#E8503A]" />
-            <p className="text-sm font-semibold text-zinc-900">
+            <Bell className="size-5 text-primary" />
+            <p className="text-sm font-semibold text-foreground">
               You have {unreadCount} unread notification{unreadCount === 1 ? '' : 's'}
             </p>
           </div>
-          <ArrowRight className="size-4 text-[#E8503A]" />
+          <ArrowRight className="size-4 text-primary" />
         </Link>
       )}
 
@@ -421,23 +421,23 @@ export default async function DashboardPage() {
         />
 
         {/* Upcoming Events */}
-        <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100">
+        <div className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-border">
             <div className="flex items-center gap-2.5">
               <div className="size-7 rounded-lg bg-[#f97316]/15 flex items-center justify-center">
                 <CalendarDays className="size-3.5 text-[#f97316]" />
               </div>
-              <span className="text-sm font-semibold text-zinc-900">Upcoming Events &amp; Classes</span>
+              <span className="text-sm font-semibold text-foreground">Upcoming Events &amp; Classes</span>
             </div>
-            <Button variant="ghost" size="sm" className="text-xs text-[#E8503A] hover:text-[#F07058] hover:bg-[#F07058]/10 -mr-1" render={<Link href="/events" />}>
+            <Button variant="ghost" size="sm" className="text-xs text-primary hover:text-primary/80 hover:bg-primary/10 -mr-1" render={<Link href="/events" />}>
               View all <ArrowRight className="size-3 ml-1" />
             </Button>
           </div>
-          <div className="divide-y divide-zinc-50">
+          <div className="divide-y divide-border/60">
             {upcomingEvents.length === 0 ? (
               <div className="px-5 py-10 text-center">
-                <CalendarDays className="size-8 text-zinc-200 mx-auto mb-2" />
-                <p className="text-sm text-zinc-400">No upcoming events.</p>
+                <CalendarDays className="size-8 text-muted-foreground/40 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">No upcoming events.</p>
               </div>
             ) : (
               upcomingEvents.map((event) => {
@@ -450,7 +450,7 @@ export default async function DashboardPage() {
                   <Link
                     key={event.id}
                     href={`/events/${event.id}`}
-                    className="flex items-center gap-4 px-5 py-3.5 hover:bg-zinc-50 transition-colors group"
+                    className="flex items-center gap-4 px-5 py-3.5 hover:bg-muted/60 transition-colors group"
                   >
                     <div className="flex w-11 shrink-0 flex-col items-center justify-center rounded-xl py-2 text-indigo-700"
                       style={{background: "linear-gradient(135deg, #eef2ff, #e0e7ff)"}}>
@@ -464,15 +464,15 @@ export default async function DashboardPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 mb-0.5">
                         {(event as unknown as { is_paid: boolean }).is_paid ? (
-                          <span className="text-[9px] font-black uppercase tracking-wide text-white bg-[#E8503A] px-1.5 py-0.5 rounded-full shrink-0">Class</span>
+                          <span className="text-[9px] font-black uppercase tracking-wide text-primary-foreground bg-primary px-1.5 py-0.5 rounded-full shrink-0">Class</span>
                         ) : (
                           <span className="text-[9px] font-black uppercase tracking-wide text-[#f97316] bg-[#f97316]/10 px-1.5 py-0.5 rounded-full shrink-0">Event</span>
                         )}
-                        <p className="font-medium text-sm text-zinc-900 truncate group-hover:text-[#F07058] transition-colors">
+                        <p className="font-medium text-sm text-foreground truncate group-hover:text-primary transition-colors">
                           {event.title}
                         </p>
                       </div>
-                      <p className="text-xs text-zinc-400 flex items-center gap-1">
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
                         {event.is_virtual ? (
                           <><Monitor className="size-3" /> Virtual</>
                         ) : (
@@ -497,24 +497,24 @@ export default async function DashboardPage() {
 
       {/* Active Polls — shown only when polls exist */}
       {activePolls.length > 0 && (
-        <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100">
+        <div className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-border">
             <div className="flex items-center gap-2.5">
               <div className="size-7 rounded-lg bg-[#8b5cf6]/15 flex items-center justify-center">
                 <BarChart2 className="size-3.5 text-[#8b5cf6]" />
               </div>
-              <span className="text-sm font-semibold text-zinc-900">Active Polls</span>
+              <span className="text-sm font-semibold text-foreground">Active Polls</span>
               {unvotedCount > 0 && (
                 <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">
                   {unvotedCount} need{unvotedCount === 1 ? "s" : ""} your vote
                 </span>
               )}
             </div>
-            <Button variant="ghost" size="sm" className="text-xs text-zinc-500 hover:text-zinc-900 -mr-1" render={<Link href="/polls" />}>
+            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground -mr-1" render={<Link href="/polls" />}>
               View all <ArrowRight className="size-3 ml-1" />
             </Button>
           </div>
-          <div className="divide-y divide-zinc-50">
+          <div className="divide-y divide-border/60">
             {activePolls.map((poll) => {
               const hasVoted = myVotedPollIds.has(poll.id);
               const totalVotes = pollVoteCountMap[poll.id] ?? 0;
@@ -522,20 +522,20 @@ export default async function DashboardPage() {
                 <Link
                   key={poll.id}
                   href={`/polls/${poll.id}`}
-                  className="flex items-center gap-4 px-5 py-3 hover:bg-zinc-50 transition-colors group"
+                  className="flex items-center gap-4 px-5 py-3 hover:bg-muted/60 transition-colors group"
                 >
-                  <div className={`size-2 rounded-full shrink-0 ${hasVoted ? "bg-zinc-200" : "bg-[#8b5cf6]"}`} />
+                  <div className={`size-2 rounded-full shrink-0 ${hasVoted ? "bg-muted" : "bg-[#8b5cf6]"}`} />
                   <div className="min-w-0 flex-1">
-                    <p className={`font-medium text-sm truncate transition-colors ${hasVoted ? "text-zinc-500 group-hover:text-zinc-700" : "text-zinc-900 group-hover:text-[#8b5cf6]"}`}>
+                    <p className={`font-medium text-sm truncate transition-colors ${hasVoted ? "text-muted-foreground group-hover:text-foreground" : "text-foreground group-hover:text-[#8b5cf6]"}`}>
                       {poll.question}
                     </p>
-                    <p className="text-xs text-zinc-400 mt-0.5 flex items-center gap-2">
+                    <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-2">
                       <span className="flex items-center gap-1"><Users className="size-3" />{totalVotes} vote{totalVotes !== 1 ? "s" : ""}</span>
                       {poll.closes_at && (<><span>·</span><span className="flex items-center gap-1"><Clock className="size-3" />Closes {format(new Date(poll.closes_at), "MMM d")}</span></>)}
                     </p>
                   </div>
                   {hasVoted ? (
-                    <span className="shrink-0 text-xs font-semibold text-zinc-400 bg-zinc-50 border border-zinc-200 px-2.5 py-1 rounded-full">Voted ✓</span>
+                    <span className="shrink-0 text-xs font-semibold text-muted-foreground bg-muted border border-border px-2.5 py-1 rounded-full">Voted ✓</span>
                   ) : (
                     <span className="shrink-0 text-xs font-bold text-white bg-[#8b5cf6] px-3 py-1.5 rounded-full">Vote →</span>
                   )}
@@ -547,44 +547,44 @@ export default async function DashboardPage() {
       )}
 
       {/* Recent Job Posts */}
-      <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100">
+      <div className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <div className="flex items-center gap-2.5">
             <div className="size-7 rounded-lg bg-[#3b82f6]/15 flex items-center justify-center">
               <Briefcase className="size-3.5 text-[#3b82f6]" />
             </div>
-            <span className="text-sm font-semibold text-zinc-900">Recent Job Posts</span>
+            <span className="text-sm font-semibold text-foreground">Recent Job Posts</span>
           </div>
-          <Button variant="ghost" size="sm" className="text-xs text-[#E8503A] hover:text-[#F07058] hover:bg-[#F07058]/10 -mr-1" render={<Link href="/jobs" />}>
+          <Button variant="ghost" size="sm" className="text-xs text-primary hover:text-primary/80 hover:bg-primary/10 -mr-1" render={<Link href="/jobs" />}>
             View all <ArrowRight className="size-3 ml-1" />
           </Button>
         </div>
         {recentJobs.length === 0 ? (
           <div className="px-5 py-10 text-center">
-            <Briefcase className="size-8 text-zinc-200 mx-auto mb-2" />
-            <p className="text-sm text-zinc-400">No active jobs posted.</p>
+            <Briefcase className="size-8 text-muted-foreground/40 mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">No active jobs posted.</p>
           </div>
         ) : (
-          <div className="divide-y divide-zinc-50">
+          <div className="divide-y divide-border/60">
             {recentJobs.map((job) => (
               <Link
                 key={job.id}
                 href={`/jobs/${job.id}`}
-                className="flex items-center gap-4 px-5 py-3.5 hover:bg-zinc-50 transition-colors group"
+                className="flex items-center gap-4 px-5 py-3.5 hover:bg-muted/60 transition-colors group"
               >
                 <div className="size-9 rounded-xl bg-[#3b82f6]/10 flex items-center justify-center flex-shrink-0">
                   <Briefcase className="size-4 text-[#3b82f6]" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-medium text-sm text-zinc-900 group-hover:text-[#F07058] transition-colors">
+                    <p className="font-medium text-sm text-foreground group-hover:text-primary transition-colors">
                       {job.title}
                     </p>
                     <span className="text-[10px] font-semibold text-violet-700 bg-violet-50 border border-violet-100 px-1.5 py-0.5 rounded-full">
                       {job.job_type}
                     </span>
                   </div>
-                  <p className="text-xs text-zinc-400 mt-0.5 flex items-center gap-1">
+                  <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
                     {job.company}
                     {(job.location || job.is_remote) && (
                       <>
@@ -595,7 +595,7 @@ export default async function DashboardPage() {
                     )}
                   </p>
                 </div>
-                <ArrowRight className="size-4 text-zinc-300 group-hover:text-[#3b82f6] transition-colors shrink-0" />
+                <ArrowRight className="size-4 text-muted-foreground/50 group-hover:text-[#3b82f6] transition-colors shrink-0" />
               </Link>
             ))}
           </div>

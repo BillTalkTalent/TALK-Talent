@@ -20,10 +20,10 @@ const styles: Record<
   { border: string; bg: string; icon: string; title: string }
 > = {
   info: {
-    border: "border-[#1E4B82]/25",
-    bg: "bg-[#1E4B82]/[0.06]",
-    icon: "text-[#1E4B82]",
-    title: "text-[#0F1F35]",
+    border: "border-accent/25",
+    bg: "bg-accent/[0.06]",
+    icon: "text-accent",
+    title: "text-foreground",
   },
   success: {
     border: "border-emerald-500/25",
@@ -32,10 +32,10 @@ const styles: Record<
     title: "text-emerald-900",
   },
   warning: {
-    border: "border-[#E8503A]/30",
-    bg: "bg-[#F07058]/10",
-    icon: "text-[#E8503A]",
-    title: "text-[#0F1F35]",
+    border: "border-primary/30",
+    bg: "bg-primary/10",
+    icon: "text-primary",
+    title: "text-foreground",
   },
 };
 
@@ -66,13 +66,13 @@ export default function AnnouncementBanner({ announcement }: { announcement: Ann
         </div>
         <div className="min-w-0 flex-1">
           <p className={`text-sm font-semibold ${s.title}`}>{announcement.title}</p>
-          <p className="mt-1 text-sm text-zinc-600 whitespace-pre-line leading-relaxed">
+          <p className="mt-1 text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
             {announcement.body}
           </p>
           {announcement.cta_label && announcement.cta_href && (
             <Link
               href={announcement.cta_href}
-              className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-[#E8503A] hover:text-[#F07058]"
+              className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary/80"
             >
               {announcement.cta_label}
               <ArrowRight className="size-3.5" />
@@ -84,7 +84,7 @@ export default function AnnouncementBanner({ announcement }: { announcement: Ann
         type="button"
         onClick={dismiss}
         aria-label="Dismiss announcement"
-        className="absolute right-3 top-3 text-zinc-400 hover:text-zinc-700 transition-colors"
+        className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors"
       >
         <X className="size-4" />
       </button>
