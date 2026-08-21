@@ -17,14 +17,14 @@ interface Props {
 function StarPicker({ value, onChange, label }: { value: number; onChange: (n: number) => void; label: string }) {
   return (
     <div>
-      <Label className="text-xs font-semibold text-zinc-500 block mb-1">{label}</Label>
+      <Label className="text-xs font-semibold text-muted-foreground block mb-1">{label}</Label>
       <div className="flex gap-1">
         {[1, 2, 3, 4, 5].map(n => (
           <button
             key={n}
             type="button"
             onClick={() => onChange(n)}
-            className={`text-2xl leading-none transition-colors ${n <= value ? 'text-amber-400' : 'text-zinc-300 hover:text-amber-300'}`}
+            className={`text-2xl leading-none transition-colors ${n <= value ? 'text-amber-400' : 'text-muted-foreground/30 hover:text-amber-300'}`}
           >
             ★
           </button>
@@ -96,7 +96,7 @@ export default function ReviewForm({ vendorId, existingReview }: Props) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-6 space-y-5">
+    <form onSubmit={onSubmit} className="rounded-2xl bg-card border border-border shadow-sm p-6 space-y-5">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <StarPicker value={overall} onChange={setOverall} label="Overall *" />
         <StarPicker value={ease} onChange={setEase} label="Ease of Use" />
@@ -112,7 +112,7 @@ export default function ReviewForm({ vendorId, existingReview }: Props) {
           onChange={e => setSummary(e.target.value)}
           rows={3}
           required
-          className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#F07058]"
+          className="w-full border border-border rounded-xl px-3 py-2 text-sm bg-background focus:outline-none focus:border-primary"
           placeholder="Overall, how was your experience with this vendor?"
         />
       </div>
@@ -125,7 +125,7 @@ export default function ReviewForm({ vendorId, existingReview }: Props) {
             value={pros}
             onChange={e => setPros(e.target.value)}
             rows={3}
-            className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#F07058]"
+            className="w-full border border-border rounded-xl px-3 py-2 text-sm bg-background focus:outline-none focus:border-primary"
           />
         </div>
         <div className="space-y-1.5">
@@ -135,7 +135,7 @@ export default function ReviewForm({ vendorId, existingReview }: Props) {
             value={cons}
             onChange={e => setCons(e.target.value)}
             rows={3}
-            className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#F07058]"
+            className="w-full border border-border rounded-xl px-3 py-2 text-sm bg-background focus:outline-none focus:border-primary"
           />
         </div>
       </div>
@@ -147,7 +147,7 @@ export default function ReviewForm({ vendorId, existingReview }: Props) {
             id="tenure"
             value={tenureMonths}
             onChange={e => setTenureMonths(e.target.value)}
-            className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#F07058]"
+            className="w-full border border-border rounded-xl px-3 py-2 text-sm bg-background focus:outline-none focus:border-primary"
           >
             <option value="">Not specified</option>
             <option value="1">&lt; 3 months</option>
@@ -164,7 +164,7 @@ export default function ReviewForm({ vendorId, existingReview }: Props) {
             id="selected"
             value={selectedIt}
             onChange={e => setSelectedIt(e.target.value)}
-            className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#F07058]"
+            className="w-full border border-border rounded-xl px-3 py-2 text-sm bg-background focus:outline-none focus:border-primary"
           >
             <option value="">Not specified</option>
             <option value="yes">Yes</option>

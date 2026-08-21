@@ -67,65 +67,65 @@ export default function VendorEditForm({ vendor }: { vendor: any }) {
   };
 
   return (
-    <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-6 space-y-6">
-      <h2 className="text-base font-bold text-zinc-900">Edit Vendor Details</h2>
+    <div className="rounded-2xl bg-card border border-border shadow-sm p-6 space-y-6">
+      <h2 className="text-base font-bold text-foreground">Edit Vendor Details</h2>
 
       {/* ── Basic fields ── */}
       <div className="grid sm:grid-cols-2 gap-4">
         <div className="space-y-1">
-          <label className="text-xs font-semibold text-zinc-600">Name</label>
+          <label className="text-xs font-semibold text-muted-foreground">Name</label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
           />
         </div>
         <div className="space-y-1">
-          <label className="text-xs font-semibold text-zinc-600">Category</label>
+          <label className="text-xs font-semibold text-muted-foreground">Category</label>
           <input
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             placeholder="e.g. ATS, Assessments…"
-            className="w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
           />
         </div>
         <div className="space-y-1">
-          <label className="text-xs font-semibold text-zinc-600">Website</label>
+          <label className="text-xs font-semibold text-muted-foreground">Website</label>
           <input
             value={website}
             onChange={(e) => setWebsite(e.target.value)}
             placeholder="https://…"
-            className="w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
           />
         </div>
         <div className="space-y-1">
-          <label className="text-xs font-semibold text-zinc-600">Logo URL</label>
+          <label className="text-xs font-semibold text-muted-foreground">Logo URL</label>
           <input
             value={logoUrl}
             onChange={(e) => setLogoUrl(e.target.value)}
             placeholder="https://…"
-            className="w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
           />
         </div>
       </div>
 
       <div className="space-y-1">
-        <label className="text-xs font-semibold text-zinc-600">Tagline</label>
+        <label className="text-xs font-semibold text-muted-foreground">Tagline</label>
         <input
           value={tagline}
           onChange={(e) => setTagline(e.target.value)}
           placeholder="One-line pitch…"
-          className="w-full h-10 px-3 rounded-xl border border-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+          className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
         />
       </div>
 
       <div className="space-y-1">
-        <label className="text-xs font-semibold text-zinc-600">Description</label>
+        <label className="text-xs font-semibold text-muted-foreground">Description</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={5}
-          className="w-full px-3 py-2 rounded-xl border border-zinc-200 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-emerald-400"
+          className="w-full px-3 py-2 rounded-xl border border-border bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/40"
         />
       </div>
 
@@ -138,15 +138,15 @@ export default function VendorEditForm({ vendor }: { vendor: any }) {
             checked={isFeatured}
             onChange={(e) => setIsFeatured(e.target.checked)}
           />
-          <div className="w-10 h-6 rounded-full bg-zinc-200 peer-checked:bg-amber-400 transition-colors" />
-          <div className="absolute top-1 left-1 size-4 rounded-full bg-white shadow transition-transform peer-checked:translate-x-4" />
+          <div className="w-10 h-6 rounded-full bg-muted peer-checked:bg-amber-400 transition-colors" />
+          <div className="absolute top-1 left-1 size-4 rounded-full bg-card shadow transition-transform peer-checked:translate-x-4" />
         </div>
-        <span className="text-sm font-medium text-zinc-700">Featured vendor</span>
+        <span className="text-sm font-medium text-foreground">Featured vendor</span>
       </label>
 
       {/* ── Industries served ── */}
       <div className="space-y-2">
-        <p className="text-xs font-semibold text-zinc-600 uppercase tracking-wide">Industries Served</p>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Industries Served</p>
         <div className="flex flex-wrap gap-2">
           {INDUSTRIES.map((ind) => {
             const on = industriesServed.includes(ind);
@@ -158,7 +158,7 @@ export default function VendorEditForm({ vendor }: { vendor: any }) {
                 className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${
                   on
                     ? "bg-violet-600 text-white border-violet-600"
-                    : "bg-white text-zinc-600 border-zinc-200 hover:border-violet-300"
+                    : "bg-card text-muted-foreground border-border hover:border-violet-300"
                 }`}
               >
                 {ind}
@@ -170,7 +170,7 @@ export default function VendorEditForm({ vendor }: { vendor: any }) {
 
       {/* ── Company sizes ── */}
       <div className="space-y-2">
-        <p className="text-xs font-semibold text-zinc-600 uppercase tracking-wide">Company Sizes Served</p>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Company Sizes Served</p>
         <div className="flex flex-wrap gap-2">
           {COMPANY_SIZES.map((s) => {
             const on = companySizesServed.includes(s);
@@ -182,7 +182,7 @@ export default function VendorEditForm({ vendor }: { vendor: any }) {
                 className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${
                   on
                     ? "bg-teal-600 text-white border-teal-600"
-                    : "bg-white text-zinc-600 border-zinc-200 hover:border-teal-300"
+                    : "bg-card text-muted-foreground border-border hover:border-teal-300"
                 }`}
               >
                 {s}

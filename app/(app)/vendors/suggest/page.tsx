@@ -26,16 +26,16 @@ export default async function SuggestVendorPage({
           <Lightbulb className="size-5 text-white" />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-zinc-900">Suggest a Vendor</h1>
-          <p className="text-sm text-zinc-500">Recommend a tool or partner to the community</p>
+          <h1 className="text-xl font-bold text-foreground">Suggest a Vendor</h1>
+          <p className="text-sm text-muted-foreground">Recommend a tool or partner to the community</p>
         </div>
       </div>
 
       {submitted === "true" ? (
-        <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm p-12 text-center space-y-3">
-          <CheckCircle2 className="size-12 mx-auto text-[#F07058]" />
-          <p className="text-lg font-bold text-zinc-900">Thanks for the suggestion!</p>
-          <p className="text-sm text-zinc-500">
+        <div className="rounded-2xl border border-border bg-card shadow-sm p-12 text-center space-y-3">
+          <CheckCircle2 className="size-12 mx-auto text-primary" />
+          <p className="text-lg font-bold text-foreground">Thanks for the suggestion!</p>
+          <p className="text-sm text-muted-foreground">
             Our team will review it and add it to the vendor directory if it&apos;s a good fit.
           </p>
           <div className="flex items-center justify-center gap-3 pt-2">
@@ -47,15 +47,15 @@ export default async function SuggestVendorPage({
             </Link>
             <Link
               href="/vendors/suggest"
-              className="text-sm font-semibold text-zinc-500 hover:underline"
+              className="text-sm font-semibold text-muted-foreground hover:underline"
             >
               Suggest another
             </Link>
           </div>
         </div>
       ) : (
-        <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm p-6">
-          <p className="text-sm text-zinc-600 mb-5 leading-relaxed">
+        <div className="rounded-2xl border border-border bg-card shadow-sm p-6">
+          <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
             Use a tool or work with a vendor you love? Suggest them here and our team will review it for the community directory.
           </p>
           <SuggestVendorForm userId={user.id} />

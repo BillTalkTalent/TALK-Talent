@@ -60,7 +60,7 @@ export default function SuggestVendorForm({ userId }: { userId: string }) {
       <div className="space-y-2">
         <Label htmlFor="description">
           What does it do?
-          <span className="text-zinc-400 font-normal ml-1">(optional)</span>
+          <span className="text-muted-foreground font-normal ml-1">(optional)</span>
         </Label>
         <textarea
           id="description"
@@ -68,7 +68,7 @@ export default function SuggestVendorForm({ userId }: { userId: string }) {
           rows={2}
           maxLength={400}
           placeholder="Brief description of the product or service…"
-          className="flex w-full rounded-xl border border-zinc-200 bg-transparent px-3.5 py-2.5 text-sm placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/40 focus:border-[#8b5cf6] resize-none"
+          className="flex w-full rounded-xl border border-border bg-transparent px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/40 focus:border-[#8b5cf6] resize-none"
         />
       </div>
 
@@ -83,7 +83,7 @@ export default function SuggestVendorForm({ userId }: { userId: string }) {
           required
           maxLength={600}
           placeholder="We've used this at my company for 2 years and it's been great for…"
-          className="flex w-full rounded-xl border border-zinc-200 bg-transparent px-3.5 py-2.5 text-sm placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/40 focus:border-[#8b5cf6] resize-none"
+          className="flex w-full rounded-xl border border-border bg-transparent px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/40 focus:border-[#8b5cf6] resize-none"
         />
       </div>
 

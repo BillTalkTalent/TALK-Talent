@@ -63,8 +63,8 @@ export default async function VendorsPage({
             <Building2 className="size-5 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-zinc-900">Vendors</h1>
-            <p className="text-sm text-zinc-500">
+            <h1 className="text-xl font-bold text-foreground">Vendors</h1>
+            <p className="text-sm text-muted-foreground">
               {totalCount?.toLocaleString() ?? 0} vendor{totalCount !== 1 ? "s" : ""}
               {(q || category || industry || size) ? " matching filters" : ""}
             </p>

@@ -124,8 +124,8 @@ export default function VendorsGrid({
           href={buildUrl(base, { ...params, category: "", page: 1 })}
           className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
             !currentCategory
-              ? "bg-zinc-900 text-white border-zinc-900"
-              : "bg-white text-zinc-600 border-zinc-200 hover:border-zinc-400"
+              ? "bg-primary text-primary-foreground border-primary"
+              : "bg-card text-muted-foreground border-border hover:border-muted-foreground/40"
           }`}
         >
           All
@@ -137,7 +137,7 @@ export default function VendorsGrid({
             className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
               currentCategory === cat
                 ? "bg-sky-600 text-white border-sky-600"
-                : "bg-white text-zinc-600 border-zinc-200 hover:border-sky-400 hover:text-sky-700"
+                : "bg-card text-muted-foreground border-border hover:border-sky-400 hover:text-sky-700"
             }`}
           >
             {cat}
@@ -148,12 +148,12 @@ export default function VendorsGrid({
       {/* ── Search + secondary filters ── */}
       <div className="flex flex-wrap gap-3 items-center">
         <div className="relative flex-1 min-w-52 max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-400 pointer-events-none" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
           <Input
             placeholder="Search vendors…"
             value={inputVal}
             onChange={(e) => handleSearch(e.target.value)}
-            className="pl-9 rounded-xl border-zinc-200 bg-white"
+            className="pl-9 rounded-xl border-border bg-card"
           />
         </div>
 
@@ -163,7 +163,7 @@ export default function VendorsGrid({
           onChange={(e) =>
             router.push(buildUrl(base, { ...params, industry: e.target.value }))
           }
-          className="h-10 px-3 pr-8 rounded-xl border border-zinc-200 bg-white text-sm text-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+          className="h-10 px-3 pr-8 rounded-xl border border-border bg-card text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-400"
         >
           <option value="">All Industries</option>
           {INDUSTRIES.map((i) => (
@@ -177,7 +177,7 @@ export default function VendorsGrid({
           onChange={(e) =>
             router.push(buildUrl(base, { ...params, size: e.target.value }))
           }
-          className="h-10 px-3 pr-8 rounded-xl border border-zinc-200 bg-white text-sm text-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+          className="h-10 px-3 pr-8 rounded-xl border border-border bg-card text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-400"
         >
           <option value="">All Company Sizes</option>
           {COMPANY_SIZES.map((s) => (
@@ -189,7 +189,7 @@ export default function VendorsGrid({
           <Link
             href={base}
             onClick={() => setInputVal("")}
-            className="inline-flex items-center gap-1.5 h-10 px-3 rounded-xl border border-zinc-200 bg-white text-sm text-zinc-500 hover:text-zinc-900 hover:border-zinc-300 transition-colors"
+            className="inline-flex items-center gap-1.5 h-10 px-3 rounded-xl border border-border bg-card text-sm text-muted-foreground hover:text-foreground hover:border-muted-foreground/40 transition-colors"
           >
             <X className="size-3.5" /> Clear
           </Link>
@@ -199,8 +199,8 @@ export default function VendorsGrid({
       {/* Active filter label */}
       {currentCategory && (
         <div className="flex items-center gap-2">
-          <span className="text-sm text-zinc-500">
-            Showing <span className="font-semibold text-zinc-800">{currentCategory}</span>
+          <span className="text-sm text-muted-foreground">
+            Showing <span className="font-semibold text-foreground">{currentCategory}</span>
             {" "}— {totalCount.toLocaleString()} vendor{totalCount !== 1 ? "s" : ""}
           </span>
         </div>
@@ -208,9 +208,9 @@ export default function VendorsGrid({
 
       {/* ── Grid ── */}
       {vendors.length === 0 ? (
-        <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-16 text-center">
-          <Building2 className="size-10 text-zinc-200 mx-auto mb-3" />
-          <p className="text-zinc-400 font-medium">No vendors found</p>
+        <div className="rounded-2xl bg-card border border-border shadow-sm p-16 text-center">
+          <Building2 className="size-10 text-muted-foreground/40 mx-auto mb-3" />
+          <p className="text-muted-foreground font-medium">No vendors found</p>
           {hasFilters && (
             <Link href={base} onClick={() => setInputVal("")} className="mt-2 inline-block text-sm text-emerald-600 hover:underline">
               Clear filters
@@ -223,8 +223,8 @@ export default function VendorsGrid({
             <Link
               key={vendor.id}
               href={`/vendors/${vendor.id}`}
-              className={`rounded-2xl bg-white border shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col ${
-                vendor.is_featured ? "border-amber-200" : "border-zinc-100"
+              className={`rounded-2xl bg-card border shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col ${
+                vendor.is_featured ? "border-amber-200" : "border-border"
               }`}
             >
               {vendor.is_featured && (
@@ -237,7 +237,7 @@ export default function VendorsGrid({
                       <img
                         src={vendor.logo_url}
                         alt={vendor.name}
-                        className="size-11 rounded-xl object-contain border border-zinc-100 bg-white p-1 flex-shrink-0"
+                        className="size-11 rounded-xl object-contain border border-border bg-card p-1 flex-shrink-0"
                       />
                     ) : (
                       <div className="size-11 rounded-xl bg-sky-50 flex items-center justify-center flex-shrink-0">
@@ -245,7 +245,7 @@ export default function VendorsGrid({
                       </div>
                     )}
                     <div className="min-w-0">
-                      <p className="font-bold text-zinc-900 truncate">{vendor.name}</p>
+                      <p className="font-bold text-foreground truncate">{vendor.name}</p>
                       {vendor.category && (
                         <span className="text-xs font-medium text-sky-600 bg-sky-50 px-2 py-0.5 rounded-full">
                           {vendor.category}
@@ -261,7 +261,7 @@ export default function VendorsGrid({
                 </div>
 
                 {vendor.description && (
-                  <p className="text-sm text-zinc-500 line-clamp-3 flex-1 mb-3">
+                  <p className="text-sm text-muted-foreground line-clamp-3 flex-1 mb-3">
                     {vendor.description}
                   </p>
                 )}
@@ -279,7 +279,7 @@ export default function VendorsGrid({
                       </span>
                     ))}
                     {(vendor.industries_served?.length ?? 0) > 2 && (
-                      <span className="text-[10px] font-medium text-zinc-400 bg-zinc-50 border border-zinc-100 px-1.5 py-0.5 rounded-full">
+                      <span className="text-[10px] font-medium text-muted-foreground bg-muted border border-border px-1.5 py-0.5 rounded-full">
                         +{(vendor.industries_served?.length ?? 0) - 2} more
                       </span>
                     )}
@@ -294,7 +294,7 @@ export default function VendorsGrid({
                   </div>
                 )}
 
-                <div className="mt-auto pt-3 border-t border-zinc-50">
+                <div className="mt-auto pt-3 border-t border-border/60">
                   {vendor.website && (
                     <span
                       onClick={(e) => {
@@ -323,13 +323,13 @@ export default function VendorsGrid({
             aria-disabled={currentPage <= 1}
             className={`inline-flex items-center gap-1 px-3 py-2 rounded-xl text-sm border transition-colors ${
               currentPage <= 1
-                ? "border-zinc-100 text-zinc-300 pointer-events-none"
-                : "border-zinc-200 text-zinc-600 hover:border-zinc-300 bg-white"
+                ? "border-border/60 text-muted-foreground/40 pointer-events-none"
+                : "border-border text-muted-foreground hover:border-muted-foreground/40 bg-card"
             }`}
           >
             <ChevronLeft className="size-4" /> Prev
           </Link>
-          <span className="text-sm text-zinc-500 px-2">
+          <span className="text-sm text-muted-foreground px-2">
             Page {currentPage} of {totalPages}
           </span>
           <Link
@@ -337,8 +337,8 @@ export default function VendorsGrid({
             aria-disabled={currentPage >= totalPages}
             className={`inline-flex items-center gap-1 px-3 py-2 rounded-xl text-sm border transition-colors ${
               currentPage >= totalPages
-                ? "border-zinc-100 text-zinc-300 pointer-events-none"
-                : "border-zinc-200 text-zinc-600 hover:border-zinc-300 bg-white"
+                ? "border-border/60 text-muted-foreground/40 pointer-events-none"
+                : "border-border text-muted-foreground hover:border-muted-foreground/40 bg-card"
             }`}
           >
             Next <ChevronRight className="size-4" />

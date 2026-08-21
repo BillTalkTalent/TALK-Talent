@@ -7,7 +7,7 @@ import VendorEditForm from './vendor-edit-form'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 function Stars({ n }: { n: number | null }) {
-  if (!n) return <span className="text-zinc-300 text-sm">—</span>
+  if (!n) return <span className="text-muted-foreground/40 text-sm">—</span>
   return <span className="text-amber-400">{'★'.repeat(n)}{'☆'.repeat(5 - n)}</span>
 }
 
@@ -70,22 +70,22 @@ export default async function VendorDetailPage({
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
-      <Link href="/vendors" className="inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-900">
+      <Link href="/vendors" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="size-4" /> Back to vendors
       </Link>
 
       {/* ── Header card ── */}
-      <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-6">
+      <div className="rounded-2xl bg-card border border-border shadow-sm p-6">
         <div className="flex items-start gap-4">
           {vendor.logo_url ? (
-            <img src={vendor.logo_url} alt={vendor.name} className="size-16 rounded-xl object-contain border border-zinc-100 bg-white p-1 flex-shrink-0" />
+            <img src={vendor.logo_url} alt={vendor.name} className="size-16 rounded-xl object-contain border border-border bg-card p-1 flex-shrink-0" />
           ) : (
             <div className="size-16 rounded-xl bg-sky-50 flex items-center justify-center flex-shrink-0">
               <Building2 className="size-7 text-sky-500" />
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-bold text-zinc-900">{vendor.name}</h1>
+            <h1 className="text-2xl font-bold text-foreground">{vendor.name}</h1>
             <div className="flex items-center gap-2 flex-wrap mt-2">
               {vendor.category && (
                 <span className="text-xs font-medium text-sky-600 bg-sky-50 px-2 py-0.5 rounded-full">{vendor.category}</span>
@@ -97,17 +97,17 @@ export default async function VendorDetailPage({
               )}
             </div>
             {vendor.description && (
-              <p className="mt-3 text-sm text-zinc-600 leading-relaxed">{vendor.description}</p>
+              <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{vendor.description}</p>
             )}
           </div>
         </div>
 
         {/* ── Industries & company sizes ── */}
         {((vendor.industries_served?.length ?? 0) > 0 || (vendor.company_sizes_served?.length ?? 0) > 0) && (
-          <div className="mt-5 pt-5 border-t border-zinc-100 grid sm:grid-cols-2 gap-4">
+          <div className="mt-5 pt-5 border-t border-border grid sm:grid-cols-2 gap-4">
             {(vendor.industries_served?.length ?? 0) > 0 && (
               <div>
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                   <Briefcase className="size-3.5" /> Industries Served
                 </div>
                 <div className="flex flex-wrap gap-1.5">
@@ -121,7 +121,7 @@ export default async function VendorDetailPage({
             )}
             {(vendor.company_sizes_served?.length ?? 0) > 0 && (
               <div>
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                   <Users className="size-3.5" /> Company Sizes
                 </div>
                 <div className="flex flex-wrap gap-1.5">
@@ -138,7 +138,7 @@ export default async function VendorDetailPage({
 
         {/* ── Rating summary ── */}
         {reviewList.length > 0 && (
-          <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 border-t border-zinc-100">
+          <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 border-t border-border">
             {[
               { key: 'overall_rating', label: 'Overall' },
               { key: 'ease_of_use_rating', label: 'Ease of Use' },
@@ -146,8 +146,8 @@ export default async function VendorDetailPage({
               { key: 'value_rating', label: 'Value' },
             ].map(({ key, label }) => (
               <div key={key} className="text-center">
-                <p className="text-xs text-zinc-500">{label}</p>
-                <p className="text-2xl font-bold text-zinc-900 mt-1">{avg(reviewList, key) ?? '—'}</p>
+                <p className="text-xs text-muted-foreground">{label}</p>
+                <p className="text-2xl font-bold text-foreground mt-1">{avg(reviewList, key) ?? '—'}</p>
                 <p className="text-amber-400 text-xs">{avg(reviewList, key) ? '★'.repeat(Math.round(Number(avg(reviewList, key)))) : ''}</p>
               </div>
             ))}
@@ -156,12 +156,12 @@ export default async function VendorDetailPage({
       </div>
 
       {/* ── Tab bar ── */}
-      <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-2xl w-fit">
+      <div className="flex items-center gap-1 bg-muted p-1 rounded-2xl w-fit">
         {tabs.map(({ key, label }) => (
           <Link
             key={key}
             href={`/vendors/${id}?tab=${key}`}
-            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${tab === key ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500 hover:text-zinc-900'}`}
+            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${tab === key ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
           >
             {label}
           </Link>
@@ -176,37 +176,37 @@ export default async function VendorDetailPage({
       ) : (
         <div className="space-y-3">
           {reviewList.length === 0 ? (
-            <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-12 text-center">
-              <p className="text-zinc-400">No reviews yet. Be the first!</p>
+            <div className="rounded-2xl bg-card border border-border shadow-sm p-12 text-center">
+              <p className="text-muted-foreground">No reviews yet. Be the first!</p>
             </div>
           ) : (
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             reviewList.map((r: any) => (
-              <div key={r.id} className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-5">
+              <div key={r.id} className="rounded-2xl bg-card border border-border shadow-sm p-5">
                 <div className="flex items-start gap-3">
                   <Avatar size="sm">
                     {r.profiles?.avatar_url && <AvatarImage src={r.profiles.avatar_url} alt={r.profiles?.full_name ?? ''} />}
                     <AvatarFallback>{getInitials(r.profiles?.full_name ?? null)}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-zinc-900">{r.profiles?.full_name ?? 'Anonymous'}</p>
+                    <p className="font-semibold text-foreground">{r.profiles?.full_name ?? 'Anonymous'}</p>
                     {(r.profiles?.title || r.profiles?.company) && (
-                      <p className="text-xs text-zinc-500">{[r.profiles?.title, r.profiles?.company].filter(Boolean).join(' · ')}</p>
+                      <p className="text-xs text-muted-foreground">{[r.profiles?.title, r.profiles?.company].filter(Boolean).join(' · ')}</p>
                     )}
                     <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">
-                      <div><span className="text-xs text-zinc-500 block">Overall</span><Stars n={r.overall_rating} /></div>
-                      <div><span className="text-xs text-zinc-500 block">Ease</span><Stars n={r.ease_of_use_rating} /></div>
-                      <div><span className="text-xs text-zinc-500 block">Support</span><Stars n={r.support_rating} /></div>
-                      <div><span className="text-xs text-zinc-500 block">Value</span><Stars n={r.value_rating} /></div>
+                      <div><span className="text-xs text-muted-foreground block">Overall</span><Stars n={r.overall_rating} /></div>
+                      <div><span className="text-xs text-muted-foreground block">Ease</span><Stars n={r.ease_of_use_rating} /></div>
+                      <div><span className="text-xs text-muted-foreground block">Support</span><Stars n={r.support_rating} /></div>
+                      <div><span className="text-xs text-muted-foreground block">Value</span><Stars n={r.value_rating} /></div>
                     </div>
-                    <p className="mt-3 text-sm text-zinc-700 whitespace-pre-wrap">{r.summary}</p>
-                    {r.pros && (<div className="mt-2 text-sm"><span className="text-emerald-700 font-semibold">Pros:</span> <span className="text-zinc-600">{r.pros}</span></div>)}
-                    {r.cons && (<div className="mt-1 text-sm"><span className="text-red-700 font-semibold">Cons:</span> <span className="text-zinc-600">{r.cons}</span></div>)}
+                    <p className="mt-3 text-sm text-foreground/80 whitespace-pre-wrap">{r.summary}</p>
+                    {r.pros && (<div className="mt-2 text-sm"><span className="text-emerald-700 font-semibold">Pros:</span> <span className="text-muted-foreground">{r.pros}</span></div>)}
+                    {r.cons && (<div className="mt-1 text-sm"><span className="text-red-700 font-semibold">Cons:</span> <span className="text-muted-foreground">{r.cons}</span></div>)}
                     {(r.tenure_months || r.selected_it != null) && (
                       <div className="mt-2 flex gap-2 flex-wrap">
-                        {r.tenure_months ? <span className="text-[10px] font-semibold text-zinc-500 bg-zinc-50 border border-zinc-100 px-2 py-0.5 rounded-full">Used {r.tenure_months} mo</span> : null}
+                        {r.tenure_months ? <span className="text-[10px] font-semibold text-muted-foreground bg-muted border border-border px-2 py-0.5 rounded-full">Used {r.tenure_months} mo</span> : null}
                         {r.selected_it === true && <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">Selected it</span>}
-                        {r.selected_it === false && <span className="text-[10px] font-semibold text-zinc-500 bg-zinc-50 border border-zinc-100 px-2 py-0.5 rounded-full">Did not select</span>}
+                        {r.selected_it === false && <span className="text-[10px] font-semibold text-muted-foreground bg-muted border border-border px-2 py-0.5 rounded-full">Did not select</span>}
                       </div>
                     )}
                   </div>
