@@ -163,12 +163,12 @@ export default async function ForumPage({
           <MessageSquare className="size-5 text-white" />
         </div>
         <div className="flex-1">
-          <h1 className="text-xl font-bold text-zinc-900">Forum</h1>
-          <p className="text-sm text-zinc-500">Everything, newest first</p>
+          <h1 className="text-xl font-bold text-foreground">Forum</h1>
+          <p className="text-sm text-muted-foreground">Everything, newest first</p>
         </div>
         <Link
           href="/forum/new"
-          className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-[#0d0d0d] hover:opacity-90 transition-opacity shrink-0"
+          className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition-opacity shrink-0"
           style={{ background: "linear-gradient(135deg, #E8503A, #F07058)" }}
         >
           <Plus className="size-4" />
@@ -182,17 +182,17 @@ export default async function ForumPage({
       {/* Search results */}
       {query.length >= 2 ? (
         <div className="space-y-3">
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm text-muted-foreground">
             {searchResults.length === 0
               ? `No results for "${query}"`
               : `${searchResults.length} result${searchResults.length !== 1 ? "s" : ""} for "${query}"`}
           </p>
 
           {searchResults.length === 0 ? (
-            <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-12 text-center">
-              <Search className="size-8 text-zinc-200 mx-auto mb-3" />
-              <p className="text-zinc-400 font-medium">No topics found</p>
-              <p className="text-zinc-300 text-sm mt-1">Try different keywords</p>
+            <div className="rounded-2xl bg-card border border-border shadow-sm p-12 text-center">
+              <Search className="size-8 text-muted-foreground/40 mx-auto mb-3" />
+              <p className="text-muted-foreground font-medium">No topics found</p>
+              <p className="text-muted-foreground/70 text-sm mt-1">Try different keywords</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -202,11 +202,11 @@ export default async function ForumPage({
                   <Link
                     key={topic.id}
                     href={`/forum/${topic.categorySlug ?? ""}/${topic.id}`}
-                    className="group flex flex-col gap-1 rounded-2xl bg-white border border-zinc-100 p-4 shadow-sm hover:shadow-md hover:border-[#8b5cf6] transition-all"
+                    className="group flex flex-col gap-1 rounded-2xl bg-card border border-border p-4 shadow-sm hover:shadow-md hover:border-[#8b5cf6] transition-all"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <p
-                        className="font-semibold text-zinc-900 group-hover:text-[#8b5cf6] transition-colors leading-snug"
+                        className="font-semibold text-foreground group-hover:text-[#8b5cf6] transition-colors leading-snug"
                         dangerouslySetInnerHTML={{ __html: highlight(topic.title, query) }}
                       />
                       {topic.categoryName && (
@@ -216,10 +216,10 @@ export default async function ForumPage({
                       )}
                     </div>
                     <p
-                      className="text-sm text-zinc-500 line-clamp-2 leading-relaxed"
+                      className="text-sm text-muted-foreground line-clamp-2 leading-relaxed"
                       dangerouslySetInnerHTML={{ __html: highlight(bodyPreview + (topic.body.length > 120 ? "…" : ""), query) }}
                     />
-                    <div className="flex items-center gap-3 text-xs text-zinc-400 mt-0.5">
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
                       {topic.authorName && <span>{topic.authorName}</span>}
                       <span>·</span>
                       <span>{formatDistanceToNow(new Date(topic.updated_at), { addSuffix: true })}</span>
@@ -233,7 +233,7 @@ export default async function ForumPage({
           )}
         </div>
       ) : query.length === 1 ? (
-        <p className="text-sm text-zinc-400 text-center py-4">Type at least 2 characters to search…</p>
+        <p className="text-sm text-muted-foreground text-center py-4">Type at least 2 characters to search…</p>
       ) : (
         /* Merged activity feed — default view */
         <>
@@ -247,7 +247,7 @@ export default async function ForumPage({
                 <Link
                   key={category.id}
                   href={`/forum/${category.slug}`}
-                  className="text-xs font-semibold px-3 py-1.5 rounded-full bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-700 transition-colors flex items-center gap-1"
+                  className="text-xs font-semibold px-3 py-1.5 rounded-full bg-muted text-muted-foreground hover:bg-muted/70 hover:text-foreground transition-colors flex items-center gap-1"
                 >
                   {category.icon && <span>{category.icon}</span>}
                   {category.name}
@@ -256,11 +256,11 @@ export default async function ForumPage({
             </div>
 
             {/* Sort toggle */}
-            <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-xl shrink-0">
+            <div className="flex items-center gap-1 bg-muted p-1 rounded-xl shrink-0">
               <Link
                 href="/forum?sort=recent"
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                  !isHot ? "bg-white shadow-sm text-zinc-900" : "text-zinc-500 hover:text-zinc-700"
+                  !isHot ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 <Clock className="size-3" /> Recent
@@ -268,7 +268,7 @@ export default async function ForumPage({
               <Link
                 href="/forum?sort=hot"
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                  isHot ? "bg-white shadow-sm text-orange-600" : "text-zinc-500 hover:text-zinc-700"
+                  isHot ? "bg-card shadow-sm text-orange-600" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 <Flame className="size-3" /> Hot
@@ -278,10 +278,10 @@ export default async function ForumPage({
 
           {/* Feed */}
           {feed.length === 0 ? (
-            <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-16 text-center">
-              <MessageSquare className="size-10 text-zinc-200 mx-auto mb-3" />
-              <p className="text-zinc-400 font-medium">No topics yet</p>
-              <p className="text-zinc-300 text-sm mt-1">Be the first to start a discussion!</p>
+            <div className="rounded-2xl bg-card border border-border shadow-sm p-16 text-center">
+              <MessageSquare className="size-10 text-muted-foreground/40 mx-auto mb-3" />
+              <p className="text-muted-foreground font-medium">No topics yet</p>
+              <p className="text-muted-foreground/70 text-sm mt-1">Be the first to start a discussion!</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -291,7 +291,7 @@ export default async function ForumPage({
                   <Link
                     key={topic.id}
                     href={`/forum/${topic.categorySlug}/${topic.id}`}
-                    className="group flex items-start gap-3 rounded-2xl bg-white border border-zinc-100 p-4 shadow-sm hover:shadow-md hover:border-[#8b5cf6] transition-all"
+                    className="group flex items-start gap-3 rounded-2xl bg-card border border-border p-4 shadow-sm hover:shadow-md hover:border-[#8b5cf6] transition-all"
                   >
                     <Avatar size="sm" className="mt-0.5">
                       {topic.author?.avatar_url && (
@@ -304,13 +304,13 @@ export default async function ForumPage({
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           {topic.is_pinned && <Pin className="size-3 text-[#8b5cf6] shrink-0" />}
-                          {topic.is_locked && <Lock className="size-3 text-zinc-300 shrink-0" />}
-                          <p className="font-semibold text-zinc-900 group-hover:text-[#8b5cf6] transition-colors leading-snug">
+                          {topic.is_locked && <Lock className="size-3 text-muted-foreground/40 shrink-0" />}
+                          <p className="font-semibold text-foreground group-hover:text-[#8b5cf6] transition-colors leading-snug">
                             {topic.title}
                           </p>
                           {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                           {(topic.author as any)?.is_bot && (
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 text-zinc-400 border-zinc-200">
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 text-muted-foreground border-border">
                               Automated
                             </Badge>
                           )}
@@ -321,10 +321,10 @@ export default async function ForumPage({
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-zinc-500 line-clamp-2 leading-relaxed mt-0.5">
+                      <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed mt-0.5">
                         {bodyPreview}{topic.body.length > 140 ? "…" : ""}
                       </p>
-                      <div className="flex items-center gap-3 text-xs text-zinc-400 mt-1.5">
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1.5">
                         <span>{topic.author?.full_name ?? "Unknown"}</span>
                         <span>·</span>
                         <span>{formatDistanceToNow(new Date(topic.updated_at), { addSuffix: true })}</span>

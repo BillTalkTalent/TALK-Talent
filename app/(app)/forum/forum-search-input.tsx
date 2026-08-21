@@ -36,7 +36,7 @@ export default function ForumSearchInput({ defaultValue = "" }: Props) {
   return (
     <div className="relative">
       <div className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center">
-        <Search className={`size-4 transition-colors ${isPending ? "text-[#8b5cf6] animate-pulse" : "text-zinc-400"}`} />
+        <Search className={`size-4 transition-colors ${isPending ? "text-[#8b5cf6] animate-pulse" : "text-muted-foreground"}`} />
       </div>
       <input
         ref={inputRef}
@@ -44,13 +44,13 @@ export default function ForumSearchInput({ defaultValue = "" }: Props) {
         defaultValue={defaultValue}
         onChange={(e) => handleChange(e.target.value)}
         placeholder="Search forum topics…"
-        className="w-full rounded-xl border border-zinc-200 bg-white py-2.5 pl-10 pr-10 text-sm text-zinc-900 placeholder:text-zinc-400 shadow-sm focus:border-[#8b5cf6] focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/20 transition-all"
+        className="w-full rounded-xl border border-border bg-card py-2.5 pl-10 pr-10 text-sm text-foreground placeholder:text-muted-foreground shadow-sm focus:border-[#8b5cf6] focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/20 transition-all"
       />
       {defaultValue && (
         <button
           type="button"
           onClick={handleClear}
-          className="absolute inset-y-0 right-3 flex items-center text-zinc-400 hover:text-zinc-600"
+          className="absolute inset-y-0 right-3 flex items-center text-muted-foreground hover:text-foreground"
         >
           <X className="size-3.5" />
         </button>
