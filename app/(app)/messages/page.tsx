@@ -71,6 +71,7 @@ export default function MessagesPage() {
   const addPersonRef = useRef<HTMLDivElement>(null);
 
   const bottomRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = useCallback(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -79,6 +80,15 @@ export default function MessagesPage() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
+
+  // Auto-grow the composer with its content, up to a max height, then let it
+  // scroll internally — instead of staying pinned at a single-line height.
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
+  }, [draft]);
 
   const loadConversations = useCallback(
     async (userId: string) => {
@@ -509,6 +519,10 @@ export default function MessagesPage() {
 
     setDraft("");
     setSending(false);
+    // Disabling the textarea while sending (below) blurs it, since a
+    // disabled element can't hold focus — bring the cursor back once it's
+    // re-enabled so the next message can be typed without reclicking in.
+    requestAnimationFrame(() => textareaRef.current?.focus());
 
     // Fire-and-forget: email + in-app notification for the recipient(s)
     fetch("/api/dm/notify", {
@@ -523,7 +537,11 @@ export default function MessagesPage() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    // Skip while an IME composition is in progress — the Enter that
+    // confirms a composed word/character also bubbles up as a keydown, and
+    // without this guard it sends the message mid-composition instead of
+    // just confirming the text.
+    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault();
       sendMessage();
     }
@@ -627,7 +645,7 @@ export default function MessagesPage() {
             </div>
           )}
         </div>
-        <ScrollArea className="flex-1">
+        <ScrollArea className="flex-1 min-h-0">
           {conversations.length === 0 ? (
             <div className="p-4 text-center text-xs text-muted-foreground">
               No conversations yet.
@@ -773,7 +791,7 @@ export default function MessagesPage() {
             </div>
 
             {/* Messages */}
-            <ScrollArea className="flex-1 px-4">
+            <ScrollArea className="flex-1 min-h-0 px-4">
               <div className="py-4 space-y-4">
                 {messages.length === 0 ? (
                   <div className="py-8 text-center text-sm text-muted-foreground">
@@ -847,12 +865,13 @@ export default function MessagesPage() {
             <div className="border-t p-3">
               <div className="flex gap-2 items-end">
                 <Textarea
+                  ref={textareaRef}
                   placeholder={`Message ${conversationTitle(activeParticipants, currentUser?.id)}`}
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
                   onKeyDown={handleKeyDown}
                   rows={1}
-                  className="min-h-[2.25rem] max-h-32 resize-none"
+                  className="min-h-[2.25rem] max-h-40 resize-none overflow-y-auto"
                   disabled={sending}
                 />
                 <Button
