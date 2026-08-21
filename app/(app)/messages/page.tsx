@@ -493,7 +493,7 @@ export default function MessagesPage() {
   }, [activeConvId, supabase]);
 
   const sendMessage = async () => {
-    if (!draft.trim() || !currentUser || !activeConvId) return;
+    if (!draft.trim() || !currentUser || !activeConvId || sending) return;
     setSending(true);
     const content = draft.trim();
 
@@ -519,10 +519,6 @@ export default function MessagesPage() {
 
     setDraft("");
     setSending(false);
-    // Disabling the textarea while sending (below) blurs it, since a
-    // disabled element can't hold focus — bring the cursor back once it's
-    // re-enabled so the next message can be typed without reclicking in.
-    requestAnimationFrame(() => textareaRef.current?.focus());
 
     // Fire-and-forget: email + in-app notification for the recipient(s)
     fetch("/api/dm/notify", {
@@ -872,7 +868,6 @@ export default function MessagesPage() {
                   onKeyDown={handleKeyDown}
                   rows={1}
                   className="min-h-[2.25rem] max-h-40 resize-none overflow-y-auto"
-                  disabled={sending}
                 />
                 <Button
                   size="icon"
