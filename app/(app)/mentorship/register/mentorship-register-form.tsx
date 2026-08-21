@@ -117,10 +117,10 @@ export default function MentorshipRegisterForm({
 
   if (success) {
     return (
-      <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm p-12 text-center">
-        <CheckCircle2 className="size-12 mx-auto mb-3 text-[#F07058]" />
-        <p className="text-lg font-bold text-zinc-900">Profile saved!</p>
-        <p className="text-sm text-zinc-500 mt-1">Redirecting you back to Mentorship…</p>
+      <div className="rounded-2xl border border-border bg-card shadow-sm p-12 text-center">
+        <CheckCircle2 className="size-12 mx-auto mb-3 text-primary" />
+        <p className="text-lg font-bold text-foreground">Profile saved!</p>
+        <p className="text-sm text-muted-foreground mt-1">Redirecting you back to Mentorship…</p>
       </div>
     );
   }
@@ -136,16 +136,16 @@ export default function MentorshipRegisterForm({
           <GraduationCap className="size-5 text-white" />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-zinc-900">
+          <h1 className="text-xl font-bold text-foreground">
             {existingProfile ? "Edit Mentorship Profile" : "Join the Mentorship Program"}
           </h1>
-          <p className="text-sm text-zinc-500">Set up your mentor or mentee profile</p>
+          <p className="text-sm text-muted-foreground">Set up your mentor or mentee profile</p>
         </div>
       </div>
 
       {/* Role selection */}
-      <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm p-5 space-y-4">
-        <p className="text-sm font-semibold text-zinc-900">What role(s) would you like?</p>
+      <div className="rounded-2xl border border-border bg-card shadow-sm p-5 space-y-4">
+        <p className="text-sm font-semibold text-foreground">What role(s) would you like?</p>
         <div className="grid grid-cols-2 gap-3">
           {/* Mentor */}
           <button
@@ -154,12 +154,12 @@ export default function MentorshipRegisterForm({
             className={`rounded-xl border-2 p-4 text-left transition-all ${
               isMentor
                 ? "border-[#7c3aed] bg-[#8b5cf6]/5"
-                : "border-zinc-200 hover:border-zinc-300"
+                : "border-border hover:border-muted-foreground/30"
             }`}
           >
             <div className="text-2xl mb-2">🎓</div>
-            <p className="font-bold text-sm text-zinc-900">Mentor</p>
-            <p className="text-xs text-zinc-500 mt-0.5">
+            <p className="font-bold text-sm text-foreground">Mentor</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
               Share your expertise and guide others
             </p>
             {isMentor && (
@@ -176,12 +176,12 @@ export default function MentorshipRegisterForm({
             className={`rounded-xl border-2 p-4 text-left transition-all ${
               isMentee
                 ? "border-[#E8503A] bg-[#F07058]/5"
-                : "border-zinc-200 hover:border-zinc-300"
+                : "border-border hover:border-muted-foreground/30"
             }`}
           >
             <div className="text-2xl mb-2">📚</div>
-            <p className="font-bold text-sm text-zinc-900">Mentee</p>
-            <p className="text-xs text-zinc-500 mt-0.5">
+            <p className="font-bold text-sm text-foreground">Mentee</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
               Learn from experienced TA leaders
             </p>
             {isMentee && (
@@ -195,9 +195,9 @@ export default function MentorshipRegisterForm({
 
       {/* Focus areas */}
       {(isMentor || isMentee) && (
-        <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm p-5 space-y-4">
-          <p className="text-sm font-semibold text-zinc-900">Focus areas</p>
-          <p className="text-xs text-zinc-500 -mt-2">
+        <div className="rounded-2xl border border-border bg-card shadow-sm p-5 space-y-4">
+          <p className="text-sm font-semibold text-foreground">Focus areas</p>
+          <p className="text-xs text-muted-foreground -mt-2">
             Select the areas you want to{" "}
             {isMentor && isMentee
               ? "mentor or be mentored in"
@@ -212,14 +212,14 @@ export default function MentorshipRegisterForm({
               return (
                 <div
                   key={area.id}
-                  className="flex items-center justify-between rounded-xl border border-zinc-100 px-4 py-3 hover:bg-zinc-50 transition-colors"
+                  className="flex items-center justify-between rounded-xl border border-border px-4 py-3 hover:bg-muted transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-xl">{area.icon}</span>
                     <div>
-                      <p className="text-sm font-semibold text-zinc-900">{area.name}</p>
+                      <p className="text-sm font-semibold text-foreground">{area.name}</p>
                       {area.description && (
-                        <p className="text-xs text-zinc-400 line-clamp-1">{area.description}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-1">{area.description}</p>
                       )}
                     </div>
                   </div>
@@ -231,7 +231,7 @@ export default function MentorshipRegisterForm({
                         className={`text-[10px] font-bold px-2.5 py-1 rounded-full border transition-all ${
                           sel.asMentor
                             ? "bg-[#7c3aed] text-white border-[#7c3aed]"
-                            : "bg-white text-zinc-400 border-zinc-200 hover:border-[#7c3aed] hover:text-[#7c3aed]"
+                            : "bg-card text-muted-foreground border-border hover:border-[#7c3aed] hover:text-[#7c3aed]"
                         }`}
                       >
                         Mentor
@@ -244,7 +244,7 @@ export default function MentorshipRegisterForm({
                         className={`text-[10px] font-bold px-2.5 py-1 rounded-full border transition-all ${
                           sel.asMentee
                             ? "bg-[#E8503A] text-white border-[#E8503A]"
-                            : "bg-white text-zinc-400 border-zinc-200 hover:border-[#E8503A] hover:text-[#E8503A]"
+                            : "bg-card text-muted-foreground border-border hover:border-primary hover:text-primary"
                         }`}
                       >
                         Mentee
@@ -260,10 +260,10 @@ export default function MentorshipRegisterForm({
 
       {/* Bio */}
       {(isMentor || isMentee) && (
-        <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm p-5 space-y-3">
-          <label htmlFor="bio" className="block text-sm font-semibold text-zinc-900">
+        <div className="rounded-2xl border border-border bg-card shadow-sm p-5 space-y-3">
+          <label htmlFor="bio" className="block text-sm font-semibold text-foreground">
             {isMentor ? "Mentor bio" : "About you"}
-            <span className="text-zinc-400 font-normal ml-1">(optional)</span>
+            <span className="text-muted-foreground font-normal ml-1">(optional)</span>
           </label>
           <textarea
             id="bio"
@@ -276,9 +276,9 @@ export default function MentorshipRegisterForm({
                 ? "Tell potential mentees about your background, experience, and what you can help with..."
                 : "Share a bit about yourself and what you're looking to learn..."
             }
-            className="w-full rounded-xl border border-zinc-200 px-3.5 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/40 focus:border-[#8b5cf6] resize-none"
+            className="w-full rounded-xl border border-border px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/40 focus:border-[#8b5cf6] resize-none"
           />
-          <p className="text-xs text-zinc-400 text-right">{bio.length}/600</p>
+          <p className="text-xs text-muted-foreground text-right">{bio.length}/600</p>
         </div>
       )}
 
@@ -292,7 +292,7 @@ export default function MentorshipRegisterForm({
         <button
           type="button"
           onClick={() => router.back()}
-          className="flex-1 rounded-xl border border-zinc-200 py-2.5 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors"
+          className="flex-1 rounded-xl border border-border py-2.5 text-sm font-semibold text-foreground hover:bg-muted transition-colors"
         >
           Cancel
         </button>

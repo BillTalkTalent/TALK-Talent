@@ -81,7 +81,7 @@ export default async function MentorshipRequestsPage() {
         .toUpperCase() ?? "?";
 
     return (
-      <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm overflow-hidden">
+      <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
         <div className="h-1" style={{ background: "linear-gradient(90deg, #7c3aed, #8b5cf6)" }} />
         <div className="p-5 space-y-3">
           <div className="flex items-start justify-between gap-3">
@@ -101,9 +101,9 @@ export default async function MentorshipRequestsPage() {
                 </div>
               )}
               <div>
-                <p className="font-bold text-sm text-zinc-900">{person?.full_name ?? "Unknown"}</p>
+                <p className="font-bold text-sm text-foreground">{person?.full_name ?? "Unknown"}</p>
                 {(person?.title || person?.company) && (
-                  <p className="text-xs text-zinc-500 truncate">
+                  <p className="text-xs text-muted-foreground truncate">
                     {person?.title}
                     {person?.title && person?.company ? " · " : ""}
                     {person?.company}
@@ -127,12 +127,12 @@ export default async function MentorshipRequestsPage() {
           )}
 
           {/* Message */}
-          <p className="text-sm text-zinc-600 bg-zinc-50 rounded-xl px-3.5 py-2.5 italic leading-relaxed">
+          <p className="text-sm text-foreground/80 bg-muted rounded-xl px-3.5 py-2.5 italic leading-relaxed">
             &ldquo;{req.message}&rdquo;
           </p>
 
           <div className="flex items-center justify-between">
-            <p className="text-xs text-zinc-400">
+            <p className="text-xs text-muted-foreground">
               {formatDistanceToNow(new Date(req.created_at), { addSuffix: true })}
             </p>
             {perspective === "mentor" && req.status === "pending" && (
@@ -159,8 +159,8 @@ export default async function MentorshipRequestsPage() {
             <Inbox className="size-5 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-zinc-900">Mentorship Requests</h1>
-            <p className="text-sm text-zinc-500">Manage incoming and outgoing requests</p>
+            <h1 className="text-xl font-bold text-foreground">Mentorship Requests</h1>
+            <p className="text-sm text-muted-foreground">Manage incoming and outgoing requests</p>
           </div>
         </div>
         <Link
@@ -174,18 +174,18 @@ export default async function MentorshipRequestsPage() {
       {/* Incoming */}
       <section className="space-y-3">
         <div className="flex items-center gap-2">
-          <Inbox className="size-4 text-zinc-500" />
-          <h2 className="text-sm font-bold text-zinc-900">
+          <Inbox className="size-4 text-muted-foreground" />
+          <h2 className="text-sm font-bold text-foreground">
             Incoming Requests
-            <span className="ml-2 text-xs font-medium text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full">
+            <span className="ml-2 text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
               {incoming.length}
             </span>
           </h2>
         </div>
         {incoming.length === 0 ? (
-          <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm p-10 text-center">
-            <Inbox className="size-8 text-zinc-200 mx-auto mb-2" />
-            <p className="text-sm text-zinc-400">No incoming requests yet.</p>
+          <div className="rounded-2xl border border-border bg-card shadow-sm p-10 text-center">
+            <Inbox className="size-8 text-muted-foreground/40 mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">No incoming requests yet.</p>
           </div>
         ) : (
           incoming.map((req) => (
@@ -197,18 +197,18 @@ export default async function MentorshipRequestsPage() {
       {/* Outgoing */}
       <section className="space-y-3">
         <div className="flex items-center gap-2">
-          <Send className="size-4 text-zinc-500" />
-          <h2 className="text-sm font-bold text-zinc-900">
+          <Send className="size-4 text-muted-foreground" />
+          <h2 className="text-sm font-bold text-foreground">
             Sent Requests
-            <span className="ml-2 text-xs font-medium text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full">
+            <span className="ml-2 text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
               {outgoing.length}
             </span>
           </h2>
         </div>
         {outgoing.length === 0 ? (
-          <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm p-10 text-center">
-            <Send className="size-8 text-zinc-200 mx-auto mb-2" />
-            <p className="text-sm text-zinc-400">You haven&apos;t sent any requests yet.</p>
+          <div className="rounded-2xl border border-border bg-card shadow-sm p-10 text-center">
+            <Send className="size-8 text-muted-foreground/40 mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">You haven&apos;t sent any requests yet.</p>
             <Link
               href="/mentorship"
               className="inline-block mt-3 text-sm font-semibold text-[#7c3aed] hover:underline"

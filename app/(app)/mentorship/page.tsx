@@ -61,8 +61,8 @@ export default async function MentorshipPage() {
             <GraduationCap className="size-5 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-zinc-900">Mentorship</h1>
-            <p className="text-sm text-zinc-500">Connect with experienced TA leaders</p>
+            <h1 className="text-xl font-bold text-foreground">Mentorship</h1>
+            <p className="text-sm text-muted-foreground">Connect with experienced TA leaders</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -94,11 +94,11 @@ export default async function MentorshipPage() {
           return (
             <div
               key={area.id}
-              className="rounded-2xl border border-zinc-100 bg-white p-4 text-center shadow-sm hover:border-[#8b5cf6]/40 hover:shadow-md transition-all"
+              className="rounded-2xl border border-border bg-card p-4 text-center shadow-sm hover:border-[#8b5cf6]/40 hover:shadow-md transition-all"
             >
               <div className="text-2xl mb-1.5">{area.icon}</div>
-              <p className="text-xs font-semibold text-zinc-800 leading-tight">{area.name}</p>
-              <p className="text-[11px] text-zinc-400 mt-1">{mentorCount} mentor{mentorCount !== 1 ? "s" : ""}</p>
+              <p className="text-xs font-semibold text-foreground leading-tight">{area.name}</p>
+              <p className="text-[11px] text-muted-foreground mt-1">{mentorCount} mentor{mentorCount !== 1 ? "s" : ""}</p>
             </div>
           );
         })}
@@ -107,20 +107,20 @@ export default async function MentorshipPage() {
       {/* Mentor grid */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-bold text-zinc-900 flex items-center gap-2">
+          <h2 className="text-base font-bold text-foreground flex items-center gap-2">
             <Users className="size-4 text-[#8b5cf6]" />
             Available Mentors
-            <span className="text-xs font-medium text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full">
+            <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
               {mentors.length}
             </span>
           </h2>
         </div>
 
         {mentors.length === 0 ? (
-          <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm p-16 text-center">
-            <GraduationCap className="size-10 text-zinc-200 mx-auto mb-3" />
-            <p className="font-medium text-zinc-400">No mentors yet</p>
-            <p className="text-sm text-zinc-400 mt-1">Be the first to offer mentorship to the community!</p>
+          <div className="rounded-2xl border border-border bg-card shadow-sm p-16 text-center">
+            <GraduationCap className="size-10 text-muted-foreground/40 mx-auto mb-3" />
+            <p className="font-medium text-muted-foreground">No mentors yet</p>
+            <p className="text-sm text-muted-foreground mt-1">Be the first to offer mentorship to the community!</p>
             <Button
               size="sm"
               className="mt-4 text-sm font-semibold text-white"
@@ -148,7 +148,7 @@ export default async function MentorshipPage() {
               return (
                 <div
                   key={mentor.id}
-                  className="rounded-2xl border border-zinc-100 bg-white shadow-sm overflow-hidden hover:shadow-md hover:border-[#8b5cf6]/30 transition-all flex flex-col"
+                  className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden hover:shadow-md hover:border-[#8b5cf6]/30 transition-all flex flex-col"
                 >
                   <div className="h-1" style={{ background: "linear-gradient(90deg, #7c3aed, #8b5cf6)" }} />
                   <div className="p-5 flex flex-col flex-1">
@@ -169,22 +169,22 @@ export default async function MentorshipPage() {
                         </div>
                       )}
                       <div className="min-w-0">
-                        <p className="font-bold text-sm text-zinc-900 truncate">{p.full_name}</p>
+                        <p className="font-bold text-sm text-foreground truncate">{p.full_name}</p>
                         {(p.title || p.company) && (
-                          <p className="text-xs text-zinc-500 truncate">
+                          <p className="text-xs text-muted-foreground truncate">
                             {p.title}{p.title && p.company ? " · " : ""}{p.company}
                           </p>
                         )}
                         <div className="flex items-center gap-1 mt-1">
                           <Star className="size-3 text-[#f97316] fill-[#f97316]" />
-                          <span className="text-[11px] font-semibold text-zinc-600">Mentor</span>
+                          <span className="text-[11px] font-semibold text-muted-foreground">Mentor</span>
                         </div>
                       </div>
                     </div>
 
                     {/* Bio */}
                     {mentor.bio && (
-                      <p className="text-xs text-zinc-500 line-clamp-2 mb-3 flex-1">{mentor.bio}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-2 mb-3 flex-1">{mentor.bio}</p>
                     )}
 
                     {/* Areas */}
@@ -199,7 +199,7 @@ export default async function MentorshipPage() {
                           </span>
                         ))}
                         {mentorAreas.length > 3 && (
-                          <span className="text-[10px] font-medium text-zinc-400 px-1">
+                          <span className="text-[10px] font-medium text-muted-foreground px-1">
                             +{mentorAreas.length - 3} more
                           </span>
                         )}
@@ -227,7 +227,7 @@ export default async function MentorshipPage() {
       {(!myProfile || !myProfile.is_mentee) && (
         <div
           className="rounded-2xl p-6 text-white flex items-center justify-between gap-4"
-          style={{ background: "linear-gradient(135deg, #0d0d0d 0%, #1a1a2e 55%, #16213e 100%)" }}
+          style={{ background: "linear-gradient(135deg, #0F1F35 0%, #162D4A 55%, #1A3A5C 100%)" }}
         >
           <div className="flex items-center gap-4">
             <div className="size-12 rounded-xl bg-[#8b5cf6]/20 flex items-center justify-center flex-shrink-0">
@@ -243,7 +243,7 @@ export default async function MentorshipPage() {
           <Button
             size="sm"
             className="shrink-0 font-semibold text-sm px-5"
-            style={{ background: "linear-gradient(135deg, #E8503A, #F07058)", color: "#0d0d0d" }}
+            style={{ background: "linear-gradient(135deg, #E8503A, #F07058)" }}
             render={<Link href="/mentorship/register" />}
           >
             Get Started

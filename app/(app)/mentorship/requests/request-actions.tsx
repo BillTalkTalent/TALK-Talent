@@ -45,7 +45,7 @@ export default function RequestActions({ requestId, isRequester = false }: Props
       <button
         onClick={() => updateStatus("withdrawn")}
         disabled={isPending}
-        className="flex items-center gap-1.5 text-xs font-semibold text-zinc-500 hover:text-red-500 transition-colors disabled:opacity-50"
+        className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-red-500 transition-colors disabled:opacity-50"
       >
         <RotateCcw className="size-3" />
         Withdraw

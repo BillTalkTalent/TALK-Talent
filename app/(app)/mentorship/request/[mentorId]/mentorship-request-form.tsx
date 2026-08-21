@@ -98,10 +98,10 @@ export default function MentorshipRequestForm({
 
   if (success) {
     return (
-      <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm p-12 text-center">
-        <CheckCircle2 className="size-12 mx-auto mb-3 text-[#F07058]" />
-        <p className="text-lg font-bold text-zinc-900">Request sent!</p>
-        <p className="text-sm text-zinc-500 mt-1">
+      <div className="rounded-2xl border border-border bg-card shadow-sm p-12 text-center">
+        <CheckCircle2 className="size-12 mx-auto mb-3 text-primary" />
+        <p className="text-lg font-bold text-foreground">Request sent!</p>
+        <p className="text-sm text-muted-foreground mt-1">
           {mentorUser.full_name?.split(" ")[0]} will be notified. Redirecting…
         </p>
       </div>
@@ -119,13 +119,13 @@ export default function MentorshipRequestForm({
           <GraduationCap className="size-5 text-white" />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-zinc-900">Request Mentorship</h1>
-          <p className="text-sm text-zinc-500">Send a request to your chosen mentor</p>
+          <h1 className="text-xl font-bold text-foreground">Request Mentorship</h1>
+          <p className="text-sm text-muted-foreground">Send a request to your chosen mentor</p>
         </div>
       </div>
 
       {/* Mentor card */}
-      <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm p-4 flex items-center gap-3">
+      <div className="rounded-2xl border border-border bg-card shadow-sm p-4 flex items-center gap-3">
         {mentorUser.avatar_url ? (
           <img
             src={mentorUser.avatar_url}
@@ -141,9 +141,9 @@ export default function MentorshipRequestForm({
           </div>
         )}
         <div>
-          <p className="font-bold text-sm text-zinc-900">{mentorUser.full_name}</p>
+          <p className="font-bold text-sm text-foreground">{mentorUser.full_name}</p>
           {(mentorUser.title || mentorUser.company) && (
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-muted-foreground">
               {mentorUser.title}
               {mentorUser.title && mentorUser.company ? " · " : ""}
               {mentorUser.company}
@@ -156,8 +156,8 @@ export default function MentorshipRequestForm({
       </div>
 
       {/* Area selection */}
-      <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm p-5 space-y-3">
-        <p className="text-sm font-semibold text-zinc-900">What would you like help with?</p>
+      <div className="rounded-2xl border border-border bg-card shadow-sm p-5 space-y-3">
+        <p className="text-sm font-semibold text-foreground">What would you like help with?</p>
         <div className="space-y-2">
           {availableAreas.map((area) => {
             const alreadyPending = pendingAreaIds.includes(area.id);
@@ -170,15 +170,15 @@ export default function MentorshipRequestForm({
                 onClick={() => !alreadyPending && setSelectedAreaId(area.id)}
                 className={`w-full flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left transition-all ${
                   alreadyPending
-                    ? "border-zinc-100 bg-zinc-50 opacity-50 cursor-not-allowed"
+                    ? "border-border bg-muted opacity-50 cursor-not-allowed"
                     : selected
                     ? "border-[#7c3aed] bg-[#8b5cf6]/5"
-                    : "border-zinc-200 hover:border-zinc-300 bg-white"
+                    : "border-border hover:border-muted-foreground/30 bg-card"
                 }`}
               >
                 <span className="text-xl">{area.icon}</span>
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-zinc-900">{area.name}</p>
+                  <p className="text-sm font-semibold text-foreground">{area.name}</p>
                   {alreadyPending && (
                     <p className="text-[11px] text-amber-600">Request pending</p>
                   )}
@@ -195,11 +195,11 @@ export default function MentorshipRequestForm({
       </div>
 
       {/* Message */}
-      <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm p-5 space-y-3">
-        <label htmlFor="message" className="block text-sm font-semibold text-zinc-900">
+      <div className="rounded-2xl border border-border bg-card shadow-sm p-5 space-y-3">
+        <label htmlFor="message" className="block text-sm font-semibold text-foreground">
           Introduce yourself
         </label>
-        <p className="text-xs text-zinc-500 -mt-2">
+        <p className="text-xs text-muted-foreground -mt-2">
           Tell {mentorUser.full_name?.split(" ")[0]} about yourself and what you&apos;re hoping to learn.
         </p>
         <textarea
@@ -209,9 +209,9 @@ export default function MentorshipRequestForm({
           rows={5}
           maxLength={800}
           placeholder="Hi! I'm a senior recruiter at... I'd love guidance on..."
-          className="w-full rounded-xl border border-zinc-200 px-3.5 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/40 focus:border-[#8b5cf6] resize-none"
+          className="w-full rounded-xl border border-border px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/40 focus:border-[#8b5cf6] resize-none"
         />
-        <p className="text-xs text-zinc-400 text-right">{message.length}/800</p>
+        <p className="text-xs text-muted-foreground text-right">{message.length}/800</p>
       </div>
 
       {error && (
@@ -224,7 +224,7 @@ export default function MentorshipRequestForm({
         <button
           type="button"
           onClick={() => router.back()}
-          className="flex-1 rounded-xl border border-zinc-200 py-2.5 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors"
+          className="flex-1 rounded-xl border border-border py-2.5 text-sm font-semibold text-foreground hover:bg-muted transition-colors"
         >
           Cancel
         </button>
