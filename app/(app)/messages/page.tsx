@@ -594,13 +594,21 @@ export default function MessagesPage() {
               )}
               <Input
                 autoFocus
-                placeholder="Search members by name…"
+                placeholder={newMsgSelected.length > 0 ? "Add another person (optional)…" : "Search members by name…"}
                 value={newMsgQuery}
                 onChange={(e) => setNewMsgQuery(e.target.value)}
                 className="mb-1.5"
               />
               {newMsgQuery.trim().length < 2 ? (
-                <p className="text-xs text-muted-foreground px-2 py-1.5">Type at least 2 characters…</p>
+                // Once someone is already picked, this box is just for adding
+                // more people to a group — the "type 2 characters" nag reads
+                // as a blocking requirement sitting right above "Start
+                // conversation" below, which made a 1:1 send feel like it
+                // needed a second recipient. Only show it while it's still
+                // the primary (required) search, before anyone is selected.
+                newMsgSelected.length === 0 && (
+                  <p className="text-xs text-muted-foreground px-2 py-1.5">Type at least 2 characters…</p>
+                )
               ) : newMsgSearching ? (
                 <p className="text-xs text-muted-foreground px-2 py-1.5">Searching…</p>
               ) : newMsgResults.length === 0 ? (
