@@ -56,8 +56,8 @@ export default async function CareersPage() {
       {/* ── Page header ── */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-xl font-bold text-zinc-900">Careers</h1>
-          <p className="text-sm text-zinc-500 mt-0.5">
+          <h1 className="text-xl font-bold text-foreground">Careers</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
             {pool.length} member{pool.length !== 1 ? 's' : ''} open to opportunities · {jobs.length} active job{jobs.length !== 1 ? 's' : ''}
           </p>
         </div>
@@ -85,26 +85,26 @@ export default async function CareersPage() {
 
         {/* ── LEFT: Talent Pool ── */}
         <aside className="w-80 shrink-0">
-          <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm overflow-hidden sticky top-20">
-            <div className="px-4 py-3 border-b border-zinc-100 flex items-center justify-between">
+          <div className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden sticky top-20">
+            <div className="px-4 py-3 border-b border-border flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Zap className="size-4 text-[#1E4B82]" />
-                <span className="font-bold text-sm text-zinc-900">Open to Work</span>
-                <span className="text-xs text-zinc-400 font-medium bg-zinc-50 border border-zinc-200 px-1.5 py-0.5 rounded-full">{pool.length}</span>
+                <Zap className="size-4 text-accent" />
+                <span className="font-bold text-sm text-foreground">Open to Work</span>
+                <span className="text-xs text-muted-foreground font-medium bg-muted border border-border px-1.5 py-0.5 rounded-full">{pool.length}</span>
               </div>
             </div>
 
             {pool.length === 0 ? (
               <div className="p-8 text-center">
-                <Zap className="size-8 text-zinc-200 mx-auto mb-2" />
-                <p className="text-sm text-zinc-400">No one in the talent pool yet</p>
+                <Zap className="size-8 text-muted-foreground/30 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">No one in the talent pool yet</p>
               </div>
             ) : (
-              <div className="divide-y divide-zinc-50 max-h-[calc(100vh-200px)] overflow-y-auto">
+              <div className="divide-y divide-border max-h-[calc(100vh-200px)] overflow-y-auto">
                 {pool.map(entry => {
                   const p = entry.profiles
                   return (
-                    <div key={entry.id} className="p-4 hover:bg-zinc-50/50 transition-colors">
+                    <div key={entry.id} className="p-4 hover:bg-muted/50 transition-colors">
                       <div className="flex items-start gap-3">
                         <Link href={`/members/${entry.user_id}`} className="shrink-0">
                           <Avatar className="size-10 ring-2 ring-offset-1 ring-[#1E4B82]/20">
@@ -120,7 +120,7 @@ export default async function CareersPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-1">
                             <Link href={`/members/${entry.user_id}`}>
-                              <p className="text-sm font-bold text-zinc-900 hover:text-[#1E4B82] transition-colors leading-tight truncate">
+                              <p className="text-sm font-bold text-foreground hover:text-accent transition-colors leading-tight truncate">
                                 {p?.full_name ?? 'Member'}
                               </p>
                             </Link>
@@ -129,23 +129,23 @@ export default async function CareersPage() {
                             </span>
                           </div>
                           {(p?.title || p?.company) && (
-                            <p className="text-xs text-zinc-500 truncate mt-0.5">
+                            <p className="text-xs text-muted-foreground truncate mt-0.5">
                               {[p?.title, p?.company].filter(Boolean).join(' · ')}
                             </p>
                           )}
                           {entry.headline && (
-                            <p className="text-xs text-zinc-600 mt-1.5 line-clamp-2 leading-relaxed italic">
+                            <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2 leading-relaxed italic">
                               &ldquo;{entry.headline}&rdquo;
                             </p>
                           )}
                           {entry.available_from && (
-                            <div className="flex items-center gap-1 text-[10px] text-zinc-400 mt-1.5">
+                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-1.5">
                               <Calendar className="size-3" />
                               Available {format(new Date(entry.available_from), 'MMM d')}
                             </div>
                           )}
                           <div className="flex items-center justify-between mt-2">
-                            <span className="text-[10px] text-zinc-400">
+                            <span className="text-[10px] text-muted-foreground">
                               {formatDistanceToNow(new Date(entry.updated_at), { addSuffix: true })}
                             </span>
                             <Link
@@ -169,11 +169,11 @@ export default async function CareersPage() {
 
         {/* ── RIGHT: Jobs ── */}
         <main className="flex-1 min-w-0">
-          <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm overflow-hidden">
-            <div className="px-5 py-3 border-b border-zinc-100 flex items-center gap-2">
+          <div className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden">
+            <div className="px-5 py-3 border-b border-border flex items-center gap-2">
               <Briefcase className="size-4 text-indigo-600" />
-              <span className="font-bold text-sm text-zinc-900">Open Positions</span>
-              <span className="text-xs text-zinc-400 font-medium bg-zinc-50 border border-zinc-200 px-1.5 py-0.5 rounded-full">{jobs.length}</span>
+              <span className="font-bold text-sm text-foreground">Open Positions</span>
+              <span className="text-xs text-muted-foreground font-medium bg-muted border border-border px-1.5 py-0.5 rounded-full">{jobs.length}</span>
             </div>
             <div className="p-4">
               <JobsList jobs={jobs} />

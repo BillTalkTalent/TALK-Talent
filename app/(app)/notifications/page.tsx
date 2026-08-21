@@ -55,51 +55,51 @@ export default async function NotificationsPage() {
             <Bell className="size-5 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-zinc-900">Notifications</h1>
-            <p className="text-sm text-zinc-500">{items.length} total</p>
+            <h1 className="text-xl font-bold text-foreground">Notifications</h1>
+            <p className="text-sm text-muted-foreground">{items.length} total</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <form action={markAllRead}>
-            <button type="submit" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-zinc-200 text-sm font-medium text-zinc-600 hover:bg-zinc-50 transition-colors">
+            <button type="submit" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:bg-muted transition-colors">
               <Check className="size-3.5" /> Mark all read
             </button>
           </form>
-          <Link href="/notifications/settings" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-zinc-200 text-sm font-medium text-zinc-600 hover:bg-zinc-50 transition-colors">
+          <Link href="/notifications/settings" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:bg-muted transition-colors">
             <Settings className="size-3.5" /> Settings
           </Link>
         </div>
       </div>
 
       {items.length === 0 ? (
-        <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-16 text-center">
-          <Bell className="size-10 text-zinc-200 mx-auto mb-3" />
-          <p className="text-zinc-400 font-medium">No notifications</p>
-          <p className="text-sm text-zinc-400 mt-1">You&apos;re all caught up!</p>
+        <div className="rounded-2xl bg-card border border-border shadow-sm p-16 text-center">
+          <Bell className="size-10 text-muted-foreground/30 mx-auto mb-3" />
+          <p className="text-muted-foreground font-medium">No notifications</p>
+          <p className="text-sm text-muted-foreground mt-1">You&apos;re all caught up!</p>
         </div>
       ) : (
-        <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm divide-y divide-zinc-100">
+        <div className="rounded-2xl bg-card border border-border shadow-sm divide-y divide-border">
           {items.map((n) => (
-            <div key={n.id} className="p-4 flex items-start gap-3 hover:bg-zinc-50/50 transition-colors">
+            <div key={n.id} className="p-4 flex items-start gap-3 hover:bg-muted/50 transition-colors">
               {!n.is_read && <span className="mt-1.5 size-2 rounded-full bg-[#F07058] shrink-0" aria-label="unread" />}
               {n.is_read && <span className="mt-1.5 size-2 shrink-0" />}
               <div className="flex-1 min-w-0">
                 {n.link ? (
                   <Link href={n.link} className="block">
-                    <p className={`text-sm ${n.is_read ? 'text-zinc-600' : 'text-zinc-900 font-semibold'}`}>{n.title}</p>
-                    {n.body && <p className="text-xs text-zinc-500 mt-0.5">{n.body}</p>}
+                    <p className={`text-sm ${n.is_read ? 'text-muted-foreground' : 'text-foreground font-semibold'}`}>{n.title}</p>
+                    {n.body && <p className="text-xs text-muted-foreground mt-0.5">{n.body}</p>}
                   </Link>
                 ) : (
                   <>
-                    <p className={`text-sm ${n.is_read ? 'text-zinc-600' : 'text-zinc-900 font-semibold'}`}>{n.title}</p>
-                    {n.body && <p className="text-xs text-zinc-500 mt-0.5">{n.body}</p>}
+                    <p className={`text-sm ${n.is_read ? 'text-muted-foreground' : 'text-foreground font-semibold'}`}>{n.title}</p>
+                    {n.body && <p className="text-xs text-muted-foreground mt-0.5">{n.body}</p>}
                   </>
                 )}
-                <p className="text-xs text-zinc-400 mt-1">{formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">{formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}</p>
               </div>
               <form action={dismissNotification}>
                 <input type="hidden" name="id" value={n.id} />
-                <button type="submit" className="text-zinc-300 hover:text-zinc-600 transition-colors" aria-label="Dismiss">
+                <button type="submit" className="text-muted-foreground/40 hover:text-muted-foreground transition-colors" aria-label="Dismiss">
                   <X className="size-4" />
                 </button>
               </form>

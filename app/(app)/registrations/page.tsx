@@ -68,16 +68,16 @@ export default async function RegistrationsPage() {
           <Receipt className="size-5 text-white" />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-zinc-900">My Registrations</h1>
-          <p className="text-sm text-zinc-500">Paid class and event registrations</p>
+          <h1 className="text-xl font-bold text-foreground">My Registrations</h1>
+          <p className="text-sm text-muted-foreground">Paid class and event registrations</p>
         </div>
       </div>
 
       {registrations.length === 0 ? (
-        <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm p-16 text-center">
-          <Receipt className="size-10 text-zinc-200 mx-auto mb-3" />
-          <p className="font-medium text-zinc-400">No registrations yet</p>
-          <p className="text-sm text-zinc-400 mt-1">
+        <div className="rounded-2xl border border-border bg-card shadow-sm p-16 text-center">
+          <Receipt className="size-10 text-muted-foreground/30 mx-auto mb-3" />
+          <p className="font-medium text-muted-foreground">No registrations yet</p>
+          <p className="text-sm text-muted-foreground mt-1">
             Browse events to find paid classes to join.
           </p>
           <Link
@@ -97,7 +97,7 @@ export default async function RegistrationsPage() {
             return (
               <div
                 key={reg.id}
-                className="rounded-2xl border border-zinc-100 bg-white shadow-sm overflow-hidden"
+                className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden"
               >
                 <div
                   className="h-1"
@@ -113,7 +113,7 @@ export default async function RegistrationsPage() {
                     <img
                       src={event.image_url}
                       alt={event.title}
-                      className="size-16 rounded-xl object-cover flex-shrink-0 border border-zinc-100"
+                      className="size-16 rounded-xl object-cover flex-shrink-0 border border-border"
                     />
                   ) : (
                     <div
@@ -128,7 +128,7 @@ export default async function RegistrationsPage() {
                     <div className="flex items-start justify-between gap-2 flex-wrap">
                       <Link
                         href={`/events/${event?.id}`}
-                        className="font-bold text-sm text-zinc-900 hover:text-[#F07058] transition-colors truncate"
+                        className="font-bold text-sm text-foreground hover:text-primary transition-colors truncate"
                       >
                         {event?.title ?? "Event removed"}
                       </Link>
@@ -136,14 +136,14 @@ export default async function RegistrationsPage() {
                     </div>
 
                     {event && (
-                      <p className="text-xs text-zinc-500 flex items-center gap-1.5">
+                      <p className="text-xs text-muted-foreground flex items-center gap-1.5">
                         <CalendarDays className="size-3" />
                         {formatInZone(event.event_date, event.timezone || "America/New_York", {
                           weekday: "short", month: "short", day: "numeric", year: "numeric",
                           hour: "numeric", minute: "2-digit",
                         })}
                         {isPast && (
-                          <span className="text-zinc-400 bg-zinc-100 px-1.5 py-0.5 rounded-full text-[10px] font-medium ml-1">
+                          <span className="text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full text-[10px] font-medium ml-1">
                             Past
                           </span>
                         )}
@@ -152,8 +152,8 @@ export default async function RegistrationsPage() {
 
                     <div className="flex items-center gap-3 flex-wrap">
                       {reg.amount_paid != null && (
-                        <span className="text-xs font-semibold text-zinc-600 flex items-center gap-1">
-                          <CreditCard className="size-3 text-[#E8503A]" />
+                        <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                          <CreditCard className="size-3 text-primary" />
                           {formatPrice(reg.amount_paid, reg.currency)} paid
                         </span>
                       )}

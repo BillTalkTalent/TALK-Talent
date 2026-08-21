@@ -18,12 +18,12 @@ export default async function NotificationSettingsPage() {
 
   return (
     <div className="p-6 max-w-2xl mx-auto space-y-6">
-      <Link href="/notifications" className="inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-900">
+      <Link href="/notifications" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="size-4" /> Back to notifications
       </Link>
       <div>
-        <h1 className="text-xl font-bold text-zinc-900">Notification Settings</h1>
-        <p className="text-sm text-zinc-500 mt-1">Choose what you want to be notified about.</p>
+        <h1 className="text-xl font-bold text-foreground">Notification Settings</h1>
+        <p className="text-sm text-muted-foreground mt-1">Choose what you want to be notified about.</p>
       </div>
       <SettingsForm userId={user.id} initialPrefs={prefs} />
     </div>

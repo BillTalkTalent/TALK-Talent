@@ -71,16 +71,16 @@ export default function SettingsForm({ userId, initialPrefs }: { userId: string;
   return (
     <div className="space-y-6">
       {(['email', 'push'] as const).map((section) => (
-        <div key={section} className="rounded-2xl bg-white border border-zinc-100 shadow-sm">
-          <div className="px-5 py-3 border-b border-zinc-100">
-            <h2 className="text-sm font-semibold text-zinc-900">
+        <div key={section} className="rounded-2xl bg-card border border-border shadow-sm">
+          <div className="px-5 py-3 border-b border-border">
+            <h2 className="text-sm font-semibold text-foreground">
               {section === 'email' ? 'Email Notifications' : 'Push Notifications'}
             </h2>
           </div>
-          <div className="divide-y divide-zinc-50">
+          <div className="divide-y divide-border">
             {ROWS.filter(r => r.section === section).map((row) => (
               <div key={row.key} className="px-5 py-3 flex items-center justify-between">
-                <p className="text-sm text-zinc-700">{row.label}</p>
+                <p className="text-sm text-foreground">{row.label}</p>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
@@ -89,8 +89,8 @@ export default function SettingsForm({ userId, initialPrefs }: { userId: string;
                     disabled={saving}
                     className="sr-only peer"
                   />
-                  <div className="w-9 h-5 bg-zinc-200 rounded-full peer peer-checked:bg-[#1E4B82] transition-colors" />
-                  <div className="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4" />
+                  <div className="w-9 h-5 bg-muted rounded-full peer peer-checked:bg-accent transition-colors" />
+                  <div className="absolute left-0.5 top-0.5 w-4 h-4 bg-card rounded-full shadow transition-transform peer-checked:translate-x-4" />
                 </label>
               </div>
             ))}

@@ -35,8 +35,8 @@ export default async function InvitePage({
           <Mail className="size-5 text-white" />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-zinc-900">Invite a Member</h1>
-          <p className="text-sm text-zinc-500">Grow the TALK community</p>
+          <h1 className="text-xl font-bold text-foreground">Invite a Member</h1>
+          <p className="text-sm text-muted-foreground">Grow the TALK community</p>
         </div>
       </div>
 
@@ -58,8 +58,8 @@ export default async function InvitePage({
       )}
 
       {/* Invite form */}
-      <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm p-6">
-        <p className="text-sm text-zinc-600 mb-5 leading-relaxed">
+      <div className="rounded-2xl border border-border bg-card shadow-sm p-6">
+        <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
           Know a TA leader who should be part of TALK Talent? Invite them using the form below!
         </p>
         <InviteForm inviterId={user.id} />
@@ -67,15 +67,15 @@ export default async function InvitePage({
 
       {/* Sent invites history */}
       {invites && invites.length > 0 && (
-        <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-zinc-100 flex items-center gap-2">
-            <Users className="size-4 text-zinc-400" />
-            <span className="text-sm font-semibold text-zinc-900">Your Invites</span>
-            <span className="text-xs text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full ml-1">
+        <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-border flex items-center gap-2">
+            <Users className="size-4 text-muted-foreground" />
+            <span className="text-sm font-semibold text-foreground">Your Invites</span>
+            <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full ml-1">
               {invites.length}
             </span>
           </div>
-          <ul className="divide-y divide-zinc-50">
+          <ul className="divide-y divide-border">
             {invites.map((invite: {
               id: string;
               email: string;
@@ -85,11 +85,11 @@ export default async function InvitePage({
             }) => (
               <li key={invite.id} className="px-5 py-3 flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-medium text-zinc-900">
+                  <p className="text-sm font-medium text-foreground">
                     {invite.name ?? invite.email}
                   </p>
                   {invite.name && (
-                    <p className="text-xs text-zinc-400">{invite.email}</p>
+                    <p className="text-xs text-muted-foreground">{invite.email}</p>
                   )}
                 </div>
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${

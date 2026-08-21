@@ -47,7 +47,7 @@ export default function SuggestTopicForm({ userId }: { userId: string }) {
           required
           maxLength={600}
           placeholder="e.g. How are people handling AI in candidate screening? Would love a session comparing approaches."
-          className="flex w-full rounded-xl border border-zinc-200 bg-transparent px-3.5 py-2.5 text-sm placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#E8503A]/40 focus:border-[#E8503A] resize-none"
+          className="flex w-full rounded-xl border border-border bg-transparent px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary resize-none"
         />
       </div>
 

@@ -55,7 +55,7 @@ export default function InviteForm({ inviterId }: { inviterId: string }) {
       <div className="space-y-2">
         <Label htmlFor="message">
           Personal message
-          <span className="text-zinc-400 font-normal ml-1">(optional)</span>
+          <span className="text-muted-foreground font-normal ml-1">(optional)</span>
         </Label>
         <textarea
           id="message"
@@ -63,7 +63,7 @@ export default function InviteForm({ inviterId }: { inviterId: string }) {
           rows={3}
           maxLength={400}
           placeholder="Hey, I thought you'd love this community of TA leaders…"
-          className="flex w-full rounded-xl border border-zinc-200 bg-transparent px-3.5 py-2.5 text-sm placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#F07058]/40 focus:border-[#F07058] resize-none"
+          className="flex w-full rounded-xl border border-border bg-transparent px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary resize-none"
         />
       </div>
 
@@ -76,7 +76,7 @@ export default function InviteForm({ inviterId }: { inviterId: string }) {
       <button
         type="submit"
         disabled={isPending}
-        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-[#0d0d0d] disabled:opacity-70 transition-opacity hover:opacity-90"
+        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-70 transition-opacity hover:opacity-90"
         style={{ background: "linear-gradient(135deg, #E8503A, #F07058)" }}
       >
         {isPending ? (

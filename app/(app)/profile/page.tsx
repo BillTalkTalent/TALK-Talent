@@ -410,7 +410,7 @@ export default function ProfilePage() {
                 id="ta_level"
                 value={form.ta_level}
                 onChange={e => setForm(f => ({ ...f, ta_level: e.target.value }))}
-                className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#F07058] transition-colors"
+                className="w-full border border-border rounded-xl px-3 py-2 text-sm bg-background focus:outline-none focus:border-primary transition-colors"
               >
                 <option value="" disabled>Select level…</option>
                 <option value="coordinator">Coordinator</option>
@@ -426,7 +426,7 @@ export default function ProfilePage() {
                 id="company_size"
                 value={form.company_size}
                 onChange={e => setForm(f => ({ ...f, company_size: e.target.value }))}
-                className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#F07058] transition-colors"
+                className="w-full border border-border rounded-xl px-3 py-2 text-sm bg-background focus:outline-none focus:border-primary transition-colors"
               >
                 <option value="" disabled>Select size…</option>
                 <option value="self_employed">Self-employed</option>
@@ -446,7 +446,7 @@ export default function ProfilePage() {
                 id="industry"
                 value={form.industry}
                 onChange={e => setForm(f => ({ ...f, industry: e.target.value }))}
-                className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#F07058] transition-colors"
+                className="w-full border border-border rounded-xl px-3 py-2 text-sm bg-background focus:outline-none focus:border-primary transition-colors"
               >
                 <option value="" disabled>Select industry…</option>
                 {["Agriculture","Arts & Media","Business Services","Civic/Government/Military","Construction & Architecture","Consumer Goods & Services","Education","Energy & Utilities","Entertainment","Finance & Insurance","Healthcare","Hospitality","Legal","Manufacturing","Non-Profit","Real Estate","Technology","Telecom","Transportation & Logistics"].map(i => (
@@ -455,7 +455,7 @@ export default function ProfilePage() {
               </select>
             </div>
           </div>
-          <p className="text-xs text-zinc-500 mt-3">These save when you click &quot;Save Profile&quot; above.</p>
+          <p className="text-xs text-muted-foreground mt-3">These save when you click &quot;Save Profile&quot; above.</p>
         </CardContent>
       </Card>
 
@@ -463,7 +463,7 @@ export default function ProfilePage() {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
-            <Lock className="size-4 text-zinc-400" />
+            <Lock className="size-4 text-muted-foreground" />
             Security
           </CardTitle>
           <p className="text-sm text-muted-foreground">
@@ -486,7 +486,7 @@ export default function ProfilePage() {
                   className="pr-10"
                 />
                 <button type="button" onClick={() => setShowPw(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600">
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                   {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
               </div>
@@ -547,10 +547,10 @@ export default function ProfilePage() {
           {/* Toggle */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-zinc-900">
+              <p className="text-sm font-medium text-foreground">
                 {isOpenToWork ? "You're currently in the talent pool" : "You're not in the talent pool"}
               </p>
-              <p className="text-xs text-zinc-500 mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 {isOpenToWork
                   ? "Visible to all approved members on the Talent Pool page."
                   : "Add yourself to let others know you're looking."}
@@ -570,14 +570,14 @@ export default function ProfilePage() {
           {/* Form — always shown so they can fill before toggling */}
           <form onSubmit={handleTalentSave} className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="tp_headline">Headline <span className="text-zinc-400 font-normal">(your pitch in one line)</span></Label>
+              <Label htmlFor="tp_headline">Headline <span className="text-muted-foreground font-normal">(your pitch in one line)</span></Label>
               <input
                 id="tp_headline"
                 type="text"
                 value={talentForm.headline}
                 onChange={e => setTalentForm(f => ({ ...f, headline: e.target.value }))}
                 placeholder="Senior TA Leader available for Head of Talent or consulting roles"
-                className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:outline-none focus:border-[#F07058] transition-colors"
+                className="w-full rounded-lg border border-border bg-background text-foreground px-3 py-2 text-sm focus:outline-none focus:border-primary transition-colors"
                 disabled={savingTalent}
               />
             </div>
@@ -589,7 +589,7 @@ export default function ProfilePage() {
                 value={talentForm.seeking}
                 onChange={e => setTalentForm(f => ({ ...f, seeking: e.target.value }))}
                 placeholder="VP Talent Acquisition, Head of TA, Fractional TA leadership"
-                className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:outline-none focus:border-[#F07058] transition-colors"
+                className="w-full rounded-lg border border-border bg-background text-foreground px-3 py-2 text-sm focus:outline-none focus:border-primary transition-colors"
                 disabled={savingTalent}
               />
             </div>
@@ -600,7 +600,7 @@ export default function ProfilePage() {
                   id="tp_pref"
                   value={talentForm.work_pref}
                   onChange={e => setTalentForm(f => ({ ...f, work_pref: e.target.value }))}
-                  className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#F07058] transition-colors"
+                  className="w-full rounded-lg border border-border px-3 py-2 text-sm bg-background focus:outline-none focus:border-primary transition-colors"
                   disabled={savingTalent}
                 >
                   <option value="flexible">Flexible</option>
@@ -610,13 +610,13 @@ export default function ProfilePage() {
                 </select>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="tp_available">Available from <span className="text-zinc-400 font-normal">(optional)</span></Label>
+                <Label htmlFor="tp_available">Available from <span className="text-muted-foreground font-normal">(optional)</span></Label>
                 <input
                   id="tp_available"
                   type="date"
                   value={talentForm.available_from}
                   onChange={e => setTalentForm(f => ({ ...f, available_from: e.target.value }))}
-                  className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:outline-none focus:border-[#F07058] transition-colors"
+                  className="w-full rounded-lg border border-border bg-background text-foreground px-3 py-2 text-sm focus:outline-none focus:border-primary transition-colors"
                   disabled={savingTalent}
                 />
               </div>
