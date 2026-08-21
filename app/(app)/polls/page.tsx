@@ -16,12 +16,12 @@ function OptionBar({ text, votes, total, isTop }: { text: string; votes: number;
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between text-xs">
-        <span className={`truncate max-w-[70%] font-medium ${isTop ? "text-[#7c3aed]" : "text-zinc-600"}`}>{text}</span>
-        <span className={`font-bold ${isTop ? "text-[#7c3aed]" : "text-zinc-500"}`}>{pct}%</span>
+        <span className={`truncate max-w-[70%] font-medium ${isTop ? "text-[#7c3aed]" : "text-muted-foreground"}`}>{text}</span>
+        <span className={`font-bold ${isTop ? "text-[#7c3aed]" : "text-muted-foreground"}`}>{pct}%</span>
       </div>
-      <div className="h-2 w-full rounded-full bg-zinc-100 overflow-hidden">
+      <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all ${isTop ? "bg-gradient-to-r from-[#7c3aed] to-[#8b5cf6]" : "bg-zinc-300"}`}
+          className={`h-full rounded-full transition-all ${isTop ? "bg-gradient-to-r from-[#7c3aed] to-[#8b5cf6]" : "bg-muted-foreground/30"}`}
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -55,8 +55,8 @@ export default async function PollsPage() {
             <BarChart2 className="size-5 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-zinc-900">Polls</h1>
-            <p className="text-sm text-zinc-500">Vote and share your perspective</p>
+            <h1 className="text-xl font-bold text-foreground">Polls</h1>
+            <p className="text-sm text-muted-foreground">Vote and share your perspective</p>
           </div>
         </div>
         {user && (
@@ -71,10 +71,10 @@ export default async function PollsPage() {
       </div>
 
       {polls.length === 0 ? (
-        <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-16 text-center">
-          <BarChart2 className="size-10 text-zinc-200 mx-auto mb-3" />
-          <p className="text-zinc-400 font-medium">No polls yet</p>
-          <p className="text-sm text-zinc-400 mt-1">Be the first to create one!</p>
+        <div className="rounded-2xl bg-card border border-border shadow-sm p-16 text-center">
+          <BarChart2 className="size-10 text-muted-foreground/40 mx-auto mb-3" />
+          <p className="text-muted-foreground font-medium">No polls yet</p>
+          <p className="text-sm text-muted-foreground mt-1">Be the first to create one!</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -96,16 +96,16 @@ export default async function PollsPage() {
               (poll.closes_at != null && new Date(poll.closes_at) < new Date());
 
             return (
-              <div key={poll.id} className="rounded-2xl bg-white border border-zinc-100 shadow-sm overflow-hidden hover:shadow-md transition-all">
+              <div key={poll.id} className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden hover:shadow-md transition-all">
                 {/* Status strip */}
-                <div className={`h-1 ${isClosed ? "bg-zinc-200" : "bg-gradient-to-r from-emerald-400 to-teal-500"}`} />
+                <div className={`h-1 ${isClosed ? "bg-muted" : "bg-gradient-to-r from-emerald-400 to-teal-500"}`} />
 
                 <div className="p-5 space-y-4">
                   <div className="flex items-start justify-between gap-3">
-                    <h2 className="text-base font-bold text-zinc-900 leading-snug">{poll.question}</h2>
+                    <h2 className="text-base font-bold text-foreground leading-snug">{poll.question}</h2>
                     <div className="flex gap-1.5 shrink-0">
                       {isClosed ? (
-                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-zinc-500 bg-zinc-100 px-2.5 py-1 rounded-full">
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
                           <CheckCircle2 className="size-3" /> Closed
                         </span>
                       ) : (
@@ -132,14 +132,14 @@ export default async function PollsPage() {
                       />
                     ))}
                     {poll.poll_options.length > 3 && (
-                      <p className="text-xs text-zinc-400 pt-1">
+                      <p className="text-xs text-muted-foreground pt-1">
                         +{poll.poll_options.length - 3} more options
                       </p>
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-50">
-                    <div className="flex items-center gap-3 text-xs text-zinc-400">
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/60">
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Users className="size-3" />
                         {totalVotes} vote{totalVotes !== 1 ? "s" : ""}
