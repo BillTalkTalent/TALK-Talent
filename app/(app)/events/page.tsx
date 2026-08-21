@@ -50,10 +50,10 @@ function EventCard({ event, attendeeCount }: { event: PaidEvent; attendeeCount: 
   });
   return (
     <Link href={`/events/${event.id}`}>
-      <div className="group rounded-2xl bg-white border border-zinc-100 shadow-sm hover:shadow-md hover:border-[#f97316] transition-all overflow-hidden cursor-pointer h-full flex flex-col">
+      <div className="group rounded-2xl bg-card border border-border shadow-sm hover:shadow-md hover:border-[#f97316] transition-all overflow-hidden cursor-pointer h-full flex flex-col">
         {/* Hero image or accent bar */}
         {event.image_url ? (
-          <div className="relative h-40 overflow-hidden bg-zinc-100">
+          <div className="relative h-40 overflow-hidden bg-muted">
             <img
               src={event.image_url}
               alt={event.title}
@@ -72,7 +72,7 @@ function EventCard({ event, attendeeCount }: { event: PaidEvent; attendeeCount: 
             </span>
             <div className="flex items-center gap-1.5">
               {event.is_paid && event.price != null && (
-                <span className="inline-flex items-center gap-1 text-xs font-bold text-white bg-[#E8503A] px-2.5 py-1 rounded-full">
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-primary-foreground bg-primary px-2.5 py-1 rounded-full">
                   <CreditCard className="size-3" />
                   {formatPrice(event.price, event.currency)}
                 </span>
@@ -87,33 +87,33 @@ function EventCard({ event, attendeeCount }: { event: PaidEvent; attendeeCount: 
 
           <div className="flex items-center gap-2 mb-1">
             {event.is_paid ? (
-              <span className="text-[10px] font-black uppercase tracking-wide text-white bg-[#E8503A] px-2 py-0.5 rounded-full">Class</span>
+              <span className="text-[10px] font-black uppercase tracking-wide text-primary-foreground bg-primary px-2 py-0.5 rounded-full">Class</span>
             ) : (
               <span className="text-[10px] font-black uppercase tracking-wide text-[#f97316] bg-[#f97316]/10 border border-[#f97316]/20 px-2 py-0.5 rounded-full">Event</span>
             )}
           </div>
-          <h3 className="font-bold text-zinc-900 group-hover:text-[#f97316] transition-colors leading-snug text-base">
+          <h3 className="font-bold text-foreground group-hover:text-[#f97316] transition-colors leading-snug text-base">
             {event.title}
           </h3>
 
           {event.description && (
-            <p className="text-sm text-zinc-500 mt-2 line-clamp-2 flex-1">{event.description}</p>
+            <p className="text-sm text-muted-foreground mt-2 line-clamp-2 flex-1">{event.description}</p>
           )}
 
-          <div className="flex items-center justify-between mt-4 pt-4 border-t border-zinc-50">
-            <span className="flex items-center gap-1.5 text-xs text-zinc-400">
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/60">
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
               {event.is_virtual ? (
                 <><Monitor className="size-3" /> Virtual · {timeLabel}</>
               ) : (
                 <><MapPin className="size-3" /> {event.venue_name ?? event.location ?? "TBD"} · {timeLabel}</>
               )}
             </span>
-            <span className="flex items-center gap-1 text-xs font-medium text-zinc-500">
+            <span className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
               <Users className="size-3" /> {attendeeCount} going
             </span>
           </div>
           <div className="mt-2">
-            {(() => { /* eslint-disable-next-line @typescript-eslint/no-explicit-any */ const t=(event as any).event_type; const fmt = t==='hybrid'?'🔀 Hybrid':(event.is_virtual||t==='webinar')?'🎥 Virtual':'📍 In Person'; return <span className="text-xs text-zinc-400">{fmt}</span> })()}
+            {(() => { /* eslint-disable-next-line @typescript-eslint/no-explicit-any */ const t=(event as any).event_type; const fmt = t==='hybrid'?'🔀 Hybrid':(event.is_virtual||t==='webinar')?'🎥 Virtual':'📍 In Person'; return <span className="text-xs text-muted-foreground">{fmt}</span> })()}
           </div>
         </div>
       </div>
@@ -148,25 +148,25 @@ function MonthCalendar({ monthParam, events }: { monthParam: string; events: Pai
   const nextMonthHref = `/events?tab=calendar&month=${formatDate(addMonths(monthStart, 1), "yyyy-MM")}`;
 
   return (
-    <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100">
-        <h2 className="text-base font-bold text-zinc-900">{formatDate(monthStart, "MMMM yyyy")}</h2>
+    <div className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+        <h2 className="text-base font-bold text-foreground">{formatDate(monthStart, "MMMM yyyy")}</h2>
         <div className="flex items-center gap-1">
-          <Link href={prevMonthHref} className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 transition-colors">
+          <Link href={prevMonthHref} className="p-1.5 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
             <ChevronLeft className="size-4" />
           </Link>
-          <Link href={`/events?tab=calendar&month=${formatDate(new Date(), "yyyy-MM")}`} className="px-2.5 py-1 rounded-lg text-xs font-semibold text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700 transition-colors">
+          <Link href={`/events?tab=calendar&month=${formatDate(new Date(), "yyyy-MM")}`} className="px-2.5 py-1 rounded-lg text-xs font-semibold text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
             Today
           </Link>
-          <Link href={nextMonthHref} className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 transition-colors">
+          <Link href={nextMonthHref} className="p-1.5 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
             <ChevronRight className="size-4" />
           </Link>
         </div>
       </div>
 
-      <div className="grid grid-cols-7 border-b border-zinc-100">
+      <div className="grid grid-cols-7 border-b border-border">
         {WEEKDAY_LABELS.map((d) => (
-          <div key={d} className="py-2 text-center text-[11px] font-bold uppercase tracking-wide text-zinc-400">
+          <div key={d} className="py-2 text-center text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
             {d}
           </div>
         ))}
@@ -181,11 +181,11 @@ function MonthCalendar({ monthParam, events }: { monthParam: string; events: Pai
           return (
             <div
               key={key}
-              className={`min-h-[104px] border-b border-r border-zinc-50 p-1.5 last:border-r-0 ${inMonth ? "bg-white" : "bg-zinc-50/50"}`}
+              className={`min-h-[104px] border-b border-r border-border/60 p-1.5 last:border-r-0 ${inMonth ? "bg-card" : "bg-muted/40"}`}
             >
               <span
                 className={`inline-flex items-center justify-center size-6 rounded-full text-xs font-semibold ${
-                  today ? "bg-[#f97316] text-white" : inMonth ? "text-zinc-700" : "text-zinc-300"
+                  today ? "bg-[#f97316] text-white" : inMonth ? "text-foreground" : "text-muted-foreground/40"
                 }`}
               >
                 {formatDate(day, "d")}
@@ -197,7 +197,7 @@ function MonthCalendar({ monthParam, events }: { monthParam: string; events: Pai
                     href={`/events/${event.id}`}
                     className={`block truncate text-[11px] font-medium px-1.5 py-0.5 rounded-md hover:opacity-80 transition-opacity ${
                       event.is_paid
-                        ? "bg-[#E8503A]/10 text-[#E8503A]"
+                        ? "bg-primary/10 text-primary"
                         : "bg-[#f97316]/10 text-[#ea580c]"
                     }`}
                     title={event.title}
@@ -206,7 +206,7 @@ function MonthCalendar({ monthParam, events }: { monthParam: string; events: Pai
                   </Link>
                 ))}
                 {dayEvents.length > 3 && (
-                  <span className="block text-[10px] font-semibold text-zinc-400 px-1.5">
+                  <span className="block text-[10px] font-semibold text-muted-foreground px-1.5">
                     +{dayEvents.length - 3} more
                   </span>
                 )}
@@ -226,7 +226,7 @@ function TabButton({ href, label, active }: { href: string; label: string; activ
       className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
         active
           ? "bg-[#f97316] text-white shadow-sm"
-          : "text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100"
+          : "text-muted-foreground hover:text-foreground hover:bg-muted"
       }`}
     >
       {label}
@@ -299,14 +299,14 @@ export default async function EventsPage({
             <CalendarDays className="size-5 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-zinc-900">Events &amp; Classes</h1>
-            <p className="text-sm text-zinc-500">Community gatherings, meetups, and paid classes</p>
+            <h1 className="text-xl font-bold text-foreground">Events &amp; Classes</h1>
+            <p className="text-sm text-muted-foreground">Community gatherings, meetups, and paid classes</p>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-2xl w-fit">
+      <div className="flex items-center gap-1 bg-muted p-1 rounded-2xl w-fit">
         <TabButton href="/events?tab=upcoming" label={`Upcoming (${upcomingEvents.length})`} active={activeTab === "upcoming"} />
         <TabButton href="/events?tab=past" label={`Past (${pastEvents.length})`} active={activeTab === "past"} />
         <TabButton href="/events?tab=calendar" label="Calendar" active={activeTab === "calendar"} />
@@ -315,10 +315,10 @@ export default async function EventsPage({
       {activeTab === "calendar" ? (
         <MonthCalendar monthParam={monthParam} events={calendarEvents} />
       ) : events.length === 0 ? (
-        <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-16 text-center">
-          <CalendarDays className="size-10 text-zinc-200 mx-auto mb-3" />
-          <p className="text-zinc-400 font-medium">No {activeTab} events</p>
-          <p className="text-sm text-zinc-400 mt-1">Check back soon!</p>
+        <div className="rounded-2xl bg-card border border-border shadow-sm p-16 text-center">
+          <CalendarDays className="size-10 text-muted-foreground/40 mx-auto mb-3" />
+          <p className="text-muted-foreground font-medium">No {activeTab} events</p>
+          <p className="text-sm text-muted-foreground mt-1">Check back soon!</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
