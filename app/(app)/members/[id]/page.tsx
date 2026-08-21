@@ -75,7 +75,7 @@ export default async function MemberProfilePage({
                 {member.full_name ?? "Unknown"}
                 {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                 {(member as any).is_bot && (
-                  <Badge variant="outline" className="text-[10px] text-zinc-400 border-zinc-200">
+                  <Badge variant="outline" className="text-[10px] text-muted-foreground border-border">
                     Automated account
                   </Badge>
                 )}
@@ -173,7 +173,7 @@ export default async function MemberProfilePage({
           <CardContent className="pt-5 pb-5">
             <div className="flex items-center gap-2 mb-4">
               <MessageSquare className="size-4 text-[#8b5cf6]" />
-              <h2 className="text-sm font-semibold text-zinc-900">Recent Forum Posts</h2>
+              <h2 className="text-sm font-semibold text-foreground">Recent Forum Posts</h2>
             </div>
             <ul className="space-y-2">
               {(recentTopics ?? []).map((topic) => {
@@ -182,17 +182,17 @@ export default async function MemberProfilePage({
                   <li key={topic.id}>
                     <Link
                       href={`/forum/${cat?.slug ?? ""}/${topic.id}`}
-                      className="flex items-start justify-between gap-3 rounded-xl p-3 hover:bg-zinc-50 transition-colors group"
+                      className="flex items-start justify-between gap-3 rounded-xl p-3 hover:bg-muted transition-colors group"
                     >
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-zinc-800 group-hover:text-[#8b5cf6] transition-colors truncate">
+                        <p className="text-sm font-medium text-foreground group-hover:text-[#8b5cf6] transition-colors truncate">
                           {topic.title}
                         </p>
                         {cat && (
-                          <span className="text-[11px] text-zinc-400">{cat.name}</span>
+                          <span className="text-[11px] text-muted-foreground">{cat.name}</span>
                         )}
                       </div>
-                      <span className="text-xs text-zinc-400 shrink-0 mt-0.5">
+                      <span className="text-xs text-muted-foreground shrink-0 mt-0.5">
                         {formatDistanceToNow(new Date(topic.created_at), { addSuffix: true })}
                       </span>
                     </Link>

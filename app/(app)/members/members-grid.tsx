@@ -176,7 +176,7 @@ export default function MembersGrid({
         <select
           value={currentLevel}
           onChange={(e) => router.push(buildUrl({ level: e.target.value, page: "" }))}
-          className="border border-zinc-200 rounded-xl px-3 py-1.5 text-sm bg-white text-zinc-600 focus:outline-none focus:border-[#F07058]"
+          className="border border-border rounded-xl px-3 py-1.5 text-sm bg-card text-muted-foreground focus:outline-none focus:border-primary"
         >
           <option value="">All Levels</option>
           <option value="coordinator">Coordinator</option>
@@ -188,7 +188,7 @@ export default function MembersGrid({
         <select
           value={currentSize}
           onChange={(e) => router.push(buildUrl({ size: e.target.value, page: "" }))}
-          className="border border-zinc-200 rounded-xl px-3 py-1.5 text-sm bg-white text-zinc-600 focus:outline-none focus:border-[#F07058]"
+          className="border border-border rounded-xl px-3 py-1.5 text-sm bg-card text-muted-foreground focus:outline-none focus:border-primary"
         >
           <option value="">All Sizes</option>
           <option value="self_employed">Self-employed</option>
@@ -204,7 +204,7 @@ export default function MembersGrid({
         <select
           value={currentIndustry}
           onChange={(e) => router.push(buildUrl({ industry: e.target.value, page: "" }))}
-          className="border border-zinc-200 rounded-xl px-3 py-1.5 text-sm bg-white text-zinc-600 focus:outline-none focus:border-[#F07058]"
+          className="border border-border rounded-xl px-3 py-1.5 text-sm bg-card text-muted-foreground focus:outline-none focus:border-primary"
         >
           <option value="">All Industries</option>
           {["Agriculture","Arts & Media","Business Services","Civic/Government/Military","Construction & Architecture","Consumer Goods & Services","Education","Energy & Utilities","Entertainment","Finance & Insurance","Healthcare","Hospitality","Legal","Manufacturing","Non-Profit","Real Estate","Technology","Telecom","Transportation & Logistics"].map(i => (
@@ -213,25 +213,25 @@ export default function MembersGrid({
         </select>
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-zinc-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search name, title, company…"
             value={searchValue}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="pl-9 pr-3 py-2 rounded-xl border border-zinc-200 bg-white text-sm w-64 focus:outline-none focus:border-[#F07058] transition-colors"
+            className="pl-9 pr-3 py-2 rounded-xl border border-border bg-card text-sm w-64 focus:outline-none focus:border-primary transition-colors"
           />
           {searchValue && (
             <button
               onClick={() => handleSearchChange("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-300 hover:text-zinc-500"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground"
             >
               <X className="size-3.5" />
             </button>
           )}
         </div>
 
-        <div className="h-5 w-px bg-zinc-200" />
+        <div className="h-5 w-px bg-border" />
 
         {/* All chapters pill */}
         <Link
@@ -239,8 +239,8 @@ export default function MembersGrid({
           className={cn(
             "px-3 py-1.5 rounded-xl text-sm font-semibold transition-all",
             !currentChapter
-              ? "bg-[#F07058] text-[#0d0d0d] shadow-sm"
-              : "bg-white border border-zinc-200 text-zinc-600 hover:border-[#F07058] hover:text-[#3F7A6E]"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "bg-card border border-border text-muted-foreground hover:border-primary hover:text-primary"
           )}
         >
           All
@@ -254,8 +254,8 @@ export default function MembersGrid({
             className={cn(
               "px-3 py-1.5 rounded-xl text-sm font-semibold transition-all",
               currentChapter === c.id
-                ? "bg-[#F07058] text-[#0d0d0d] shadow-sm"
-                : "bg-white border border-zinc-200 text-zinc-600 hover:border-[#F07058] hover:text-[#3F7A6E]"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "bg-card border border-border text-muted-foreground hover:border-primary hover:text-primary"
             )}
           >
             {c.icon && <span className="mr-1">{c.icon}</span>}
@@ -271,8 +271,8 @@ export default function MembersGrid({
               className={cn(
                 "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold transition-all border",
                 activeIsGeo
-                  ? "bg-[#F07058] text-[#0d0d0d] border-[#F07058] shadow-sm"
-                  : "bg-white border-zinc-200 text-zinc-600 hover:border-[#F07058] hover:text-[#3F7A6E]"
+                  ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                  : "bg-card border-border text-muted-foreground hover:border-primary hover:text-primary"
               )}
             >
               <MapPin className="size-3.5" />
@@ -296,23 +296,23 @@ export default function MembersGrid({
             </button>
 
             {geoOpen && (
-              <div className="absolute left-0 top-full mt-1.5 w-64 bg-white rounded-2xl border border-zinc-100 shadow-xl z-50 overflow-hidden">
-                <div className="p-2 border-b border-zinc-100">
+              <div className="absolute left-0 top-full mt-1.5 w-64 bg-card rounded-2xl border border-border shadow-xl z-50 overflow-hidden">
+                <div className="p-2 border-b border-border">
                   <div className="relative">
-                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-zinc-400" />
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
                     <input
                       autoFocus
                       type="text"
                       placeholder="Search city or state…"
                       value={geoSearch}
                       onChange={(e) => setGeoSearch(e.target.value)}
-                      className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-zinc-200 focus:outline-none focus:border-[#F07058] transition-colors"
+                      className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border focus:outline-none focus:border-primary transition-colors"
                     />
                   </div>
                 </div>
                 <div className="max-h-64 overflow-y-auto py-1">
                   {filteredGeo.length === 0 ? (
-                    <p className="text-xs text-zinc-400 text-center py-4">No locations found</p>
+                    <p className="text-xs text-muted-foreground text-center py-4">No locations found</p>
                   ) : (
                     filteredGeo.map((c) => (
                       <button
@@ -325,8 +325,8 @@ export default function MembersGrid({
                         className={cn(
                           "w-full text-left px-3 py-2 text-sm flex items-center gap-2 transition-colors",
                           currentChapter === c.id
-                            ? "bg-[#F07058]/10 text-[#E8503A] font-semibold"
-                            : "text-zinc-700 hover:bg-zinc-50"
+                            ? "bg-primary/10 text-primary font-semibold"
+                            : "text-foreground hover:bg-muted"
                         )}
                       >
                         <span className="text-xs">{c.icon}</span>
@@ -343,7 +343,7 @@ export default function MembersGrid({
         {hasFilters && (
           <button
             onClick={clearAllFilters}
-            className="ml-auto flex items-center gap-1.5 text-xs text-zinc-400 hover:text-red-400 transition-colors"
+            className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground hover:text-red-500 transition-colors"
           >
             <X className="size-3" />
             Clear filters
@@ -358,8 +358,8 @@ export default function MembersGrid({
           className={cn(
             "flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-xs font-semibold transition-all",
             !currentLetter && !currentQ
-              ? "bg-[#F07058] text-[#0d0d0d]"
-              : "text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground"
           )}
         >
           All
@@ -371,8 +371,8 @@ export default function MembersGrid({
             className={cn(
               "flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-xs font-bold transition-all",
               currentLetter === l
-                ? "bg-[#F07058] text-[#0d0d0d]"
-                : "text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
             )}
           >
             {l}
@@ -381,18 +381,18 @@ export default function MembersGrid({
       </div>
 
       {/* Results summary */}
-      <div className="flex items-center justify-between text-xs text-zinc-400">
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
         <span>
           {totalCount === 0
             ? "No members found"
             : `Showing ${(currentPage - 1) * 48 + 1}–${Math.min(currentPage * 48, totalCount)} of ${totalCount.toLocaleString()} members`}
           {currentLetter && !currentQ && (
-            <span className="ml-1 font-semibold text-zinc-600">
+            <span className="ml-1 font-semibold text-foreground">
               starting with &ldquo;{currentLetter}&rdquo;
             </span>
           )}
           {currentQ && (
-            <span className="ml-1 font-semibold text-zinc-600">
+            <span className="ml-1 font-semibold text-foreground">
               matching &ldquo;{currentQ}&rdquo;
             </span>
           )}
@@ -401,10 +401,10 @@ export default function MembersGrid({
 
       {/* Grid */}
       {members.length === 0 ? (
-        <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-16 text-center">
-          <Search className="size-10 text-zinc-200 mx-auto mb-3" />
-          <p className="text-zinc-400 font-medium">No members found</p>
-          <p className="text-sm text-zinc-400 mt-1">Try a different search or filter</p>
+        <div className="rounded-2xl bg-card border border-border shadow-sm p-16 text-center">
+          <Search className="size-10 text-muted-foreground/40 mx-auto mb-3" />
+          <p className="text-muted-foreground font-medium">No members found</p>
+          <p className="text-sm text-muted-foreground mt-1">Try a different search or filter</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -417,7 +417,7 @@ export default function MembersGrid({
 
             return (
               <Link key={member.id} href={`/members/${member.id}`}>
-                <div className="group rounded-2xl bg-white border border-zinc-100 shadow-sm hover:shadow-md hover:border-[#F07058] transition-all cursor-pointer p-5 flex flex-col items-center text-center gap-3 h-full">
+                <div className="group rounded-2xl bg-card border border-border shadow-sm hover:shadow-md hover:border-primary transition-all cursor-pointer p-5 flex flex-col items-center text-center gap-3 h-full">
                   <Avatar className="size-16 ring-2 ring-offset-2 ring-indigo-100">
                     {member.avatar_url && (
                       <AvatarImage src={member.avatar_url} alt={member.full_name ?? ""} />
@@ -431,11 +431,11 @@ export default function MembersGrid({
                   </Avatar>
 
                   <div className="min-w-0 w-full space-y-1">
-                    <p className="font-bold text-zinc-900 truncate group-hover:text-[#F07058] transition-colors">
+                    <p className="font-bold text-foreground truncate group-hover:text-primary transition-colors">
                       {member.full_name ?? "Unnamed"}
                     </p>
                     {member.title && (
-                      <p className="text-xs text-zinc-500 truncate">{member.title}</p>
+                      <p className="text-xs text-muted-foreground truncate">{member.title}</p>
                     )}
                     {member.role === "board_member" && (
                       <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full">
@@ -448,13 +448,13 @@ export default function MembersGrid({
                       </span>
                     )}
                     {member.company && (
-                      <span className="inline-block text-xs font-semibold text-[#E8503A] bg-[#F07058]/10 px-2 py-0.5 rounded-full">
+                      <span className="inline-block text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
                         {member.company}
                       </span>
                     )}
                     {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                     {(member as any).ta_level && (
-                      <span className="block text-[10px] text-zinc-400 uppercase tracking-wide font-semibold">
+                      <span className="block text-[10px] text-muted-foreground uppercase tracking-wide font-semibold">
                         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                         {({ coordinator:'Coordinator', generalist:'Generalist', practitioner:'Practitioner', manager:'Manager', senior_leadership:'Senior Leadership' } as Record<string,string>)[(member as any).ta_level]}
                       </span>
@@ -466,13 +466,13 @@ export default function MembersGrid({
                       {displayChapters.map((c) => (
                         <span
                           key={c.id}
-                          className="text-xs text-zinc-500 bg-zinc-50 border border-zinc-100 px-2 py-0.5 rounded-full max-w-[100px] truncate"
+                          className="text-xs text-muted-foreground bg-muted border border-border px-2 py-0.5 rounded-full max-w-[100px] truncate"
                         >
                           {c.icon} {c.name}
                         </span>
                       ))}
                       {extraCount > 0 && (
-                        <span className="text-xs text-zinc-400 bg-zinc-50 border border-zinc-100 px-2 py-0.5 rounded-full">
+                        <span className="text-xs text-muted-foreground bg-muted border border-border px-2 py-0.5 rounded-full">
                           +{extraCount}
                         </span>
                       )}
@@ -485,7 +485,7 @@ export default function MembersGrid({
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="text-zinc-300 hover:text-indigo-500 transition-colors mt-auto"
+                      className="text-muted-foreground/40 hover:text-indigo-500 transition-colors mt-auto"
                     >
                       <ExternalLink className="size-3.5" />
                     </a>
@@ -500,20 +500,20 @@ export default function MembersGrid({
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between pt-2">
-          <p className="text-sm text-zinc-400">
+          <p className="text-sm text-muted-foreground">
             Page {currentPage} of {totalPages}
           </p>
           <div className="flex items-center gap-1.5">
             {currentPage > 1 ? (
               <Link
                 href={buildUrl({ page: String(currentPage - 1) })}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-zinc-200 text-sm font-medium text-zinc-600 hover:bg-zinc-50 transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border text-sm font-medium text-muted-foreground hover:bg-muted transition-colors"
               >
                 <ChevronLeft className="size-4" />
                 Prev
               </Link>
             ) : (
-              <span className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-zinc-100 text-sm font-medium text-zinc-300 cursor-not-allowed">
+              <span className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border/60 text-sm font-medium text-muted-foreground/40 cursor-not-allowed">
                 <ChevronLeft className="size-4" />
                 Prev
               </span>
@@ -522,7 +522,7 @@ export default function MembersGrid({
             <div className="flex items-center gap-1">
               {pageNumbers().map((p, i) =>
                 p === "…" ? (
-                  <span key={`ellipsis-${i}`} className="px-1.5 text-zinc-400 text-sm">
+                  <span key={`ellipsis-${i}`} className="px-1.5 text-muted-foreground text-sm">
                     …
                   </span>
                 ) : (
@@ -532,8 +532,8 @@ export default function MembersGrid({
                     className={cn(
                       "size-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors",
                       p === currentPage
-                        ? "bg-[#F07058] text-[#0d0d0d]"
-                        : "text-zinc-600 hover:bg-zinc-100"
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:bg-muted"
                     )}
                   >
                     {p}
@@ -545,13 +545,13 @@ export default function MembersGrid({
             {currentPage < totalPages ? (
               <Link
                 href={buildUrl({ page: String(currentPage + 1) })}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-zinc-200 text-sm font-medium text-zinc-600 hover:bg-zinc-50 transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border text-sm font-medium text-muted-foreground hover:bg-muted transition-colors"
               >
                 Next
                 <ChevronRight className="size-4" />
               </Link>
             ) : (
-              <span className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-zinc-100 text-sm font-medium text-zinc-300 cursor-not-allowed">
+              <span className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border/60 text-sm font-medium text-muted-foreground/40 cursor-not-allowed">
                 Next
                 <ChevronRight className="size-4" />
               </span>

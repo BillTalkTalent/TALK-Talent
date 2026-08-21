@@ -96,8 +96,8 @@ export default async function MembersPage({
             <Users className="size-5 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-zinc-900">Members</h1>
-            <p className="text-sm text-zinc-500">
+            <h1 className="text-xl font-bold text-foreground">Members</h1>
+            <p className="text-sm text-muted-foreground">
               {totalCount?.toLocaleString() ?? 0} members
               {(q || letter || chapter) ? " matching filters" : ""}
             </p>
@@ -105,7 +105,7 @@ export default async function MembersPage({
         </div>
         <Link
           href="/invite"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-[#0d0d0d] hover:opacity-90 transition-opacity"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white hover:opacity-90 transition-opacity"
           style={{ background: "linear-gradient(135deg, #E8503A, #F07058)" }}
         >
           <Mail className="size-4" />
