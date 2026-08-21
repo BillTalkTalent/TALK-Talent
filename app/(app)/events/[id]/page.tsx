@@ -82,7 +82,7 @@ function EventWhen({ event }: { event: PaidEvent }) {
         {start}{end ? ` – ${end}` : ""}
       </span>
       {localStart && (
-        <span className="pl-[22px] text-xs text-zinc-400">Your time: {localStart}</span>
+        <span className="pl-[22px] text-xs text-muted-foreground">Your time: {localStart}</span>
       )}
     </span>
   );
@@ -142,7 +142,7 @@ function PublicEventTeaser({ event, eventId }: { event: PaidEvent; eventId: stri
   return (
     <div className="min-h-screen" style={{ background: "#F5F8FC" }}>
       {event.image_url && (
-        <div className="relative w-full aspect-[16/6] overflow-hidden bg-zinc-100">
+        <div className="relative w-full aspect-[16/6] overflow-hidden bg-muted">
           <img src={event.image_url} alt={event.title} className="w-full h-full object-contain" />
         </div>
       )}
@@ -157,7 +157,7 @@ function PublicEventTeaser({ event, eventId }: { event: PaidEvent; eventId: stri
           <h1 className="text-2xl font-bold">{event.title}</h1>
         </div>
 
-        <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-6 space-y-4">
+        <div className="rounded-2xl bg-card border border-border shadow-sm p-6 space-y-4">
           <div className="flex flex-wrap items-center gap-2">
             <EventTypeBadge isVirtual={event.is_virtual} />
             {isPaid && (
@@ -187,23 +187,22 @@ function PublicEventTeaser({ event, eventId }: { event: PaidEvent; eventId: stri
             <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{event.description}</p>
           )}
 
-          <div className="rounded-xl p-5 space-y-3" style={{ background: "rgba(232,80,58,0.06)" }}>
-            <p className="text-sm font-semibold text-zinc-800">
+          <div className="rounded-xl p-5 space-y-3 bg-primary/[0.06]">
+            <p className="text-sm font-semibold text-foreground">
               🎉 We&apos;re excited you want to join us! TALK is a private, invite-only community —
               apply below and we&apos;ll get you set up for this event.
             </p>
             <a
               href={signupHref}
-              className="inline-flex items-center justify-center w-full gap-2 px-6 py-3 rounded-xl text-base font-bold text-white transition-all hover:scale-[1.01]"
-              style={{ background: "#E8503A" }}
+              className="inline-flex items-center justify-center w-full gap-2 px-6 py-3 rounded-xl text-base font-bold text-primary-foreground bg-primary transition-all hover:scale-[1.01]"
             >
               Register — Apply to Join TALK
             </a>
           </div>
 
-          <p className="text-sm text-zinc-500 text-center">
+          <p className="text-sm text-muted-foreground text-center">
             Already a member?{" "}
-            <a href={loginHref} className="font-semibold hover:underline" style={{ color: "#1E4B82" }}>
+            <a href={loginHref} className="font-semibold hover:underline text-accent">
               Sign in
             </a>
           </p>
@@ -541,18 +540,18 @@ export default function EventDetailPage() {
         )}
 
         {/* Details card */}
-        <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-5 space-y-4">
-          <div className="flex flex-wrap gap-x-6 gap-y-2.5 text-sm text-zinc-600">
+        <div className="rounded-2xl bg-card border border-border shadow-sm p-5 space-y-4">
+          <div className="flex flex-wrap gap-x-6 gap-y-2.5 text-sm text-muted-foreground">
             <EventWhen event={event} />
             <span className="flex items-center gap-1.5">
               {event.is_virtual ? (
-                <><Monitor className="size-4 text-zinc-400" /> Virtual event</>
+                <><Monitor className="size-4 text-muted-foreground/60" /> Virtual event</>
               ) : (
-                <><MapPin className="size-4 text-zinc-400" /> {event.venue_name ?? event.location ?? "Location TBD"}</>
+                <><MapPin className="size-4 text-muted-foreground/60" /> {event.venue_name ?? event.location ?? "Location TBD"}</>
               )}
             </span>
             <span className="flex items-center gap-1.5">
-              <Users className="size-4 text-zinc-400" />
+              <Users className="size-4 text-muted-foreground/60" />
               {attendees.length} going
               {event.max_attendees && ` / ${event.max_attendees} max`}
             </span>
@@ -560,24 +559,24 @@ export default function EventDetailPage() {
 
           <div className="flex gap-2 flex-wrap">
             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            <a href={buildGoogleCalendarUrl(event as any)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-200 text-xs font-medium text-zinc-500 hover:bg-zinc-50 transition-colors"><CalendarDays className="size-3.5"/>Add to Google Calendar</a>
+            <a href={buildGoogleCalendarUrl(event as any)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground hover:bg-muted transition-colors"><CalendarDays className="size-3.5"/>Add to Google Calendar</a>
             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            <a href={buildIcalDataUri(event as any)} download={`${event.title}.ics`} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-200 text-xs font-medium text-zinc-500 hover:bg-zinc-50 transition-colors"><CalendarDays className="size-3.5"/>Add to iCal</a>
+            <a href={buildIcalDataUri(event as any)} download={`${event.title}.ics`} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground hover:bg-muted transition-colors"><CalendarDays className="size-3.5"/>Add to iCal</a>
           </div>
 
           {event.description && (
-            <p className="text-muted-foreground leading-relaxed border-t border-zinc-100 pt-4 whitespace-pre-wrap">{event.description}</p>
+            <p className="text-muted-foreground leading-relaxed border-t border-border pt-4 whitespace-pre-wrap">{event.description}</p>
           )}
         </div>
 
         {/* How to join — the actual access info, front and center */}
-        <div className="rounded-2xl border overflow-hidden" style={{ borderColor: "#DDE6F0" }}>
-          <div className="px-5 py-3 border-b flex items-center gap-2" style={{ background: "#F5F8FC", borderColor: "#DDE6F0" }}>
-            {event.is_virtual ? <Monitor className="size-4" style={{ color: "#1E4B82" }} /> : <MapPin className="size-4" style={{ color: "#1E4B82" }} />}
-            <p className="text-sm font-bold" style={{ color: "#0F1F35" }}>How to join</p>
+        <div className="rounded-2xl border border-accent/15 overflow-hidden">
+          <div className="px-5 py-3 border-b border-accent/15 bg-accent/[0.04] flex items-center gap-2">
+            {event.is_virtual ? <Monitor className="size-4 text-accent" /> : <MapPin className="size-4 text-accent" />}
+            <p className="text-sm font-bold text-foreground">How to join</p>
           </div>
 
-          <div className="p-5 space-y-4 bg-white">
+          <div className="p-5 space-y-4 bg-card">
             {/* Virtual access */}
             {event.is_virtual && (
               event.virtual_url && (!isPaid || isRegistered) ? (
@@ -596,7 +595,7 @@ export default function EventDetailPage() {
                   </Button>
                 </div>
               ) : (
-                <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 flex items-center gap-3 text-zinc-500">
+                <div className="rounded-xl border border-border bg-muted p-4 flex items-center gap-3 text-muted-foreground">
                   <Lock className="size-4 shrink-0" />
                   <p className="text-sm">The virtual link unlocks once you register{isPaid ? " and pay" : ""}.</p>
                 </div>
@@ -606,19 +605,19 @@ export default function EventDetailPage() {
             {/* In-person / hybrid location */}
             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             {!event.is_virtual || (event as any)?.event_type === "hybrid" ? (
-              <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4 flex items-center justify-between gap-3 flex-wrap">
+              <div className="rounded-xl border border-accent/15 bg-accent/[0.03] p-4 flex items-center justify-between gap-3 flex-wrap">
                 <div className="flex items-center gap-3">
-                  <div className="size-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: "#1E4B8215" }}>
-                    <MapPin className="size-4" style={{ color: "#1E4B82" }} />
+                  <div className="size-9 rounded-lg flex items-center justify-center shrink-0 bg-accent/10">
+                    <MapPin className="size-4 text-accent" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-zinc-800">
+                    <p className="text-sm font-semibold text-foreground">
                       {event.venue_name ?? event.location ?? "Location TBD"}
                     </p>
                     {event.venue_name && event.location && (
-                      <p className="text-xs text-zinc-500 mt-0.5">{event.location}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{event.location}</p>
                     )}
-                    <p className="text-xs text-zinc-500 mt-0.5">Arrive any time after the start — no check-in link needed</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Arrive any time after the start — no check-in link needed</p>
                   </div>
                 </div>
                 {mapsHref && (
@@ -634,12 +633,12 @@ export default function EventDetailPage() {
 
         {/* Recording & materials — shows up once an admin's added either */}
         {(event.recording_url || materials.length > 0) && (
-          <div className="rounded-2xl border overflow-hidden" style={{ borderColor: "#DDE6F0" }}>
-            <div className="px-5 py-3 border-b flex items-center gap-2" style={{ background: "#F5F8FC", borderColor: "#DDE6F0" }}>
-              <Video className="size-4" style={{ color: "#1E4B82" }} />
-              <p className="text-sm font-bold" style={{ color: "#0F1F35" }}>Recording &amp; materials</p>
+          <div className="rounded-2xl border border-accent/15 overflow-hidden">
+            <div className="px-5 py-3 border-b border-accent/15 bg-accent/[0.04] flex items-center gap-2">
+              <Video className="size-4 text-accent" />
+              <p className="text-sm font-bold text-foreground">Recording &amp; materials</p>
             </div>
-            <div className="p-5 space-y-3 bg-white">
+            <div className="p-5 space-y-3 bg-card">
               {event.recording_url && (
                 <Button
                   className="text-white"
@@ -658,9 +657,9 @@ export default function EventDetailPage() {
                         href={m.file_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 text-sm text-zinc-700 hover:text-[#1E4B82] transition-colors"
+                        className="inline-flex items-center gap-2 text-sm text-foreground hover:text-accent transition-colors"
                       >
-                        <FileText className="size-4 text-zinc-400" />
+                        <FileText className="size-4 text-muted-foreground/60" />
                         {m.title}
                       </a>
                     </li>
@@ -692,7 +691,7 @@ export default function EventDetailPage() {
               onClick={handleCheckout}
               disabled={checkoutLoading}
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white shadow-sm disabled:opacity-70 transition-opacity hover:opacity-90"
-              style={{ background: "linear-gradient(135deg, #E8503A, #F07058)", color: "#0d0d0d" }}
+              style={{ background: "linear-gradient(135deg, #E8503A, #F07058)" }}
             >
               {checkoutLoading ? (
                 <><Loader2 className="size-4 animate-spin" /> Redirecting to checkout…</>
@@ -718,16 +717,16 @@ export default function EventDetailPage() {
 
         <Card>
           <CardHeader>
-            <div className="flex items-center gap-2 border-b border-zinc-100 -mx-6 -mt-6 px-6 pt-1">
+            <div className="flex items-center gap-2 border-b border-border -mx-6 -mt-6 px-6 pt-1">
               <button
                 onClick={() => setActiveTab('attendees')}
-                className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab==='attendees' ? 'border-[#F07058] text-zinc-900' : 'border-transparent text-zinc-400 hover:text-zinc-600'}`}
+                className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab==='attendees' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
               >
                 {isPaid ? "Registrations" : "Attendees"} ({attendees.length})
               </button>
               <button
                 onClick={() => setActiveTab('conversation')}
-                className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab==='conversation' ? 'border-[#F07058] text-zinc-900' : 'border-transparent text-zinc-400 hover:text-zinc-600'}`}
+                className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab==='conversation' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
               >
                 Conversation ({posts.length})
               </button>
@@ -764,22 +763,22 @@ export default function EventDetailPage() {
                           {post.profiles?.avatar_url && <AvatarImage src={post.profiles.avatar_url} alt={post.profiles?.full_name ?? ''} />}
                           <AvatarFallback>{getInitials(post.profiles?.full_name ?? null)}</AvatarFallback>
                         </Avatar>
-                        <div className="flex-1 bg-zinc-50 rounded-2xl px-4 py-2.5">
-                          <p className="text-sm font-semibold text-zinc-900">{post.profiles?.full_name ?? 'Unknown'}</p>
-                          <p className="text-sm text-zinc-700 whitespace-pre-wrap">{post.content}</p>
+                        <div className="flex-1 bg-muted rounded-2xl px-4 py-2.5">
+                          <p className="text-sm font-semibold text-foreground">{post.profiles?.full_name ?? 'Unknown'}</p>
+                          <p className="text-sm text-foreground/80 whitespace-pre-wrap">{post.content}</p>
                         </div>
                       </div>
                     ))}
                   </div>
                 )}
                 {currentUserId && (
-                  <div className="flex gap-2 pt-2 border-t border-zinc-100">
+                  <div className="flex gap-2 pt-2 border-t border-border">
                     <textarea
                       value={postContent}
                       onChange={(e) => setPostContent(e.target.value)}
                       placeholder="Share a thought about this event…"
                       rows={2}
-                      className="flex-1 border border-zinc-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#F07058]"
+                      className="flex-1 border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary"
                     />
                     <Button onClick={handlePost} disabled={postLoading || !postContent.trim()}>
                       {postLoading ? <Loader2 className="size-4 animate-spin" /> : 'Post'}
