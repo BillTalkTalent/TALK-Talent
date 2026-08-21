@@ -83,21 +83,21 @@ export default function TopicView({
               <span className="font-medium">{topicAuthor?.full_name ?? "Unknown"}</span>
             )}
             {topicAuthor?.is_bot && (
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 text-zinc-400 border-zinc-200">
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 text-muted-foreground border-border">
                 Automated
               </Badge>
             )}
-            <span className="text-zinc-400">·</span>
-            <span className="text-zinc-400 text-xs">
+            <span className="text-muted-foreground">·</span>
+            <span className="text-muted-foreground text-xs">
               {format(new Date(createdAt), "MMM d, yyyy 'at' h:mm a")}
             </span>
-            <span className="text-zinc-300">·</span>
-            <span className="flex items-center gap-1 text-zinc-400 text-xs">
+            <span className="text-muted-foreground/60">·</span>
+            <span className="flex items-center gap-1 text-muted-foreground text-xs">
               <Eye className="size-3" /> {views.toLocaleString()} view{views !== 1 ? "s" : ""}
             </span>
             {isTopicAuthor && (
               <>
-                <span className="text-zinc-300">·</span>
+                <span className="text-muted-foreground/60">·</span>
                 <EditTopic
                   topicId={topicId}
                   initialTitle={title}
@@ -108,7 +108,7 @@ export default function TopicView({
             )}
             {isModerator && (
               <>
-                <span className="text-zinc-300">·</span>
+                <span className="text-muted-foreground/60">·</span>
                 <ModeratorRemove
                   table="forum_topics"
                   id={topicId}
@@ -140,7 +140,7 @@ export default function TopicView({
       {/* Replies */}
       {replies.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-sm font-medium text-zinc-400">
+          <h2 className="text-sm font-medium text-muted-foreground">
             {replies.length} {replies.length === 1 ? "reply" : "replies"}
           </h2>
           {replies.map((reply) => {
@@ -163,13 +163,13 @@ export default function TopicView({
                     ) : (
                       <span className="font-medium">{author?.full_name ?? "Unknown"}</span>
                     )}
-                    <span className="text-zinc-400">·</span>
-                    <span className="text-zinc-400 text-xs">
+                    <span className="text-muted-foreground">·</span>
+                    <span className="text-muted-foreground text-xs">
                       {format(new Date(reply.created_at), "MMM d, yyyy 'at' h:mm a")}
                     </span>
                     {isReplyAuthor && (
                       <>
-                        <span className="text-zinc-300">·</span>
+                        <span className="text-muted-foreground/60">·</span>
                         <EditReply
                           replyId={reply.id}
                           initialBody={reply.body}
@@ -186,7 +186,7 @@ export default function TopicView({
                     )}
                     {!isReplyAuthor && isModerator && (
                       <>
-                        <span className="text-zinc-300">·</span>
+                        <span className="text-muted-foreground/60">·</span>
                         <ModeratorRemove
                           table="forum_replies"
                           id={reply.id}

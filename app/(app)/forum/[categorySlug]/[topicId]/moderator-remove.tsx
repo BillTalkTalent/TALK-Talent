@@ -51,7 +51,7 @@ export default function ModeratorRemove({
   if (confirm) {
     return (
       <span className="inline-flex items-center gap-1.5">
-        <span className="text-xs text-zinc-500">Remove this {label}?</span>
+        <span className="text-xs text-muted-foreground">Remove this {label}?</span>
         <button
           onClick={remove}
           disabled={removing}
@@ -61,7 +61,7 @@ export default function ModeratorRemove({
         </button>
         <button
           onClick={() => setConfirm(false)}
-          className="text-xs text-zinc-400 hover:text-zinc-600 transition-colors"
+          className="text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
           Cancel
         </button>

@@ -56,7 +56,7 @@ export default function EditReply({ replyId, initialBody, onSaved, onDeleted }: 
     if (confirmDelete) {
       return (
         <span className="inline-flex items-center gap-1.5">
-          <span className="text-xs text-zinc-500">Delete this reply?</span>
+          <span className="text-xs text-muted-foreground">Delete this reply?</span>
           <button
             onClick={deleteReply}
             disabled={deleting}
@@ -66,7 +66,7 @@ export default function EditReply({ replyId, initialBody, onSaved, onDeleted }: 
           </button>
           <button
             onClick={() => setConfirmDelete(false)}
-            className="text-xs text-zinc-400 hover:text-zinc-600 transition-colors"
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             Cancel
           </button>
@@ -78,14 +78,14 @@ export default function EditReply({ replyId, initialBody, onSaved, onDeleted }: 
       <span className="inline-flex items-center gap-2">
         <button
           onClick={() => setEditing(true)}
-          className="inline-flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-600 transition-colors"
+          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
           title="Edit reply"
         >
           <Pencil className="size-3" /> Edit
         </button>
         <button
           onClick={() => setConfirmDelete(true)}
-          className="inline-flex items-center gap-1 text-xs text-zinc-300 hover:text-red-400 transition-colors"
+          className="inline-flex items-center gap-1 text-xs text-muted-foreground/60 hover:text-red-400 transition-colors"
           title="Delete reply"
         >
           <Trash2 className="size-3" /> Delete
@@ -100,7 +100,7 @@ export default function EditReply({ replyId, initialBody, onSaved, onDeleted }: 
         value={body}
         onChange={e => setBody(e.target.value)}
         rows={4}
-        className="w-full text-sm border border-zinc-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#8b5cf6] transition-colors resize-none bg-white"
+        className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:border-[#8b5cf6] transition-colors resize-none bg-card"
         disabled={saving}
       />
       <div className="flex items-center gap-2">
@@ -115,7 +115,7 @@ export default function EditReply({ replyId, initialBody, onSaved, onDeleted }: 
         <button
           onClick={() => { setEditing(false); setBody(initialBody); }}
           disabled={saving}
-          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs text-zinc-500 hover:bg-zinc-100 transition-colors"
+          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs text-muted-foreground hover:bg-muted transition-colors"
         >
           <X className="size-3" /> Cancel
         </button>

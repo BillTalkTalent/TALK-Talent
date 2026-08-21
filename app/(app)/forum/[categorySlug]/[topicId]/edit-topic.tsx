@@ -41,7 +41,7 @@ export default function EditTopic({ topicId, initialTitle, initialBody, onSaved 
     return (
       <button
         onClick={() => setEditing(true)}
-        className="inline-flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-600 transition-colors"
+        className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
         title="Edit post"
       >
         <Pencil className="size-3" /> Edit
@@ -54,14 +54,14 @@ export default function EditTopic({ topicId, initialTitle, initialBody, onSaved 
       <input
         value={title}
         onChange={e => setTitle(e.target.value)}
-        className="w-full text-base font-semibold border border-zinc-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#8b5cf6] transition-colors"
+        className="w-full text-base font-semibold border border-border rounded-lg px-3 py-2 focus:outline-none focus:border-[#8b5cf6] transition-colors"
         disabled={saving}
       />
       <textarea
         value={body}
         onChange={e => setBody(e.target.value)}
         rows={8}
-        className="w-full text-sm border border-zinc-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#8b5cf6] transition-colors resize-none"
+        className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:border-[#8b5cf6] transition-colors resize-none"
         disabled={saving}
       />
       <div className="flex items-center gap-2">
@@ -76,7 +76,7 @@ export default function EditTopic({ topicId, initialTitle, initialBody, onSaved 
         <button
           onClick={() => { setEditing(false); setTitle(initialTitle); setBody(initialBody); }}
           disabled={saving}
-          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs text-zinc-500 hover:bg-zinc-100 transition-colors"
+          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs text-muted-foreground hover:bg-muted transition-colors"
         >
           <X className="size-3" /> Cancel
         </button>

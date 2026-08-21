@@ -120,11 +120,11 @@ export default async function ForumCategoryPage({
         </div>
         <div className="flex items-center gap-2">
           {/* Sort toggle */}
-          <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-xl">
+          <div className="flex items-center gap-1 bg-muted p-1 rounded-xl">
             <Link
               href={`/forum/${categorySlug}?sort=recent`}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                sort !== "hot" ? "bg-white shadow-sm text-zinc-900" : "text-zinc-500 hover:text-zinc-700"
+                sort !== "hot" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <Clock className="size-3" /> Recent
@@ -132,7 +132,7 @@ export default async function ForumCategoryPage({
             <Link
               href={`/forum/${categorySlug}?sort=hot`}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                sort === "hot" ? "bg-white shadow-sm text-orange-600" : "text-zinc-500 hover:text-zinc-700"
+                sort === "hot" ? "bg-card shadow-sm text-orange-600" : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <Flame className="size-3" /> Hot
@@ -149,7 +149,7 @@ export default async function ForumCategoryPage({
       <div className="flex items-center gap-2 flex-wrap">
         <Link
           href="/forum"
-          className="text-xs font-semibold px-3 py-1.5 rounded-full bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-700 transition-colors"
+          className="text-xs font-semibold px-3 py-1.5 rounded-full bg-muted text-muted-foreground hover:bg-muted/70 hover:text-foreground transition-colors"
         >
           All
         </Link>
@@ -160,7 +160,7 @@ export default async function ForumCategoryPage({
             className={`text-xs font-semibold px-3 py-1.5 rounded-full transition-colors flex items-center gap-1 ${
               cat.slug === categorySlug
                 ? "bg-[#8b5cf6]/10 text-[#6d28d9]"
-                : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-700"
+                : "bg-muted text-muted-foreground hover:bg-muted/70 hover:text-foreground"
             }`}
           >
             {cat.icon && <span>{cat.icon}</span>}
@@ -209,7 +209,7 @@ export default async function ForumCategoryPage({
                         by {author?.full_name ?? "Unknown"}
                         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                         {(author as any)?.is_bot && (
-                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 text-zinc-400 border-zinc-200">
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 text-muted-foreground border-border">
                             Automated
                           </Badge>
                         )}
@@ -242,20 +242,20 @@ export default async function ForumCategoryPage({
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
-          <p className="text-sm text-zinc-400">
+          <p className="text-sm text-muted-foreground">
             Page {page} of {totalPages} · {totalUnpinned ?? 0} topics
           </p>
           <div className="flex items-center gap-2">
             {page > 1 ? (
               <Link
                 href={`/forum/${categorySlug}?page=${page - 1}`}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-zinc-200 text-sm font-medium text-zinc-600 hover:bg-zinc-50 transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border text-sm font-medium text-muted-foreground hover:bg-muted transition-colors"
               >
                 <ChevronLeft className="size-4" />
                 Previous
               </Link>
             ) : (
-              <span className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-zinc-100 text-sm font-medium text-zinc-300 cursor-not-allowed">
+              <span className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border/60 text-sm font-medium text-muted-foreground/40 cursor-not-allowed">
                 <ChevronLeft className="size-4" />
                 Previous
               </span>
@@ -282,7 +282,7 @@ export default async function ForumCategoryPage({
                 }, [])
                 .map((p, i) =>
                   p === "…" ? (
-                    <span key={`ellipsis-${i}`} className="px-2 text-zinc-400 text-sm">…</span>
+                    <span key={`ellipsis-${i}`} className="px-2 text-muted-foreground text-sm">…</span>
                   ) : (
                     <Link
                       key={p}
@@ -290,7 +290,7 @@ export default async function ForumCategoryPage({
                       className={`size-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${
                         p === page
                           ? "bg-primary text-primary-foreground"
-                          : "text-zinc-600 hover:bg-zinc-100"
+                          : "text-muted-foreground hover:bg-muted"
                       }`}
                     >
                       {p}
@@ -302,13 +302,13 @@ export default async function ForumCategoryPage({
             {page < totalPages ? (
               <Link
                 href={`/forum/${categorySlug}?page=${page + 1}`}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-zinc-200 text-sm font-medium text-zinc-600 hover:bg-zinc-50 transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border text-sm font-medium text-muted-foreground hover:bg-muted transition-colors"
               >
                 Next
                 <ChevronRight className="size-4" />
               </Link>
             ) : (
-              <span className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-zinc-100 text-sm font-medium text-zinc-300 cursor-not-allowed">
+              <span className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border/60 text-sm font-medium text-muted-foreground/40 cursor-not-allowed">
                 Next
                 <ChevronRight className="size-4" />
               </span>

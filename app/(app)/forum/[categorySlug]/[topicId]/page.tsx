@@ -52,14 +52,14 @@ export default async function TopicPage({
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-6">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-zinc-400">
-        <Link href="/forum" className="hover:text-zinc-600">Forum</Link>
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Link href="/forum" className="hover:text-foreground">Forum</Link>
         <span>/</span>
-        <Link href={`/forum/${categorySlug}`} className="hover:text-zinc-600">
+        <Link href={`/forum/${categorySlug}`} className="hover:text-foreground">
           {category?.name ?? categorySlug}
         </Link>
         <span>/</span>
-        <span className="truncate max-w-xs text-zinc-600">{topic.title}</span>
+        <span className="truncate max-w-xs text-foreground">{topic.title}</span>
       </div>
 
       {/* Pinned / locked badges */}
@@ -117,7 +117,7 @@ export default async function TopicPage({
       )}
 
       {topic.is_locked && (
-        <div className="text-sm text-zinc-400 text-center py-4 border rounded-lg">
+        <div className="text-sm text-muted-foreground text-center py-4 border rounded-lg">
           <Lock className="size-4 inline mr-1.5 mb-0.5" />
           This topic is locked. No new replies can be added.
         </div>
