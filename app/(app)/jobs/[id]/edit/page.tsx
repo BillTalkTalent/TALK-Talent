@@ -99,21 +99,21 @@ export default function EditJobPage() {
   if (loading) {
     return (
       <div className="p-6 max-w-2xl mx-auto flex items-center justify-center py-20">
-        <Loader2 className="size-6 animate-spin text-zinc-400" />
+        <Loader2 className="size-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   return (
     <div className="p-6 max-w-2xl mx-auto space-y-6">
-      <div className="flex items-center gap-2 text-sm text-zinc-400">
-        <Link href={`/jobs/${id}`} className="hover:text-zinc-600 flex items-center gap-1">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Link href={`/jobs/${id}`} className="hover:text-foreground flex items-center gap-1">
           <ArrowLeft className="size-3.5" /> Back to listing
         </Link>
       </div>
 
-      <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-6">
-        <h1 className="text-lg font-bold text-zinc-900 mb-6">Edit Job Listing</h1>
+      <div className="rounded-2xl bg-card border border-border shadow-sm p-6">
+        <h1 className="text-lg font-bold text-foreground mb-6">Edit Job Listing</h1>
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-1.5">
             <Label htmlFor="title">Job Title <span className="text-red-500">*</span></Label>
@@ -196,7 +196,7 @@ export default function EditJobPage() {
 
           <div className="flex gap-2 justify-end pt-2">
             <button type="button" onClick={() => router.push(`/jobs/${id}`)} disabled={submitting}
-              className="px-4 py-2 rounded-xl border border-zinc-200 text-sm font-medium text-zinc-600 hover:bg-zinc-50 transition-colors disabled:opacity-50">
+              className="px-4 py-2 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:bg-muted transition-colors disabled:opacity-50">
               Cancel
             </button>
             <button type="submit" disabled={submitting || !title.trim() || !company.trim() || !description.trim()}

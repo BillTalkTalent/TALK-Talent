@@ -76,19 +76,19 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
       {/* Back link */}
       <Link
         href="/jobs"
-        className="inline-flex items-center gap-1.5 text-sm text-zinc-400 hover:text-zinc-700 transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
       >
         <ArrowLeft className="size-4" />
         Back to Job Board
       </Link>
 
       {/* Header card */}
-      <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-6 space-y-5">
+      <div className="rounded-2xl bg-card border border-border shadow-sm p-6 space-y-5">
         <div className="flex items-start gap-4">
           {/* Company logo */}
           <div className="shrink-0">
             {logoUrl ? (
-              <div className="size-16 rounded-2xl border border-zinc-100 bg-white flex items-center justify-center overflow-hidden shadow-sm">
+              <div className="size-16 rounded-2xl border border-border bg-card flex items-center justify-center overflow-hidden shadow-sm">
                 <Image
                   src={logoUrl}
                   alt={`${job.company} logo`}
@@ -114,11 +114,11 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                 ⭐ Featured
               </span>
             )}
-            <h1 className="text-2xl font-bold text-zinc-900 leading-snug">{job.title}</h1>
+            <h1 className="text-2xl font-bold text-foreground leading-snug">{job.title}</h1>
             <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-              <span className="font-semibold text-zinc-700">{job.company}</span>
+              <span className="font-semibold text-foreground">{job.company}</span>
               {job.location && (
-                <span className="flex items-center gap-1 text-sm text-zinc-400">
+                <span className="flex items-center gap-1 text-sm text-muted-foreground">
                   <MapPin className="size-3.5" />
                   {job.location}
                 </span>
@@ -138,7 +138,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
             {JOB_TYPE_LABELS[job.job_type] ?? job.job_type}
           </span>
           {job.seniority && (
-            <span className="text-xs text-zinc-500 bg-zinc-50 border border-zinc-200 px-2.5 py-1 rounded-lg font-medium">
+            <span className="text-xs text-muted-foreground bg-muted border border-border px-2.5 py-1 rounded-lg font-medium">
               {job.seniority}
             </span>
           )}
@@ -147,7 +147,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
               💰 {salary}
             </span>
           )}
-          <span className="ml-auto flex items-center gap-1 text-xs text-zinc-400">
+          <span className="ml-auto flex items-center gap-1 text-xs text-muted-foreground">
             <Clock className="size-3" />
             Posted {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
           </span>
@@ -157,7 +157,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
         <div className="pt-1 flex items-center gap-3">
         {isAuthor && (
           <Link href={`/jobs/${id}/edit`}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-zinc-200 text-sm font-medium text-zinc-600 hover:bg-zinc-50 transition-colors">
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:bg-muted transition-colors">
             <Pencil className="size-3.5" /> Edit listing
           </Link>
         )}
@@ -191,25 +191,25 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
       </div>
 
       {/* Description */}
-      <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-6 space-y-3">
-        <h2 className="text-base font-bold text-zinc-900">About the Role</h2>
-        <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-600">
+      <div className="rounded-2xl bg-card border border-border shadow-sm p-6 space-y-3">
+        <h2 className="text-base font-bold text-foreground">About the Role</h2>
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
           {job.description}
         </p>
       </div>
 
       {/* Posted by */}
       {poster && (
-        <Card className="rounded-2xl border-zinc-100 shadow-sm">
+        <Card className="rounded-2xl border-border shadow-sm">
           <CardContent className="pt-4 pb-4">
-            <p className="text-xs text-zinc-400 uppercase tracking-wider font-bold mb-3">
+            <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold mb-3">
               Posted by
             </p>
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="font-semibold text-zinc-900">{poster.full_name ?? "Community Member"}</p>
+                <p className="font-semibold text-foreground">{poster.full_name ?? "Community Member"}</p>
                 {(poster.title || poster.company) && (
-                  <p className="text-sm text-zinc-500">
+                  <p className="text-sm text-muted-foreground">
                     {[poster.title, poster.company].filter(Boolean).join(" · ")}
                   </p>
                 )}

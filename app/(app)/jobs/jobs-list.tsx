@@ -71,7 +71,7 @@ function CompanyLogo({ company, companyUrl }: { company: string; companyUrl?: st
 
   if (logoUrl) {
     return (
-      <div className="size-12 rounded-xl border border-zinc-100 bg-white flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+      <div className="size-12 rounded-xl border border-border bg-card flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
         <Image
           src={logoUrl}
           alt={`${company} logo`}
@@ -137,7 +137,7 @@ export default function JobsList({ jobs }: { jobs: JobWithPoster[] }) {
               className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                 typeFilter === f.value
                   ? "bg-indigo-600 text-white"
-                  : "bg-white text-zinc-500 border border-zinc-200 hover:border-indigo-200 hover:text-indigo-600"
+                  : "bg-card text-muted-foreground border border-border hover:border-indigo-200 hover:text-indigo-600"
               }`}
             >
               {f.label}
@@ -149,26 +149,26 @@ export default function JobsList({ jobs }: { jobs: JobWithPoster[] }) {
           className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
             remoteOnly
               ? "bg-indigo-600 text-white border-indigo-600"
-              : "border-zinc-200 text-zinc-500 hover:border-indigo-200 hover:text-indigo-600 bg-white"
+              : "border-border text-muted-foreground hover:border-indigo-200 hover:text-indigo-600 bg-card"
           }`}
         >
           🌐 Remote only
         </button>
         <div className="relative ml-auto">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-zinc-400 pointer-events-none" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
           <input
             type="search"
             placeholder="Search jobs…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="pl-9 pr-3 py-1.5 text-sm rounded-xl border border-zinc-200 bg-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 transition-all w-44"
+            className="pl-9 pr-3 py-1.5 text-sm rounded-xl border border-border bg-card focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 transition-all w-44"
           />
         </div>
       </div>
 
       {/* Job list */}
       {filtered.length === 0 ? (
-        <p className="text-sm text-zinc-400 py-8 text-center">No jobs match your filters.</p>
+        <p className="text-sm text-muted-foreground py-8 text-center">No jobs match your filters.</p>
       ) : (
         <div className="flex flex-col gap-3">
           {filtered.map((job) => {
@@ -179,7 +179,7 @@ export default function JobsList({ jobs }: { jobs: JobWithPoster[] }) {
             return (
               <div
                 key={job.id}
-                className="group rounded-2xl bg-white border border-zinc-100 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all p-5"
+                className="group rounded-2xl bg-card border border-border shadow-sm hover:shadow-md hover:border-indigo-200 transition-all p-5"
               >
                 <div className="flex items-start gap-4">
                   {/* Company logo */}
@@ -199,15 +199,15 @@ export default function JobsList({ jobs }: { jobs: JobWithPoster[] }) {
                         </div>
                         <Link
                           href={`/jobs/${job.id}`}
-                          className="text-base font-bold text-zinc-900 hover:text-indigo-600 transition-colors leading-snug"
+                          className="text-base font-bold text-foreground hover:text-indigo-600 transition-colors leading-snug"
                         >
                           {job.title}
                         </Link>
                         {/* Company + location */}
                         <div className="flex items-center gap-3 mt-1 flex-wrap">
-                          <span className="text-sm font-semibold text-zinc-700">{job.company}</span>
+                          <span className="text-sm font-semibold text-foreground">{job.company}</span>
                           {job.location && (
-                            <span className="flex items-center gap-1 text-xs text-zinc-400">
+                            <span className="flex items-center gap-1 text-xs text-muted-foreground">
                               <MapPin className="size-3" />
                               {job.location}
                             </span>
@@ -240,7 +240,7 @@ export default function JobsList({ jobs }: { jobs: JobWithPoster[] }) {
                         {JOB_TYPE_LABELS[job.job_type] ?? job.job_type}
                       </span>
                       {job.seniority && (
-                        <span className="text-xs text-zinc-500 bg-zinc-50 border border-zinc-200 px-2.5 py-1 rounded-lg font-medium">
+                        <span className="text-xs text-muted-foreground bg-muted border border-border px-2.5 py-1 rounded-lg font-medium">
                           {job.seniority}
                         </span>
                       )}
@@ -252,11 +252,11 @@ export default function JobsList({ jobs }: { jobs: JobWithPoster[] }) {
                     </div>
 
                     {/* Footer */}
-                    <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-zinc-50">
-                      <Clock className="size-3 text-zinc-300" />
-                      <span className="text-xs text-zinc-400">
+                    <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-border/60">
+                      <Clock className="size-3 text-muted-foreground/50" />
+                      <span className="text-xs text-muted-foreground">
                         Posted by{" "}
-                        <span className="font-medium text-zinc-500">{job.profiles?.full_name ?? "Unknown"}</span>
+                        <span className="font-medium text-muted-foreground">{job.profiles?.full_name ?? "Unknown"}</span>
                         {" "}· {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
                       </span>
                     </div>
