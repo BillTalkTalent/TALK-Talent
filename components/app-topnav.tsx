@@ -21,6 +21,7 @@ import {
   Megaphone,
   MoreHorizontal,
   ChevronDown,
+  Sparkles,
 } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
@@ -63,6 +64,12 @@ const moreNav = [
 export default function AppTopNav({ profile }: AppTopNavProps) {
   const pathname = usePathname()
   const router = useRouter()
+
+  // Creators is a soft-launched preview — only the super admin can see the
+  // entry point until it's ready to open up to everyone.
+  const moreNavItems = profile.is_superadmin
+    ? [...moreNav, { href: '/creators', label: 'Creators', icon: Sparkles }]
+    : moreNav
   const [unreadCount, setUnreadCount] = useState(0)
   const [notifCount, setNotifCount] = useState(0)
   const [notifOpen, setNotifOpen] = useState(false)
@@ -274,7 +281,7 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
             aria-expanded={moreOpen}
             className={cn(
               'flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all',
-              moreOpen || moreNav.some(({ href }) => pathname === href || pathname.startsWith(href + '/'))
+              moreOpen || moreNavItems.some(({ href }) => pathname === href || pathname.startsWith(href + '/'))
                 ? 'bg-[#1E4B82] text-white font-semibold'
                 : 'text-white/60 hover:bg-white/10 hover:text-white'
             )}
@@ -285,7 +292,7 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
           </button>
           {moreOpen && (
             <div className="absolute left-0 top-full mt-1 w-44 rounded-xl bg-white shadow-lg border border-zinc-100 py-1 z-50">
-              {moreNav.map(({ href, label, icon: Icon }) => (
+              {moreNavItems.map(({ href, label, icon: Icon }) => (
                 <Link
                   key={href}
                   href={href}
