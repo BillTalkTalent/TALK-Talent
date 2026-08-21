@@ -82,7 +82,7 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
           <div className="flex items-center gap-2">
             <Link
               href={`/chapters/${slug}/manage`}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-white bg-[#1E4B82] hover:bg-[#1a4272] transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-accent text-accent-foreground hover:bg-accent/90 transition-colors"
             >
               <LayoutDashboard className="size-3.5" /> Manage Chapter
             </Link>

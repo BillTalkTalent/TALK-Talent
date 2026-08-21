@@ -59,7 +59,7 @@ export default function ChapterEmailComposer({ chapterId, chapterName }: { chapt
 
   if (sendState === 'done' && result) {
     return (
-      <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-6 space-y-3">
+      <div className="rounded-2xl bg-card border border-border shadow-sm p-6 space-y-3">
         <div className="flex items-center gap-2 text-emerald-700 font-semibold">
           <Check className="size-5" /> Email sent
         </div>
@@ -78,7 +78,7 @@ export default function ChapterEmailComposer({ chapterId, chapterName }: { chapt
   }
 
   return (
-    <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-6 space-y-5">
+    <div className="rounded-2xl bg-card border border-border shadow-sm p-6 space-y-5">
       <p className="text-sm text-zinc-500">
         Sends to every approved {chapterName} member (minus anyone unsubscribed) — this can&apos;t reach
         other chapters. Every message includes a working unsubscribe link.
@@ -114,7 +114,7 @@ export default function ChapterEmailComposer({ chapterId, chapterName }: { chapt
         </div>
         <div className="flex items-center gap-3 flex-wrap">
           <Input value={confirmText} onChange={(e) => setConfirmText(e.target.value)} placeholder="Type SEND to confirm" className="max-w-[200px]" disabled={!ready} />
-          <Button type="button" onClick={onSend} disabled={!canSend} className="bg-[#E8503A] hover:bg-[#d4472f]">
+          <Button type="button" onClick={onSend} disabled={!canSend}>
             {sendState === 'sending' ? (<><Loader2 className="size-4 animate-spin" /> Sending…</>) : audienceCount === null ? (<><Loader2 className="size-4 animate-spin" /> Counting…</>) : (<>Send to {audienceCount.toLocaleString()} members</>)}
           </Button>
         </div>

@@ -100,14 +100,14 @@ export default function ChapterManageTabs({
         <Stat n={stats.leads} label={stats.leads === 1 ? 'Lead' : 'Leads'} />
       </div>
 
-      <div className="flex gap-1 border-b border-zinc-100">
+      <div className="flex gap-1 border-b border-border">
         {TABS.map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={cn(
               'px-3 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors',
-              tab === t ? 'border-[#1E4B82] text-[#1E4B82]' : 'border-transparent text-zinc-400 hover:text-zinc-600'
+              tab === t ? 'border-accent text-accent' : 'border-transparent text-muted-foreground hover:text-foreground'
             )}
           >
             {TAB_LABELS[t]}
@@ -116,8 +116,8 @@ export default function ChapterManageTabs({
       </div>
 
       {tab === 'overview' && (
-        <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-6 space-y-4">
-          <p className="text-sm text-zinc-500">
+        <div className="rounded-2xl bg-card border border-border shadow-sm p-6 space-y-4">
+          <p className="text-sm text-muted-foreground">
             Everything here is scoped to {chapterName} only — nothing you do affects other chapters.
           </p>
           <div className="grid sm:grid-cols-3 gap-3">
@@ -125,34 +125,34 @@ export default function ChapterManageTabs({
             <QuickLink icon={Calendar} label="Manage events" onClick={() => setTab('events')} />
             <QuickLink icon={Mail} label="Message chapter" onClick={() => setTab('message')} />
           </div>
-          <div className="pt-4 border-t border-zinc-100 flex items-center gap-2 text-sm text-zinc-500">
+          <div className="pt-4 border-t border-border flex items-center gap-2 text-sm text-muted-foreground">
             <MessageSquare className="size-4" />
             <span>The chapter board is a separate, always-on discussion — visit it from the </span>
-            <Link href={`/chapters/${slug}`} className="text-[#1E4B82] font-medium hover:underline">chapter page</Link>.
+            <Link href={`/chapters/${slug}`} className="text-accent font-medium hover:underline">chapter page</Link>.
           </div>
         </div>
       )}
 
       {tab === 'roster' && (
-        <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-6">
+        <div className="rounded-2xl bg-card border border-border shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold text-zinc-900">{roster.length} member{roster.length !== 1 ? 's' : ''}</h3>
-            <span className="text-xs text-zinc-400">Lead assignment is managed by TALK admins</span>
+            <h3 className="text-sm font-bold text-foreground">{roster.length} member{roster.length !== 1 ? 's' : ''}</h3>
+            <span className="text-xs text-muted-foreground">Lead assignment is managed by TALK admins</span>
           </div>
           {roster.length === 0 ? (
-            <p className="text-sm text-zinc-400 italic">No members yet.</p>
+            <p className="text-sm text-muted-foreground italic">No members yet.</p>
           ) : (
-            <div className="divide-y divide-zinc-50">
+            <div className="divide-y divide-border/60">
               {roster.map((m) => (
-                <Link key={m.id} href={`/members/${m.id}`} className="flex items-center gap-3 py-2.5 hover:bg-zinc-50/60 -mx-2 px-2 rounded-lg transition-colors">
+                <Link key={m.id} href={`/members/${m.id}`} className="flex items-center gap-3 py-2.5 hover:bg-muted/60 -mx-2 px-2 rounded-lg transition-colors">
                   <Avatar size="sm">
                     {m.avatar_url && <AvatarImage src={m.avatar_url} alt={m.full_name ?? ''} />}
                     <AvatarFallback>{getInitials(m.full_name)}</AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-zinc-900 truncate">{m.full_name ?? 'Unknown'}</p>
+                    <p className="text-sm font-medium text-foreground truncate">{m.full_name ?? 'Unknown'}</p>
                     {(m.title || m.company) && (
-                      <p className="text-xs text-zinc-400 truncate">{[m.title, m.company].filter(Boolean).join(' · ')}</p>
+                      <p className="text-xs text-muted-foreground truncate">{[m.title, m.company].filter(Boolean).join(' · ')}</p>
                     )}
                   </div>
                   {leadSet.has(m.id) && (
@@ -168,9 +168,9 @@ export default function ChapterManageTabs({
       )}
 
       {tab === 'events' && (
-        <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-6">
+        <div className="rounded-2xl bg-card border border-border shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold text-zinc-900">{chapterName} events</h3>
+            <h3 className="text-sm font-bold text-foreground">{chapterName} events</h3>
             {!formOpen && (
               <Button size="sm" onClick={openNewEventForm}>
                 <Plus className="size-4" /> New event
@@ -187,24 +187,24 @@ export default function ChapterManageTabs({
               onCancel={closeForm}
             />
           ) : events.length === 0 ? (
-            <p className="text-sm text-zinc-400 italic">No events yet — create one to get started.</p>
+            <p className="text-sm text-muted-foreground italic">No events yet — create one to get started.</p>
           ) : (
-            <div className="divide-y divide-zinc-50">
+            <div className="divide-y divide-border/60">
               {events.map((ev) => {
                 const canEdit = ev.status === 'draft'
                 return (
                   <div key={ev.id} className="flex items-center gap-3 py-3">
-                    <div className="w-11 text-center shrink-0">
-                      <div className="text-[10px] font-bold text-[#E8503A] uppercase">
+                    <div className="w-11 text-center shrink-0 tabular-nums">
+                      <div className="text-[10px] font-bold text-primary uppercase">
                         {new Date(ev.event_date).toLocaleDateString(undefined, { month: 'short' })}
                       </div>
-                      <div className="text-base font-bold text-zinc-900">
+                      <div className="text-base font-bold text-foreground">
                         {new Date(ev.event_date).toLocaleDateString(undefined, { day: '2-digit' })}
                       </div>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-zinc-900 truncate">{ev.title}</p>
-                      <p className="text-xs text-zinc-400 truncate">
+                      <p className="text-sm font-semibold text-foreground truncate">{ev.title}</p>
+                      <p className="text-xs text-muted-foreground truncate">
                         {ev.is_virtual ? 'Virtual' : (ev.venue_name || ev.location || 'In person')}
                       </p>
                     </div>
@@ -213,10 +213,10 @@ export default function ChapterManageTabs({
                     </span>
                     {canEdit && (
                       <div className="flex items-center gap-1 shrink-0">
-                        <button onClick={() => openEditEventForm(ev)} className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 transition-colors" title="Edit">
+                        <button onClick={() => openEditEventForm(ev)} className="p-1.5 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors" title="Edit">
                           <Pencil className="size-3.5" />
                         </button>
-                        <button onClick={() => onDelete(ev.id)} disabled={deleting === ev.id} className="p-1.5 rounded-lg text-zinc-400 hover:bg-red-50 hover:text-red-500 transition-colors" title="Delete">
+                        <button onClick={() => onDelete(ev.id)} disabled={deleting === ev.id} className="p-1.5 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors" title="Delete">
                           <Trash2 className="size-3.5" />
                         </button>
                       </div>
@@ -236,9 +236,9 @@ export default function ChapterManageTabs({
 
 function Stat({ n, label }: { n: number; label: string }) {
   return (
-    <div className="rounded-xl bg-white border border-zinc-100 px-4 py-3">
-      <div className="text-xl font-bold text-zinc-900 tabular-nums">{n}</div>
-      <div className="text-xs text-zinc-400">{label}</div>
+    <div className="rounded-xl bg-card border border-border px-4 py-3">
+      <div className="text-xl font-bold text-foreground tabular-nums">{n}</div>
+      <div className="text-xs text-muted-foreground">{label}</div>
     </div>
   )
 }
@@ -247,10 +247,10 @@ function QuickLink({ icon: Icon, label, onClick }: { icon: typeof Users; label: 
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-2.5 rounded-xl border border-zinc-100 px-4 py-3 text-left hover:border-zinc-200 hover:bg-zinc-50/60 transition-colors"
+      className="flex items-center gap-2.5 rounded-xl border border-border px-4 py-3 text-left hover:border-accent/40 hover:bg-muted/60 transition-colors"
     >
-      <Icon className="size-4 text-[#1E4B82]" />
-      <span className="text-sm font-medium text-zinc-700">{label}</span>
+      <Icon className="size-4 text-accent" />
+      <span className="text-sm font-medium text-foreground">{label}</span>
     </button>
   )
 }
