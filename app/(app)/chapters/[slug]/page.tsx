@@ -88,7 +88,7 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
             </Link>
             <Link
               href={`/chapters/${slug}/edit`}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-zinc-600 bg-zinc-100 hover:bg-zinc-200 transition-colors border border-zinc-200"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-secondary-foreground bg-secondary hover:bg-secondary/80 transition-colors border border-border"
             >
               <Pencil className="size-3.5" /> Edit Chapter
             </Link>
@@ -105,18 +105,18 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
       )}
 
       {/* Chapter header card */}
-      <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-6">
+      <div className="rounded-2xl bg-card border border-border shadow-sm p-6">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4">
-            <div className="size-16 rounded-2xl flex items-center justify-center text-4xl bg-zinc-50 border border-zinc-100 shrink-0">
+            <div className="size-16 rounded-2xl flex items-center justify-center text-4xl bg-muted border border-border shrink-0">
               {chapter.icon}
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-zinc-900">{chapter.name}</h1>
+              <h1 className="text-2xl font-bold text-foreground">{chapter.name}</h1>
               {chapter.description && (
-                <p className="text-sm text-zinc-500 mt-1">{chapter.description}</p>
+                <p className="text-sm text-muted-foreground mt-1">{chapter.description}</p>
               )}
-              <div className="flex items-center gap-3 mt-2 text-xs text-zinc-400 flex-wrap">
+              <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground flex-wrap">
                 <span className="flex items-center gap-1">
                   <Users className="size-3" />
                   {members.length} member{members.length !== 1 ? 's' : ''}
@@ -129,13 +129,13 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
                 )}
                 {chapter.website_url && (
                   <a href={chapter.website_url} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-[#E8503A] hover:underline">
+                    className="flex items-center gap-1 text-primary hover:underline">
                     <Globe className="size-3" /> Website
                   </a>
                 )}
                 {chapter.contact_email && (
                   <a href={`mailto:${chapter.contact_email}`}
-                    className="flex items-center gap-1 text-[#E8503A] hover:underline">
+                    className="flex items-center gap-1 text-primary hover:underline">
                     <Mail className="size-3" /> {chapter.contact_email}
                   </a>
                 )}
@@ -144,12 +144,12 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
           </div>
           <div>
             {isMember ? (
-              <span className="text-xs font-semibold text-[#E8503A] bg-[#F07058]/10 border border-[#F07058]/20 px-3 py-1.5 rounded-xl">
+              <span className="text-xs font-semibold text-primary bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-xl">
                 ✓ You&apos;re a member
               </span>
             ) : (
               <Link href="/chapters"
-                className="text-xs font-semibold text-zinc-500 bg-zinc-50 border border-zinc-200 px-3 py-1.5 rounded-xl hover:border-zinc-300 transition-colors">
+                className="text-xs font-semibold text-muted-foreground bg-muted border border-border px-3 py-1.5 rounded-xl hover:border-accent/40 transition-colors">
                 Join this chapter
               </Link>
             )}
@@ -158,15 +158,15 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
 
         {/* Long description */}
         {chapter.long_description && (
-          <div className="mt-5 pt-5 border-t border-zinc-100">
-            <p className="text-sm text-zinc-600 leading-relaxed whitespace-pre-wrap">{chapter.long_description}</p>
+          <div className="mt-5 pt-5 border-t border-border">
+            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{chapter.long_description}</p>
           </div>
         )}
 
         {/* Chapter leads */}
         {leads.length > 0 && (
-          <div className="mt-5 pt-5 border-t border-zinc-100">
-            <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3">
+          <div className="mt-5 pt-5 border-t border-border">
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">
               Chapter Lead{leads.length > 1 ? 's' : ''}
             </p>
             <div className="flex flex-wrap gap-3">
@@ -181,7 +181,7 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
                   </Avatar>
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <p className="text-sm font-semibold text-zinc-900 group-hover:text-amber-700 transition-colors">
+                      <p className="text-sm font-semibold text-foreground group-hover:text-amber-700 transition-colors">
                         {lead.full_name}
                       </p>
                       <span className="inline-flex items-center gap-0.5 text-[9px] font-black text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded-full uppercase tracking-wide">
@@ -189,7 +189,7 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
                       </span>
                     </div>
                     {(lead.title || lead.company) && (
-                      <p className="text-xs text-zinc-400">{[lead.title, lead.company].filter(Boolean).join(' · ')}</p>
+                      <p className="text-xs text-muted-foreground">{[lead.title, lead.company].filter(Boolean).join(' · ')}</p>
                     )}
                   </div>
                 </Link>
@@ -214,12 +214,12 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
         </div>
 
         {/* Members sidebar */}
-        <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-5 space-y-3 h-fit">
-          <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Members</p>
+        <div className="rounded-2xl bg-card border border-border shadow-sm p-5 space-y-3 h-fit">
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Members</p>
           <div className="flex flex-wrap gap-2">
             {members.slice(0, 24).map(m => (
               <Link key={m.id} href={`/members/${m.id}`} title={m.full_name ?? undefined}>
-                <Avatar className="size-9 hover:ring-2 hover:ring-[#F07058] transition-all">
+                <Avatar className="size-9 hover:ring-2 hover:ring-primary transition-all">
                   {m.avatar_url && <AvatarImage src={m.avatar_url} alt={m.full_name ?? ''} />}
                   <AvatarFallback className="text-xs font-bold"
                     style={{ background: 'linear-gradient(135deg, #E8503A, #F07058)', color: 'white' }}>
@@ -230,10 +230,10 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
             ))}
           </div>
           {members.length > 24 && (
-            <p className="text-xs text-zinc-400">+{members.length - 24} more members</p>
+            <p className="text-xs text-muted-foreground">+{members.length - 24} more members</p>
           )}
           {members.length === 0 && (
-            <p className="text-xs text-zinc-400 italic">No members yet</p>
+            <p className="text-xs text-muted-foreground italic">No members yet</p>
           )}
         </div>
       </div>

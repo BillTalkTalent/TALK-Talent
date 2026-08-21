@@ -80,13 +80,13 @@ export default function ChapterBoard({
   }
 
   return (
-    <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm overflow-hidden">
+    <div className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-border">
         <div className="flex items-center gap-2">
           <MessageSquare className="size-4 text-[#8b5cf6]" />
-          <span className="font-semibold text-sm text-zinc-900">Chapter Discussion</span>
-          <span className="text-xs text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full">{posts.length}</span>
+          <span className="font-semibold text-sm text-foreground">Chapter Discussion</span>
+          <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{posts.length}</span>
         </div>
         {canPost && !composing && (
           <button
@@ -100,13 +100,13 @@ export default function ChapterBoard({
 
       {/* Compose */}
       {composing && (
-        <div className="px-5 py-4 border-b border-zinc-100 bg-zinc-50/50 space-y-3">
+        <div className="px-5 py-4 border-b border-border bg-muted/50 space-y-3">
           <input
             autoFocus
             placeholder="Post title…"
             value={newTitle}
             onChange={e => setNewTitle(e.target.value)}
-            className="w-full text-sm font-semibold border border-zinc-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#8b5cf6] transition-colors bg-white"
+            className="w-full text-sm font-semibold border border-border rounded-lg px-3 py-2 focus:outline-none focus:border-[#8b5cf6] transition-colors bg-card"
             disabled={saving}
           />
           <textarea
@@ -114,7 +114,7 @@ export default function ChapterBoard({
             value={newBody}
             onChange={e => setNewBody(e.target.value)}
             rows={4}
-            className="w-full text-sm border border-zinc-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#8b5cf6] transition-colors resize-none bg-white"
+            className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:border-[#8b5cf6] transition-colors resize-none bg-card"
             disabled={saving}
           />
           <div className="flex items-center gap-2">
@@ -128,7 +128,7 @@ export default function ChapterBoard({
             </button>
             <button
               onClick={() => { setComposing(false); setNewTitle(''); setNewBody('') }}
-              className="px-3 py-2 rounded-xl text-sm text-zinc-500 hover:bg-zinc-100 transition-colors"
+              className="px-3 py-2 rounded-xl text-sm text-muted-foreground hover:bg-muted transition-colors"
             >
               Cancel
             </button>
@@ -139,20 +139,20 @@ export default function ChapterBoard({
       {/* Posts */}
       {posts.length === 0 && !composing && (
         <div className="py-12 text-center">
-          <MessageSquare className="size-8 text-zinc-200 mx-auto mb-2" />
-          <p className="text-sm text-zinc-400">No posts yet.</p>
+          <MessageSquare className="size-8 text-muted-foreground/40 mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground">No posts yet.</p>
           {canPost && (
             <button onClick={() => setComposing(true)} className="mt-2 text-sm text-[#8b5cf6] hover:underline font-semibold">
               Be the first to post
             </button>
           )}
           {!canPost && (
-            <p className="text-xs text-zinc-400 mt-1">Join this chapter to post here.</p>
+            <p className="text-xs text-muted-foreground mt-1">Join this chapter to post here.</p>
           )}
         </div>
       )}
 
-      <div className="divide-y divide-zinc-50">
+      <div className="divide-y divide-border/60">
         {posts.map(post => {
           const author = post.profiles
           const isAuthor = post.author_id === currentUserId
@@ -172,7 +172,7 @@ export default function ChapterBoard({
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-sm font-semibold text-zinc-900">{author?.full_name ?? 'Unknown'}</span>
+                        <span className="text-sm font-semibold text-foreground">{author?.full_name ?? 'Unknown'}</span>
                         {isAuthorLead && (
                           <span className="inline-flex items-center gap-0.5 text-[9px] font-black text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded-full uppercase">
                             <Star className="size-2.5 fill-amber-500 text-amber-500" /> Lead
@@ -184,27 +184,27 @@ export default function ChapterBoard({
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-zinc-400">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</p>
+                      <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</p>
                     </div>
                     {/* Actions */}
                     <div className="flex items-center gap-1 shrink-0">
                       {canModerate && (
                         <button onClick={() => togglePin(post)} title={post.is_pinned ? 'Unpin' : 'Pin to top'}
-                          className={cn('p-1.5 rounded-lg transition-colors', post.is_pinned ? 'text-amber-500 bg-amber-50 hover:bg-amber-100' : 'text-zinc-300 hover:text-amber-400 hover:bg-amber-50')}>
+                          className={cn('p-1.5 rounded-lg transition-colors', post.is_pinned ? 'text-amber-500 bg-amber-50 hover:bg-amber-100' : 'text-muted-foreground/50 hover:text-amber-400 hover:bg-amber-50')}>
                           <Pin className="size-3.5" />
                         </button>
                       )}
                       {(isAuthor || canModerate) && (
                         <button onClick={() => deletePost(post.id)} title="Delete post"
-                          className="p-1.5 rounded-lg text-zinc-300 hover:text-red-500 hover:bg-red-50 transition-colors">
+                          className="p-1.5 rounded-lg text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 transition-colors">
                           <X className="size-3.5" />
                         </button>
                       )}
                     </div>
                   </div>
 
-                  <p className="mt-2 text-sm font-semibold text-zinc-900">{post.title}</p>
-                  <p className={cn('mt-1 text-sm text-zinc-600 leading-relaxed whitespace-pre-wrap', !expanded && 'line-clamp-3')}>
+                  <p className="mt-2 text-sm font-semibold text-foreground">{post.title}</p>
+                  <p className={cn('mt-1 text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap', !expanded && 'line-clamp-3')}>
                     {post.body}
                   </p>
                   {post.body.length > 200 && (
