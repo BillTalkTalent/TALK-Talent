@@ -45,18 +45,18 @@ export default async function ChapterEditPage({ params }: { params: Promise<{ sl
     <div className="p-6 max-w-2xl mx-auto space-y-6">
       {/* Back */}
       <Link href={`/chapters/${slug}`}
-        className="inline-flex items-center gap-1.5 text-sm text-zinc-400 hover:text-zinc-600 transition-colors">
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
         <ArrowLeft className="size-4" /> Back to chapter
       </Link>
 
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="size-10 rounded-xl flex items-center justify-center text-2xl bg-zinc-50 border border-zinc-100">
+        <div className="size-10 rounded-xl flex items-center justify-center text-2xl bg-muted border border-border">
           {chapter.icon}
         </div>
         <div>
-          <h1 className="text-xl font-bold text-zinc-900">Edit Chapter</h1>
-          <p className="text-sm text-zinc-500">{chapter.name}</p>
+          <h1 className="text-xl font-bold text-foreground">Edit Chapter</h1>
+          <p className="text-sm text-muted-foreground">{chapter.name}</p>
         </div>
         {isAdmin && (
           <span className="ml-auto text-[10px] font-bold text-violet-600 bg-violet-50 border border-violet-100 px-2 py-1 rounded-full uppercase tracking-wide">

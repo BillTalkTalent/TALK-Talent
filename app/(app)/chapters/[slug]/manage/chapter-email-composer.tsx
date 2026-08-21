@@ -63,7 +63,7 @@ export default function ChapterEmailComposer({ chapterId, chapterName }: { chapt
         <div className="flex items-center gap-2 text-emerald-700 font-semibold">
           <Check className="size-5" /> Email sent
         </div>
-        <p className="text-sm text-zinc-700">
+        <p className="text-sm text-foreground">
           Delivered to <strong>{result.sent.toLocaleString()}</strong> of {result.total.toLocaleString()}{' '}
           {chapterName} members{result.skipped > 0 && <> · {result.skipped.toLocaleString()} skipped (unsubscribed)</>}.
         </p>
@@ -79,20 +79,20 @@ export default function ChapterEmailComposer({ chapterId, chapterName }: { chapt
 
   return (
     <div className="rounded-2xl bg-card border border-border shadow-sm p-6 space-y-5">
-      <p className="text-sm text-zinc-500">
+      <p className="text-sm text-muted-foreground">
         Sends to every approved {chapterName} member (minus anyone unsubscribed) — this can&apos;t reach
         other chapters. Every message includes a working unsubscribe link.
       </p>
 
       <div className="space-y-1.5">
-        <label className="text-sm font-medium text-zinc-700">Subject</label>
+        <label className="text-sm font-medium text-foreground">Subject</label>
         <Input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder={`e.g. ${chapterName} — this month's meetup`} maxLength={150} />
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-sm font-medium text-zinc-700">Message</label>
+        <label className="text-sm font-medium text-foreground">Message</label>
         <RichTextEditor content={bodyHtml} onChange={setBodyHtml} uploadFolder="chapter-email" />
-        <p className="text-xs text-zinc-400">Your TALK header, footer, and unsubscribe link are added automatically.</p>
+        <p className="text-xs text-muted-foreground">Your TALK header, footer, and unsubscribe link are added automatically.</p>
       </div>
 
       <div className="flex items-center gap-3 flex-wrap">

@@ -73,7 +73,7 @@ export default async function ChapterManagePage({ params }: { params: Promise<{ 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <Link href={`/chapters/${slug}`} className="inline-flex items-center gap-1.5 text-sm text-zinc-400 hover:text-zinc-600 transition-colors">
+        <Link href={`/chapters/${slug}`} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="size-4" /> Back to chapter
         </Link>
         {isAdmin && (
@@ -89,12 +89,12 @@ export default async function ChapterManagePage({ params }: { params: Promise<{ 
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="size-11 rounded-xl flex items-center justify-center text-2xl bg-zinc-50 border border-zinc-100">
+        <div className="size-11 rounded-xl flex items-center justify-center text-2xl bg-muted border border-border">
           {chapter.icon}
         </div>
         <div>
-          <h1 className="text-xl font-bold text-zinc-900">Manage {chapter.name}</h1>
-          <p className="text-sm text-zinc-500">Roster, events, and chapter-wide messages — scoped to this chapter only.</p>
+          <h1 className="text-xl font-bold text-foreground">Manage {chapter.name}</h1>
+          <p className="text-sm text-muted-foreground">Roster, events, and chapter-wide messages — scoped to this chapter only.</p>
         </div>
       </div>
 

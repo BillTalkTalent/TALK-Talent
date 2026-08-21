@@ -114,7 +114,7 @@ export default async function AnnouncePage({ params }: { params: Promise<{ slug:
 
   return (
     <div className="p-6 max-w-2xl mx-auto space-y-6">
-      <Link href={`/chapters/${slug}`} className="inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-900">
+      <Link href={`/chapters/${slug}`} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="size-4" /> Back to {chapter.name}
       </Link>
       <div className="flex items-center gap-3">
@@ -122,37 +122,37 @@ export default async function AnnouncePage({ params }: { params: Promise<{ slug:
           <Megaphone className="size-5 text-white" />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-zinc-900">Send a chapter announcement</h1>
-          <p className="text-sm text-zinc-500">Email will be sent to {count ?? 0} chapter member{count === 1 ? '' : 's'}.</p>
+          <h1 className="text-xl font-bold text-foreground">Send a chapter announcement</h1>
+          <p className="text-sm text-muted-foreground">Email will be sent to {count ?? 0} chapter member{count === 1 ? '' : 's'}.</p>
         </div>
       </div>
 
-      <form action={sendAnnouncement} className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-6 space-y-4">
+      <form action={sendAnnouncement} className="rounded-2xl bg-card border border-border shadow-sm p-6 space-y-4">
         <input type="hidden" name="slug" value={slug} />
         <div className="space-y-1.5">
-          <label className="text-sm font-semibold text-zinc-700">Subject</label>
+          <label className="text-sm font-semibold text-foreground">Subject</label>
           <input
             name="subject"
             required
             maxLength={140}
             placeholder="What's the announcement?"
-            className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#F07058]"
+            className="w-full border border-border bg-background text-foreground rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary"
           />
         </div>
         <div className="space-y-1.5">
-          <label className="text-sm font-semibold text-zinc-700">Message</label>
+          <label className="text-sm font-semibold text-foreground">Message</label>
           <textarea
             name="message"
             required
             rows={10}
             placeholder="Share the details with the chapter…"
-            className="w-full border border-zinc-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#F07058]"
+            className="w-full border border-border bg-background text-foreground rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary"
           />
         </div>
         <div className="flex justify-end">
           <button
             type="submit"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-[#0d0d0d] hover:opacity-90 transition-opacity"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white hover:opacity-90 transition-opacity"
             style={{ background: 'linear-gradient(135deg, #E8503A, #F07058)' }}
           >
             <Megaphone className="size-4" /> Send Announcement

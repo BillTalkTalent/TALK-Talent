@@ -75,7 +75,7 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
     <div className="p-6 max-w-5xl mx-auto space-y-6">
       {/* Back + edit */}
       <div className="flex items-center justify-between">
-        <Link href="/chapters" className="inline-flex items-center gap-1.5 text-sm text-zinc-400 hover:text-zinc-600 transition-colors">
+        <Link href="/chapters" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="size-4" /> All Chapters
         </Link>
         {canEdit && (
@@ -98,7 +98,7 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
 
       {/* Banner */}
       {chapter.banner_url && (
-        <div className="rounded-2xl overflow-hidden h-40 border border-zinc-100">
+        <div className="rounded-2xl overflow-hidden h-40 border border-border">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={chapter.banner_url} alt={`${chapter.name} banner`} className="w-full h-full object-cover" />
         </div>

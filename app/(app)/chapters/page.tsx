@@ -109,10 +109,10 @@ export default function ChaptersPage() {
     return (
       <div className="p-6 max-w-6xl mx-auto">
         <div className="animate-pulse space-y-6">
-          <div className="h-10 bg-zinc-100 rounded-2xl w-48" />
+          <div className="h-10 bg-muted rounded-2xl w-48" />
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-44 bg-zinc-100 rounded-2xl" />
+              <div key={i} className="h-44 bg-muted rounded-2xl" />
             ))}
           </div>
         </div>
@@ -130,8 +130,8 @@ export default function ChaptersPage() {
           <BookOpen className="size-5 text-white" />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-zinc-900">Chapters</h1>
-          <p className="text-sm text-zinc-500">
+          <h1 className="text-xl font-bold text-foreground">Chapters</h1>
+          <p className="text-sm text-muted-foreground">
             Join the topics and locations that matter to you
             {joinedCount > 0 && (
               <span className="ml-2 text-[#8b5cf6] font-semibold">· {joinedCount} joined</span>
@@ -144,8 +144,8 @@ export default function ChaptersPage() {
       <section>
         <div className="flex items-center gap-2 mb-4">
           <BookOpen className="size-4 text-[#8b5cf6]" />
-          <h2 className="text-base font-bold text-zinc-900">Topical Chapters</h2>
-          <span className="text-xs text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full">{topicChapters.length}</span>
+          <h2 className="text-base font-bold text-foreground">Topical Chapters</h2>
+          <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{topicChapters.length}</span>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {topicChapters.map((chapter) => {
@@ -157,31 +157,31 @@ export default function ChaptersPage() {
                   "relative group rounded-2xl p-5 border-2 transition-all cursor-pointer flex flex-col",
                   joined
                     ? "border-[#8b5cf6] bg-[#8b5cf6]/10"
-                    : "border-zinc-100 bg-white hover:border-[#8b5cf6] hover:shadow-sm"
+                    : "border-border bg-card hover:border-[#8b5cf6] hover:shadow-sm"
                 )}
                 onClick={() => toggleChapter(chapter.id)}
               >
                 {/* Chapter page link */}
                 <a href={`/chapters/${chapter.slug}`} onClick={e => e.stopPropagation()}
-                  className="absolute top-3 right-3 text-[10px] text-zinc-300 hover:text-[#8b5cf6] transition-colors hidden group-hover:block font-semibold">
+                  className="absolute top-3 right-3 text-[10px] text-muted-foreground/50 hover:text-[#8b5cf6] transition-colors hidden group-hover:block font-semibold">
                   View page →
                 </a>
                 <div className="flex items-start justify-between mb-3">
                   <span className="text-4xl leading-none">{chapter.icon}</span>
                   {joined && (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#8b5cf6] bg-white border border-[#8b5cf6]/30 px-2 py-0.5 rounded-full shadow-sm">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#8b5cf6] bg-card border border-[#8b5cf6]/30 px-2 py-0.5 rounded-full shadow-sm">
                       <Check className="size-3" /> Joined
                     </span>
                   )}
                 </div>
-                <p className={cn("font-bold text-base", joined ? "text-[#4c1d95]" : "text-zinc-900")}>
+                <p className={cn("font-bold text-base", joined ? "text-[#4c1d95]" : "text-foreground")}>
                   {chapter.name}
                 </p>
                 {chapter.description && (
-                  <p className="text-sm text-zinc-500 mt-1 line-clamp-2 flex-1">{chapter.description}</p>
+                  <p className="text-sm text-muted-foreground mt-1 line-clamp-2 flex-1">{chapter.description}</p>
                 )}
-                <div className="flex items-center justify-between mt-4 pt-3 border-t border-zinc-100">
-                  <span className="flex items-center gap-1 text-xs text-zinc-400">
+                <div className="flex items-center justify-between mt-4 pt-3 border-t border-border">
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Users className="size-3" />
                     {chapter.memberCount} {chapter.memberCount === 1 ? "member" : "members"}
                   </span>
@@ -190,7 +190,7 @@ export default function ChaptersPage() {
                     className={cn(
                       "text-xs font-bold px-3 py-1.5 rounded-xl transition-all",
                       joined
-                        ? "bg-white text-[#8b5cf6] border border-[#8b5cf6]/30 hover:bg-red-50 hover:text-red-500 hover:border-red-200"
+                        ? "bg-card text-[#8b5cf6] border border-[#8b5cf6]/30 hover:bg-red-50 hover:text-red-500 hover:border-red-200"
                         : "bg-[#8b5cf6] text-white hover:bg-[#7c3aed] shadow-sm"
                     )}
                   >
@@ -208,29 +208,29 @@ export default function ChaptersPage() {
         <div className="flex items-center gap-3 mb-4 flex-wrap">
           <div className="flex items-center gap-2">
             <MapPin className="size-4 text-[#E8503A]" />
-            <h2 className="text-base font-bold text-zinc-900">Geographic Chapters</h2>
-            <span className="text-xs text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full">{geoChapters.length}</span>
+            <h2 className="text-base font-bold text-foreground">Geographic Chapters</h2>
+            <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{geoChapters.length}</span>
           </div>
           {/* Search */}
           <div className="relative ml-auto">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-zinc-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search city or state…"
               value={geoSearch}
               onChange={e => setGeoSearch(e.target.value)}
-              className="pl-8 pr-3 py-1.5 text-sm rounded-xl border border-zinc-200 bg-white focus:outline-none focus:border-[#F07058] w-52 transition-colors"
+              className="pl-8 pr-3 py-1.5 text-sm rounded-xl border border-border bg-background focus:outline-none focus:border-primary w-52 transition-colors"
             />
           </div>
         </div>
 
         {regionOrder.length === 0 ? (
-          <p className="text-sm text-zinc-400 py-6 text-center">No chapters match &ldquo;{geoSearch}&rdquo;</p>
+          <p className="text-sm text-muted-foreground py-6 text-center">No chapters match &ldquo;{geoSearch}&rdquo;</p>
         ) : (
           <div className="space-y-6">
             {regionOrder.map(region => (
               <div key={region}>
-                <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-2 px-1">{region}</h3>
+                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2 px-1">{region}</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                   {geoByRegion[region].map(chapter => {
                     const joined = joinedIds.has(chapter.id);
@@ -240,8 +240,8 @@ export default function ChaptersPage() {
                         className={cn(
                           "flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border text-left transition-all text-sm",
                           joined
-                            ? "border-[#F07058]/50 bg-[#F07058]/8 text-zinc-900"
-                            : "border-zinc-100 bg-white hover:border-[#F07058]/40 hover:bg-[#F07058]/5 text-zinc-700"
+                            ? "border-[#F07058]/50 bg-[#F07058]/8 text-foreground"
+                            : "border-border bg-card hover:border-[#F07058]/40 hover:bg-[#F07058]/5 text-muted-foreground"
                         )}
                       >
                         {/* Name links to chapter page */}
@@ -257,7 +257,7 @@ export default function ChaptersPage() {
                         >
                           {joined
                             ? <Check className="size-3.5 text-[#E8503A]" />
-                            : <span className="text-[10px] text-zinc-400">{chapter.memberCount > 0 ? chapter.memberCount : "+"}</span>
+                            : <span className="text-[10px] text-muted-foreground">{chapter.memberCount > 0 ? chapter.memberCount : "+"}</span>
                           }
                         </button>
                       </div>

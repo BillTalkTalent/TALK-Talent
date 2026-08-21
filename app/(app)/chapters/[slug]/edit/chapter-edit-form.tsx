@@ -88,20 +88,20 @@ export default function ChapterEditForm({ chapter, isAdmin, slug }: ChapterEditF
           <p className="text-xs font-bold text-violet-500 uppercase tracking-widest">Admin only</p>
           <div className="grid grid-cols-3 gap-4">
             <div className="col-span-2 space-y-1.5">
-              <label className="text-xs font-semibold text-zinc-600">Chapter Name</label>
+              <label className="text-xs font-semibold text-muted-foreground">Chapter Name</label>
               <input
                 value={form.name}
                 onChange={e => set('name', e.target.value)}
-                className="w-full text-sm border border-zinc-200 rounded-xl px-3 py-2 focus:outline-none focus:border-violet-400 transition-colors bg-white"
+                className="w-full text-sm border border-border rounded-xl px-3 py-2 focus:outline-none focus:border-violet-400 transition-colors bg-card text-foreground"
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-zinc-600">Icon (emoji)</label>
+              <label className="text-xs font-semibold text-muted-foreground">Icon (emoji)</label>
               <input
                 value={form.icon}
                 onChange={e => set('icon', e.target.value)}
                 placeholder="📍"
-                className="w-full text-sm border border-zinc-200 rounded-xl px-3 py-2 focus:outline-none focus:border-violet-400 transition-colors bg-white text-center text-xl"
+                className="w-full text-sm border border-border rounded-xl px-3 py-2 focus:outline-none focus:border-violet-400 transition-colors bg-card text-foreground text-center text-xl"
               />
             </div>
           </div>
@@ -109,68 +109,68 @@ export default function ChapterEditForm({ chapter, isAdmin, slug }: ChapterEditF
       )}
 
       {/* Short description */}
-      <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-5 space-y-4">
-        <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Chapter Profile</p>
+      <div className="rounded-2xl bg-card border border-border shadow-sm p-5 space-y-4">
+        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Chapter Profile</p>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-zinc-600">Short tagline</label>
+          <label className="text-xs font-semibold text-muted-foreground">Short tagline</label>
           <input
             value={form.description}
             onChange={e => set('description', e.target.value)}
             placeholder="e.g. The TA community for the greater Chicago area"
             maxLength={160}
-            className="w-full text-sm border border-zinc-200 rounded-xl px-3 py-2 focus:outline-none focus:border-[#F07058] transition-colors"
+            className="w-full text-sm border border-border bg-background text-foreground rounded-xl px-3 py-2 focus:outline-none focus:border-primary transition-colors"
           />
-          <p className="text-[11px] text-zinc-400">{form.description.length}/160 — shows under the chapter name</p>
+          <p className="text-[11px] text-muted-foreground">{form.description.length}/160 — shows under the chapter name</p>
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-zinc-600">About this chapter</label>
+          <label className="text-xs font-semibold text-muted-foreground">About this chapter</label>
           <textarea
             value={form.long_description}
             onChange={e => set('long_description', e.target.value)}
             rows={5}
             placeholder="Tell members what this chapter is about, who it's for, when you typically meet, etc."
-            className="w-full text-sm border border-zinc-200 rounded-xl px-3 py-2 focus:outline-none focus:border-[#F07058] transition-colors resize-none"
+            className="w-full text-sm border border-border bg-background text-foreground rounded-xl px-3 py-2 focus:outline-none focus:border-primary transition-colors resize-none"
           />
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-zinc-600">Banner image URL</label>
+          <label className="text-xs font-semibold text-muted-foreground">Banner image URL</label>
           <input
             type="url"
             value={form.banner_url}
             onChange={e => set('banner_url', e.target.value)}
             placeholder="https://..."
-            className="w-full text-sm border border-zinc-200 rounded-xl px-3 py-2 focus:outline-none focus:border-[#F07058] transition-colors"
+            className="w-full text-sm border border-border bg-background text-foreground rounded-xl px-3 py-2 focus:outline-none focus:border-primary transition-colors"
           />
-          <p className="text-[11px] text-zinc-400">Paste a direct image URL (JPG, PNG, WebP). Displays as a wide banner above the chapter header.</p>
+          <p className="text-[11px] text-muted-foreground">Paste a direct image URL (JPG, PNG, WebP). Displays as a wide banner above the chapter header.</p>
         </div>
       </div>
 
       {/* Contact info */}
-      <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-5 space-y-4">
-        <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Contact & Links</p>
+      <div className="rounded-2xl bg-card border border-border shadow-sm p-5 space-y-4">
+        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Contact & Links</p>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-zinc-600">Website URL</label>
+          <label className="text-xs font-semibold text-muted-foreground">Website URL</label>
           <input
             type="url"
             value={form.website_url}
             onChange={e => set('website_url', e.target.value)}
             placeholder="https://..."
-            className="w-full text-sm border border-zinc-200 rounded-xl px-3 py-2 focus:outline-none focus:border-[#F07058] transition-colors"
+            className="w-full text-sm border border-border bg-background text-foreground rounded-xl px-3 py-2 focus:outline-none focus:border-primary transition-colors"
           />
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-zinc-600">Contact email</label>
+          <label className="text-xs font-semibold text-muted-foreground">Contact email</label>
           <input
             type="email"
             value={form.contact_email}
             onChange={e => set('contact_email', e.target.value)}
             placeholder="chicago@talk-community.com"
-            className="w-full text-sm border border-zinc-200 rounded-xl px-3 py-2 focus:outline-none focus:border-[#F07058] transition-colors"
+            className="w-full text-sm border border-border bg-background text-foreground rounded-xl px-3 py-2 focus:outline-none focus:border-primary transition-colors"
           />
         </div>
       </div>
@@ -180,7 +180,7 @@ export default function ChapterEditForm({ chapter, isAdmin, slug }: ChapterEditF
         <button
           type="button"
           onClick={() => router.push(`/chapters/${slug}`)}
-          className="px-4 py-2 rounded-xl text-sm text-zinc-500 hover:bg-zinc-100 transition-colors"
+          className="px-4 py-2 rounded-xl text-sm text-muted-foreground hover:bg-muted transition-colors"
         >
           Cancel
         </button>

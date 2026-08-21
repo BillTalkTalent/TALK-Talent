@@ -154,7 +154,7 @@ export default function ChapterEventForm({ chapterId, organizerId, event, onSave
       <div className="space-y-2 sm:col-span-2">
         <Label>Event Image</Label>
         {imagePreview ? (
-          <div className="relative rounded-xl overflow-hidden border border-zinc-200 aspect-[16/6] bg-zinc-100">
+          <div className="relative rounded-xl overflow-hidden border border-border aspect-[16/6] bg-muted">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
             <button type="button" onClick={clearImage} className="absolute top-2 right-2 size-7 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors">
@@ -165,7 +165,7 @@ export default function ChapterEventForm({ chapterId, organizerId, event, onSave
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="w-full rounded-xl border-2 border-dashed border-zinc-200 hover:border-[#f97316] hover:bg-[#f97316]/5 transition-all py-8 flex flex-col items-center gap-2 text-zinc-400 hover:text-[#f97316]"
+            className="w-full rounded-xl border-2 border-dashed border-border hover:border-[#f97316] hover:bg-[#f97316]/5 transition-all py-8 flex flex-col items-center gap-2 text-muted-foreground hover:text-[#f97316]"
           >
             <Upload className="size-6" />
             <span className="text-sm font-medium">Click to upload event image</span>
