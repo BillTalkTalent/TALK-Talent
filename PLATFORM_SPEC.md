@@ -223,9 +223,20 @@ the chapter and send email announcements to its members
 Five default `chat_channels` (general, announcements, jobs, introductions,
 resources) — persistent, realtime (`supabase_realtime` publication) group channels.
 Separate from the forum; more like Slack than a discussion board. **DMs**
-(`dm_conversations` / `dm_messages`) are 1:1, canonically ordered by participant id
-to keep the unique constraint simple, with `last_message_preview` kept in sync via
-trigger for the inbox list.
+(`dm_conversations` / `dm_messages`) support both 1:1 and group conversations —
+membership lives in a `conversation_participants` junction table (migration 061),
+not the older `participant_a`/`participant_b` columns those still carry for
+historical rows only. `dm_conversations.created_by` records who started it. RLS
+membership checks route through a `SECURITY DEFINER` helper,
+`is_dm_participant()`, both to avoid a table referencing its own RLS policy
+recursively and — critically — because a brand-new conversation's creator isn't
+in `conversation_participants` yet at the moment they need to read the row back
+(that insert happens as a separate follow-up call), so the `dm_conversations`
+SELECT policy also allows `created_by = auth.uid()` directly rather than relying
+on `is_dm_participant()` alone. Sidebar list shows unread counts and
+`last_message_preview` kept in sync via trigger. Composer auto-grows with
+content and keeps focus after sending (it's intentionally never `disabled`
+while a send is in flight — that used to blur it).
 
 ### Polls
 
@@ -263,6 +274,24 @@ enrichment fields.
 In-app notifications (`notifications` table, unread-count indexed) for forum activity,
 DMs, polls, and mentorship events, each with its own opt-out in
 `/notifications/settings`.
+
+### Creators — soft-launch preview, super admin only
+
+`/creators` — a directory of invited TA leaders/practitioners (`creator_profiles`),
+each with a public-style profile (`/creators/[id]`: bio, topics, links) and a feed
+of resources they post themselves (`creator_materials`: video/deck/link, each with
+its own publish toggle). Members manage their own page at `/creators/manage` —
+create-if-none-exists, add/edit/delete/publish materials.
+
+Gated to `profile.is_superadmin` at the page level (`redirect('/dashboard')`
+otherwise) — nobody else can reach `/creators/*` yet, and the nav entry (under
+"More") only renders for the super admin. This is deliberate: RLS already reflects
+the intended public state (approved members can browse `is_approved = true`
+profiles and `is_published = true` materials; a creator can always see their own,
+even before approval), so opening this up later is a one-line change to the page
+guard, not a new migration. Admin approve/feature toggles live inline on each
+directory card rather than a separate `/admin/creators` page, since right now the
+same person (the super admin) is both the only visible member and the approver.
 
 ---
 
@@ -518,7 +547,8 @@ they're safe to re-run against partially-applied state).
 **Identity**: `profiles`, `legacy_member_staging`
 
 **Forum & Chat**: `forum_categories`, `forum_topics`, `forum_replies`,
-`chat_channels`, `chat_messages`, `dm_conversations`, `dm_messages`
+`chat_channels`, `chat_messages`, `dm_conversations`, `dm_messages`,
+`conversation_participants`
 
 **Events**: `events` (incl. `venue_name`, `is_test`), `event_rsvps`,
 `event_registrations`, `event_materials`
@@ -535,6 +565,8 @@ policies — service-role only, same pattern as `linkedin_connections`)
 `mentorship_connections`, `talent_pool`, `job_posts`
 
 **Vendors**: `vendors`, `vendor_reviews`
+
+**Creators** (soft-launch preview, §3): `creator_profiles`, `creator_materials`
 
 **Comms**: `newsletters`, `notifications`, `invitations`, `vendor_suggestions`,
 `email_unsubscribes`, `email_bounces`
