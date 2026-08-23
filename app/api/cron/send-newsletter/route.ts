@@ -94,11 +94,11 @@ function buildEmailHtml(subject: string, bodyHtml: string, memberName: string, u
     <span style="color:#fff;font-size:20px;font-weight:900;">TALK</span>
     <p style="margin:8px 0 0;color:rgba(255,255,255,0.5);font-size:13px;">${subject}</p>
   </td></tr>
+  ${statsBlock}
   ${sponsorTop}
   ${eventsBlock}
   ${jobsBlock}
   ${talentBlock}
-  ${statsBlock}
   <tr><td style="background:#fff;padding:32px 36px 0;">
     <p style="margin:0 0 6px;color:#374151;font-size:15px;">Hi ${memberName},</p>
     <p style="margin:0 0 20px;color:#6b7280;font-size:14px;">${introLine}</p>

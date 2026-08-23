@@ -429,6 +429,27 @@ export default function NewsletterForm({
                   </div>
                   <p className="text-white/60 text-sm">{subject || 'Your newsletter subject'}</p>
                 </div>
+                {/* Community pulse stats */}
+                {pulseStats && Object.values(pulseStats).some(n => n > 0) && (
+                  <div className="bg-white px-8 pt-4 pb-1">
+                    <div className="rounded-xl border border-zinc-100 bg-zinc-50/60">
+                      <p className="px-5 pt-3.5 text-[10px] font-black uppercase tracking-[0.14em] text-zinc-400">This week in TALK</p>
+                      <div className="grid grid-cols-4">
+                        {[
+                          { n: pulseStats.newMembers, label: 'New members' },
+                          { n: pulseStats.forumPosts, label: 'Forum posts' },
+                          { n: pulseStats.eventRsvps, label: 'Event RSVPs' },
+                          { n: pulseStats.newJobs, label: 'New jobs' },
+                        ].map(t => (
+                          <div key={t.label} className="text-center py-3.5">
+                            <div className="text-xl font-black text-zinc-900 leading-none">{t.n.toLocaleString()}</div>
+                            <div className="text-[9px] font-bold uppercase tracking-wide text-zinc-400 mt-1.5">{t.label}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {/* Sponsor masthead */}
                 {showSponsor && (
                   <div className="bg-white px-8 pt-5 pb-1">
@@ -507,27 +528,6 @@ export default function NewsletterForm({
                               <p className="text-xs text-zinc-500 mt-0.5">{[t.title, t.company].filter(Boolean).join(' at ')}</p>
                             )}
                             <p className="text-xs text-zinc-600 italic mt-0.5">&ldquo;{t.headline}&rdquo;</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {/* Community pulse stats */}
-                {pulseStats && Object.values(pulseStats).some(n => n > 0) && (
-                  <div className="bg-white px-8 pt-4 pb-1">
-                    <div className="rounded-xl border border-zinc-100 bg-zinc-50/60">
-                      <p className="px-5 pt-3.5 text-[10px] font-black uppercase tracking-[0.14em] text-zinc-400">This week in TALK</p>
-                      <div className="grid grid-cols-4">
-                        {[
-                          { n: pulseStats.newMembers, label: 'New members' },
-                          { n: pulseStats.forumPosts, label: 'Forum posts' },
-                          { n: pulseStats.eventRsvps, label: 'Event RSVPs' },
-                          { n: pulseStats.newJobs, label: 'New jobs' },
-                        ].map(t => (
-                          <div key={t.label} className="text-center py-3.5">
-                            <div className="text-xl font-black text-zinc-900 leading-none">{t.n.toLocaleString()}</div>
-                            <div className="text-[9px] font-bold uppercase tracking-wide text-zinc-400 mt-1.5">{t.label}</div>
                           </div>
                         ))}
                       </div>

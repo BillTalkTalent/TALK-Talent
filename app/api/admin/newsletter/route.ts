@@ -89,6 +89,8 @@ function buildEmailHtml(subject: string, sections: Record<string, string>, membe
     <p style="margin:10px 0 0;color:rgba(255,255,255,0.5);font-size:13px;line-height:1.4;">${subject}</p>
   </td></tr>
 
+  ${statsBlock}
+
   ${sponsorTop}
 
   ${eventsBlock}
@@ -96,8 +98,6 @@ function buildEmailHtml(subject: string, sections: Record<string, string>, membe
   ${jobsBlock}
 
   ${talentBlock}
-
-  ${statsBlock}
 
   <!-- Greeting -->
   <tr><td style="background:#fff;padding:32px 36px 8px;">
