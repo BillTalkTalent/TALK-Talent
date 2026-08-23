@@ -27,10 +27,12 @@ async function saveSponsor(fd: FormData) {
     logo_url: (fd.get('logo_url') as string) || null,
     url: (fd.get('url') as string) || null,
     blurb: (fd.get('blurb') as string) || null,
-    // The special-offer callout only ever renders for the masthead placement
-    // (buildSponsorBottom / the bottom-of-email slot) — clear it for a 'mid'
-    // sponsor so the admin list doesn't show a "has offer" badge that's dead.
-    offer: placement === 'masthead' ? (fd.get('offer') as string)?.trim() || null : null,
+    // For 'masthead' this is the special-offer callout at the bottom of the
+    // email (with a button/link). For 'mid' it doubles as a shorter "member
+    // perk" line shown inside the compact mid banner itself — same field,
+    // no separate card. offer_url/offer_cta only apply to the masthead's
+    // callout button, so they're irrelevant (and cleared) for 'mid'.
+    offer: (fd.get('offer') as string)?.trim() || null,
     offer_url: placement === 'masthead' ? (fd.get('offer_url') as string) || null : null,
     offer_cta: placement === 'masthead' ? (fd.get('offer_cta') as string)?.trim() || null : null,
     expires_at: fd.get('expires_at') as string,

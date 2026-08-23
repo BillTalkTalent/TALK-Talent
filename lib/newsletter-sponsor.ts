@@ -76,28 +76,39 @@ export function buildSponsorTop(s: Sponsor): string {
 export function buildSponsorMid(s: Sponsor): string {
   if (!s.url) return ''
   const logoCell = s.logo_url
-    ? `<img src="${s.logo_url}" alt="${esc(s.name)}" style="max-height:20px;max-width:110px;height:auto;display:block;">`
-    : `<span style="font-size:12px;font-weight:900;color:#0F1F35;white-space:nowrap;">${esc(s.name)}</span>`
+    ? `<img src="${s.logo_url}" alt="${esc(s.name)}" style="max-height:22px;max-width:120px;height:auto;display:block;">`
+    : `<span style="font-size:13px;font-weight:900;color:#0F1F35;white-space:nowrap;">${esc(s.name)}</span>`
   const message = s.blurb ? esc(s.blurb) : `Check out ${esc(s.name)}`
+  // Optional second line — a short member perk ("TALK members get preferred
+  // pricing") rather than a full offer card with its own button, so a mid
+  // sponsor with a perk still reads as one compact banner, not another
+  // full-width card like the masthead's special-offer callout.
+  const perkLine = s.offer
+    ? `<p style="margin:5px 0 0;font-size:12px;line-height:1.4;">
+         <span style="color:#F07058;font-weight:800;">&#9733;</span>
+         <span style="color:#ffffff;font-weight:700;">${esc(s.offer)}</span>
+       </p>`
+    : ''
   return `
     <a href="${s.url}" target="_blank" style="text-decoration:none;display:block;margin-bottom:36px;">
-      <table cellpadding="0" cellspacing="0" width="100%" style="background:#0F1F35;border-radius:12px;">
+      <table cellpadding="0" cellspacing="0" width="100%" style="background:#0F1F35;border-radius:14px;">
         <tr>
-          <td style="padding:14px 16px;" valign="middle">
+          <td style="padding:18px 20px;" valign="middle">
             <table cellpadding="0" cellspacing="0"><tr>
-              <td valign="middle" style="padding-right:14px;">
-                <div style="background:#ffffff;border-radius:6px;padding:5px 9px;white-space:nowrap;">${logoCell}</div>
+              <td valign="top" style="padding-right:16px;padding-top:2px;">
+                <div style="background:#ffffff;border-radius:6px;padding:6px 10px;white-space:nowrap;">${logoCell}</div>
               </td>
               <td valign="middle">
-                <p style="margin:0;font-size:13px;line-height:1.4;">
-                  <span style="color:rgba(255,255,255,0.5);font-weight:700;">Sponsored &mdash;</span>
-                  <span style="color:#ffffff;font-weight:600;">${message}</span>
+                <p style="margin:0;font-size:14px;line-height:1.4;">
+                  <span style="color:rgba(255,255,255,0.55);font-weight:700;">Sponsored &mdash;</span>
+                  <span style="color:#ffffff;font-weight:700;">${message}</span>
                 </p>
+                ${perkLine}
               </td>
             </tr></table>
           </td>
-          <td style="padding:14px 18px 14px 0;white-space:nowrap;" valign="middle" align="right">
-            <span style="font-size:12px;font-weight:800;color:#F07058;">Learn more &rarr;</span>
+          <td style="padding:18px 22px 18px 0;white-space:nowrap;" valign="middle" align="right">
+            <span style="font-size:13px;font-weight:800;color:#F07058;">Learn more &rarr;</span>
           </td>
         </tr>
       </table>

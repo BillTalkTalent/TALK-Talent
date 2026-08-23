@@ -585,24 +585,32 @@ export default function NewsletterForm({
                           href={activeMidSponsor!.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="block mt-6 rounded-xl bg-[#0F1F35] overflow-hidden no-underline"
+                          className="block mt-6 rounded-2xl bg-[#0F1F35] overflow-hidden no-underline"
                         >
-                          <div className="flex items-center justify-between gap-3 px-4 py-3.5">
-                            <div className="flex items-center gap-3.5 min-w-0">
-                              <div className="bg-white rounded-md px-2.5 py-1 shrink-0">
+                          <div className="flex items-center justify-between gap-3 px-5 py-4.5">
+                            <div className="flex items-start gap-4 min-w-0">
+                              <div className="bg-white rounded-md px-2.5 py-1.5 shrink-0 mt-0.5">
                                 {activeMidSponsor!.logo_url ? (
                                   // eslint-disable-next-line @next/next/no-img-element
-                                  <img src={activeMidSponsor!.logo_url} alt={activeMidSponsor!.name} className="h-4 w-auto block" />
+                                  <img src={activeMidSponsor!.logo_url} alt={activeMidSponsor!.name} className="h-[18px] w-auto block" />
                                 ) : (
-                                  <span className="text-xs font-black text-[#0F1F35] whitespace-nowrap">{activeMidSponsor!.name}</span>
+                                  <span className="text-[13px] font-black text-[#0F1F35] whitespace-nowrap">{activeMidSponsor!.name}</span>
                                 )}
                               </div>
-                              <p className="text-[13px] leading-tight truncate">
-                                <span className="text-white/50 font-bold">Sponsored —</span>{' '}
-                                <span className="text-white font-semibold">{activeMidSponsor!.blurb || `Check out ${activeMidSponsor!.name}`}</span>
-                              </p>
+                              <div className="min-w-0">
+                                <p className="text-sm leading-tight truncate">
+                                  <span className="text-white/55 font-bold">Sponsored —</span>{' '}
+                                  <span className="text-white font-bold">{activeMidSponsor!.blurb || `Check out ${activeMidSponsor!.name}`}</span>
+                                </p>
+                                {activeMidSponsor!.offer && (
+                                  <p className="text-xs leading-tight mt-1.5">
+                                    <span className="text-[#F07058] font-extrabold">★</span>{' '}
+                                    <span className="text-white font-bold">{activeMidSponsor!.offer}</span>
+                                  </p>
+                                )}
+                              </div>
                             </div>
-                            <span className="text-xs font-extrabold text-[#F07058] shrink-0">Learn more →</span>
+                            <span className="text-[13px] font-extrabold text-[#F07058] shrink-0">Learn more →</span>
                           </div>
                         </a>
                       )}

@@ -152,8 +152,10 @@ export default function SponsorForm({
         </p>
       </div>
 
-      {/* Optional special offer — only applies to the masthead placement (renders as a callout at the bottom) */}
-      {placement === 'masthead' && (
+      {/* Optional offer/perk line. Masthead gets the full callout (renders as its
+          own card at the bottom, with a button); mid just gets a second
+          highlighted line inside the same compact banner — no separate card. */}
+      {placement === 'masthead' ? (
         <div className="rounded-xl border border-zinc-200 p-4 space-y-3">
           <p className="text-sm font-semibold text-zinc-800">Special offer <span className="font-normal text-zinc-400">(optional — shows at the bottom)</span></p>
           <div className="space-y-1.5">
@@ -170,6 +172,12 @@ export default function SponsorForm({
               <Input id="offer_cta" name="offer_cta" maxLength={30} defaultValue={initial?.offer_cta ?? ''} placeholder="Claim offer" />
             </div>
           </div>
+        </div>
+      ) : (
+        <div className="space-y-1.5">
+          <Label htmlFor="offer">Member perk line <span className="font-normal text-zinc-400">(optional)</span></Label>
+          <Input id="offer" name="offer" maxLength={100} defaultValue={initial?.offer ?? ''} placeholder="TALK members get preferred pricing." />
+          <p className="text-xs text-zinc-400">Shown as a highlighted second line in the mid-newsletter banner.</p>
         </div>
       )}
 
