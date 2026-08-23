@@ -542,17 +542,46 @@ export default function NewsletterForm({
                     <hr className="border-zinc-100 mt-4" />
                   </div>
                   {filledSections.map((s, i) => (
-                    <div key={s.key} className={i > 0 ? 'pt-7 border-t border-zinc-200' : undefined}>
-                      <span
-                        className="inline-block text-[11px] font-black uppercase tracking-widest text-white rounded-md px-3.5 py-1.5 mb-3"
-                        style={{ background: s.color }}
-                      >
-                        {s.label}
-                      </span>
-                      <div
-                        className="prose prose-sm max-w-none text-zinc-700"
-                        dangerouslySetInnerHTML={{ __html: sections[s.key] }}
-                      />
+                    <div key={s.key}>
+                      <div className={i > 0 ? 'pt-7 border-t border-zinc-200' : undefined}>
+                        <span
+                          className="inline-block text-[11px] font-black uppercase tracking-widest text-white rounded-md px-3.5 py-1.5 mb-3"
+                          style={{ background: s.color }}
+                        >
+                          {s.label}
+                        </span>
+                        <div
+                          className="prose prose-sm max-w-none text-zinc-700"
+                          dangerouslySetInnerHTML={{ __html: sections[s.key] }}
+                        />
+                      </div>
+                      {/* Mid-newsletter sponsor banner — sits right after the first section */}
+                      {i === 0 && showSponsor && activeSponsor!.url && (
+                        <a
+                          href={activeSponsor!.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block mt-6 rounded-xl bg-[#0F1F35] overflow-hidden no-underline"
+                        >
+                          <div className="flex items-center justify-between gap-3 px-4 py-3.5">
+                            <div className="flex items-center gap-3.5 min-w-0">
+                              <div className="bg-white rounded-md px-2.5 py-1 shrink-0">
+                                {activeSponsor!.logo_url ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img src={activeSponsor!.logo_url} alt={activeSponsor!.name} className="h-4 w-auto block" />
+                                ) : (
+                                  <span className="text-xs font-black text-[#0F1F35] whitespace-nowrap">{activeSponsor!.name}</span>
+                                )}
+                              </div>
+                              <p className="text-[13px] leading-tight truncate">
+                                <span className="text-white/50 font-bold">Sponsored —</span>{' '}
+                                <span className="text-white font-semibold">{activeSponsor!.blurb || `Check out ${activeSponsor!.name}`}</span>
+                              </p>
+                            </div>
+                            <span className="text-xs font-extrabold text-[#F07058] shrink-0">Learn more →</span>
+                          </div>
+                        </a>
+                      )}
                     </div>
                   ))}
                 </div>

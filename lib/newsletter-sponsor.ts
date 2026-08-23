@@ -55,6 +55,48 @@ export function buildSponsorTop(s: Sponsor): string {
   </td></tr>`
 }
 
+// Compact single-row banner for mid-newsletter, between sections — the "Presented
+// by" masthead and the special-offer block are both full-width cards; this is
+// meant to feel like a slim aside, not another section.
+//
+// Unlike buildSponsorTop/buildSponsorBottom, this does NOT return a <tr><td>
+// wrapper — it's spliced into compileSectionsToHtml's output (via MID_AD_MARKER
+// in app/api/admin/newsletter/route.ts), which lands inside a <td> that's
+// already inside a <tr>. A <tr> there would be invalid HTML — nested inside a
+// <td> rather than a <table> — and browsers silently "fix" that by hoisting it
+// out, which broke the layout of whatever section followed it. This returns a
+// plain block (a table of its own, not a table row) so it nests correctly.
+export function buildSponsorMid(s: Sponsor): string {
+  if (!s.url) return ''
+  const logoCell = s.logo_url
+    ? `<img src="${s.logo_url}" alt="${esc(s.name)}" style="max-height:20px;max-width:110px;height:auto;display:block;">`
+    : `<span style="font-size:12px;font-weight:900;color:#0F1F35;white-space:nowrap;">${esc(s.name)}</span>`
+  const message = s.blurb ? esc(s.blurb) : `Check out ${esc(s.name)}`
+  return `
+    <a href="${s.url}" target="_blank" style="text-decoration:none;display:block;margin-bottom:36px;">
+      <table cellpadding="0" cellspacing="0" width="100%" style="background:#0F1F35;border-radius:12px;">
+        <tr>
+          <td style="padding:14px 16px;" valign="middle">
+            <table cellpadding="0" cellspacing="0"><tr>
+              <td valign="middle" style="padding-right:14px;">
+                <div style="background:#ffffff;border-radius:6px;padding:5px 9px;white-space:nowrap;">${logoCell}</div>
+              </td>
+              <td valign="middle">
+                <p style="margin:0;font-size:13px;line-height:1.4;">
+                  <span style="color:rgba(255,255,255,0.5);font-weight:700;">Sponsored &mdash;</span>
+                  <span style="color:#ffffff;font-weight:600;">${message}</span>
+                </p>
+              </td>
+            </tr></table>
+          </td>
+          <td style="padding:14px 18px 14px 0;white-space:nowrap;" valign="middle" align="right">
+            <span style="font-size:12px;font-weight:800;color:#F07058;">Learn more &rarr;</span>
+          </td>
+        </tr>
+      </table>
+    </a>`
+}
+
 // Bottom special-offer callout — only rendered when the sponsor has an offer.
 export function buildSponsorBottom(s: Sponsor): string {
   if (!s.offer) return ''

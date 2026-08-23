@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendNewsletter } from '@/lib/newsletter-send'
-import { getActiveSponsor, buildSponsorTop, buildSponsorBottom } from '@/lib/newsletter-sponsor'
+import { getActiveSponsor, buildSponsorTop, buildSponsorBottom, buildSponsorMid } from '@/lib/newsletter-sponsor'
 import { getUpcomingEventsForNewsletter, buildUpcomingEventsBlock } from '@/lib/newsletter-events'
 import { getNewsletterStats, buildStatsBlock } from '@/lib/newsletter-stats'
 import { getRecentJobsForNewsletter, buildJobsBlock } from '@/lib/newsletter-jobs'
@@ -51,13 +51,14 @@ export async function GET(req: NextRequest) {
     const sponsor = newsletter.skip_sponsor ? null : await getActiveSponsor(adminDb)
     const sponsorTop = sponsor ? buildSponsorTop(sponsor) : ''
     const sponsorBottom = sponsor ? buildSponsorBottom(sponsor) : ''
+    const sponsorMid = sponsor ? buildSponsorMid(sponsor) : ''
 
     // Reaches all approved members (paginated), skips unsubscribes, throttled,
     // with a working unsubscribe link in every email.
     const { sent } = await sendNewsletter(
       adminDb,
       newsletter.subject,
-      (firstName, unsubscribeUrl) => buildEmailHtml(newsletter.subject, newsletter.body_html, firstName, unsubscribeUrl, newsletter.intro, sponsorTop, sponsorBottom, eventsBlock, statsBlock, jobsBlock, talentBlock),
+      (firstName, unsubscribeUrl) => buildEmailHtml(newsletter.subject, newsletter.body_html, firstName, unsubscribeUrl, newsletter.intro, sponsorTop, sponsorBottom, eventsBlock, statsBlock, jobsBlock, talentBlock, sponsorMid),
     )
     await adminDb.from('newsletters').update({
       status: 'sent',
@@ -70,8 +71,13 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ sent: results })
 }
 
-function buildEmailHtml(subject: string, bodyHtml: string, memberName: string, unsubscribeUrl: string, intro = '', sponsorTop = '', sponsorBottom = '', eventsBlock = '', statsBlock = '', jobsBlock = '', talentBlock = '') {
+// Matches the identical marker baked into body_html at save/schedule time by
+// compileSectionsToHtml in app/api/admin/newsletter/route.ts.
+const MID_AD_MARKER = '<!--MID_AD_SLOT-->'
+
+function buildEmailHtml(subject: string, rawBodyHtml: string, memberName: string, unsubscribeUrl: string, intro = '', sponsorTop = '', sponsorBottom = '', eventsBlock = '', statsBlock = '', jobsBlock = '', talentBlock = '', sponsorMidHtml = '') {
   const introLine = (intro || '').trim() || "Here's your weekly roundup from the TALK community."
+  const bodyHtml = rawBodyHtml.replace(MID_AD_MARKER, sponsorMidHtml)
   return `<!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">

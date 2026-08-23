@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendNewsletter } from '@/lib/newsletter-send'
-import { getActiveSponsor, buildSponsorTop, buildSponsorBottom } from '@/lib/newsletter-sponsor'
+import { getActiveSponsor, buildSponsorTop, buildSponsorBottom, buildSponsorMid } from '@/lib/newsletter-sponsor'
 import { getUpcomingEventsForNewsletter, buildUpcomingEventsBlock } from '@/lib/newsletter-events'
 import { getNewsletterStats, buildStatsBlock } from '@/lib/newsletter-stats'
 import { getRecentJobsForNewsletter, buildJobsBlock } from '@/lib/newsletter-jobs'
@@ -36,12 +36,22 @@ function styleImages(html: string): string {
 // the standard way to lay things out reliably across email clients) plus a
 // real rule above every section after the first, so each break reads as an
 // actual section change, not just a slightly different line of text.
+// MID_AD_MARKER sits right after the first section, regardless of how many
+// sections end up filled — a fixed, predictable "middle-ish" slot instead of
+// something that shifts around depending on section count. It's baked into
+// body_html at save/schedule time (so it's stable even for a scheduled send),
+// then swapped for the actual sponsor banner at send time — same freshness
+// as the top/bottom sponsor blocks, which are also only resolved right
+// before sending, not at compose time.
+const MID_AD_MARKER = '<!--MID_AD_SLOT-->'
+
 function compileSectionsToHtml(sections: Record<string, string>): string {
   const activeKeys = SECTION_ORDER.filter(key => sections[key] && sections[key] !== '<p></p>' && sections[key].trim())
   return activeKeys
     .map((key, i) => {
       const meta = SECTION_META[key]
       const topRule = i > 0 ? 'border-top:1px solid #e5e7eb;padding-top:30px;' : ''
+      const midAdSlot = i === 0 ? MID_AD_MARKER : ''
       return `
         <div style="margin-bottom:36px;${topRule}">
           <table cellpadding="0" cellspacing="0" style="margin-bottom:16px;"><tr>
@@ -50,13 +60,14 @@ function compileSectionsToHtml(sections: Record<string, string>): string {
             </td>
           </tr></table>
           <div style="color:#374151;font-size:15px;line-height:1.7;">${styleImages(sections[key])}</div>
-        </div>`
+        </div>
+        ${midAdSlot}`
     }).join('\n')
 }
 
-function buildEmailHtml(subject: string, sections: Record<string, string>, memberName: string, unsubscribeUrl: string, intro = '', sponsorTop = '', sponsorBottom = '', eventsBlock = '', statsBlock = '', jobsBlock = '', talentBlock = ''): string {
+function buildEmailHtml(subject: string, sections: Record<string, string>, memberName: string, unsubscribeUrl: string, intro = '', sponsorTop = '', sponsorBottom = '', eventsBlock = '', statsBlock = '', jobsBlock = '', talentBlock = '', sponsorMidHtml = ''): string {
   const introLine = (intro || '').trim() || "Here's your weekly roundup from the TALK community."
-  const sectionsHtml = compileSectionsToHtml(sections)
+  const sectionsHtml = compileSectionsToHtml(sections).replace(MID_AD_MARKER, sponsorMidHtml)
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -165,6 +176,7 @@ export async function POST(req: NextRequest) {
     const sponsor = skipSponsor ? null : await getActiveSponsor(adminDb)
     const sponsorTop = sponsor ? buildSponsorTop(sponsor) : ''
     const sponsorBottom = sponsor ? buildSponsorBottom(sponsor) : ''
+    const sponsorMid = sponsor ? buildSponsorMid(sponsor) : ''
     const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
     const upcomingEvents = await getUpcomingEventsForNewsletter(adminDb)
     const eventsBlock = buildUpcomingEventsBlock(upcomingEvents, origin)
@@ -174,7 +186,7 @@ export async function POST(req: NextRequest) {
     const jobsBlock = buildJobsBlock(recentJobs, origin)
     const openToWork = await getOpenToWorkForNewsletter(adminDb)
     const talentBlock = buildTalentBlock(openToWork, origin)
-    const html = buildEmailHtml(subject || 'TALK newsletter', sections ?? {}, 'there', unsubUrl(origin, to), intro, sponsorTop, sponsorBottom, eventsBlock, statsBlock, jobsBlock, talentBlock)
+    const html = buildEmailHtml(subject || 'TALK newsletter', sections ?? {}, 'there', unsubUrl(origin, to), intro, sponsorTop, sponsorBottom, eventsBlock, statsBlock, jobsBlock, talentBlock, sponsorMid)
     const resend = new Resend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({
       from: process.env.FROM_EMAIL ?? 'TALK Community <onboarding@resend.dev>',
@@ -221,6 +233,7 @@ export async function POST(req: NextRequest) {
   const sponsor = skipSponsor ? null : await getActiveSponsor(adminDb)
   const sponsorTop = sponsor ? buildSponsorTop(sponsor) : ''
   const sponsorBottom = sponsor ? buildSponsorBottom(sponsor) : ''
+  const sponsorMid = sponsor ? buildSponsorMid(sponsor) : ''
 
   const sendOrigin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
   const upcomingEvents = await getUpcomingEventsForNewsletter(adminDb)
@@ -237,7 +250,7 @@ export async function POST(req: NextRequest) {
   const { sent, skipped, total } = await sendNewsletter(
     adminDb,
     subject,
-    (firstName, unsubscribeUrl) => buildEmailHtml(subject, sections ?? {}, firstName, unsubscribeUrl, intro, sponsorTop, sponsorBottom, eventsBlock, statsBlock, jobsBlock, talentBlock),
+    (firstName, unsubscribeUrl) => buildEmailHtml(subject, sections ?? {}, firstName, unsubscribeUrl, intro, sponsorTop, sponsorBottom, eventsBlock, statsBlock, jobsBlock, talentBlock, sponsorMid),
   )
 
   if (total === 0) return NextResponse.json({ error: 'No eligible members found' }, { status: 400 })
