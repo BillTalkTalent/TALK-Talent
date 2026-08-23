@@ -74,6 +74,10 @@ export default function NewsletterForm({
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([])
   type PulseStats = { newMembers: number; forumPosts: number; eventRsvps: number; newJobs: number }
   const [pulseStats, setPulseStats] = useState<PulseStats | null>(null)
+  type RecentJob = { id: string; title: string; company: string; location: string | null; is_remote: boolean }
+  const [recentJobs, setRecentJobs] = useState<RecentJob[]>([])
+  type OpenToWork = { user_id: string; headline: string; full_name: string | null; title: string | null; company: string | null }
+  const [openToWork, setOpenToWork] = useState<OpenToWork[]>([])
   const [testEmail, setTestEmail] = useState('')
   const [sendingTest, setSendingTest] = useState(false)
 
@@ -110,6 +114,35 @@ export default function NewsletterForm({
       .order('event_date', { ascending: true })
       .limit(3)
       .then(({ data }: { data: UpcomingEvent[] | null }) => setUpcomingEvents(data ?? []))
+  }, [])
+
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(createClient() as any)
+      .from('job_posts')
+      .select('id, title, company, location, is_remote')
+      .eq('status', 'active')
+      .order('is_featured', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(3)
+      .then(({ data }: { data: RecentJob[] | null }) => setRecentJobs(data ?? []))
+  }, [])
+
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(createClient() as any)
+      .from('talent_pool')
+      .select('user_id, headline, profiles(full_name, title, company)')
+      .order('updated_at', { ascending: false })
+      .limit(3)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .then(({ data }: { data: any[] | null }) => setOpenToWork((data ?? []).map(row => ({
+        user_id: row.user_id,
+        headline: row.headline,
+        full_name: row.profiles?.full_name ?? null,
+        title: row.profiles?.title ?? null,
+        company: row.profiles?.company ?? null,
+      }))))
   }, [])
 
   useEffect(() => {
@@ -439,6 +472,43 @@ export default function NewsletterForm({
                             </div>
                           )
                         })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {/* New jobs */}
+                {recentJobs.length > 0 && (
+                  <div className="bg-white px-8 pt-5 pb-1">
+                    <div className="rounded-xl border border-zinc-100 px-6 py-5">
+                      <p className="text-[10px] font-black uppercase tracking-[0.14em] text-zinc-400 mb-3">New jobs this week</p>
+                      <div className="space-y-3">
+                        {recentJobs.map(j => (
+                          <div key={j.id}>
+                            <p className="text-sm font-bold text-zinc-900 leading-snug">{j.title}</p>
+                            <p className="text-xs text-zinc-500 mt-0.5">
+                              {j.company} · {j.is_remote ? 'Remote' : (j.location || 'Location TBD')}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {/* Members open to work */}
+                {openToWork.length > 0 && (
+                  <div className="bg-white px-8 pt-5 pb-1">
+                    <div className="rounded-xl border border-zinc-100 px-6 py-5">
+                      <p className="text-[10px] font-black uppercase tracking-[0.14em] text-zinc-400 mb-3">Members open to work</p>
+                      <div className="space-y-3">
+                        {openToWork.map(t => (
+                          <div key={t.user_id}>
+                            <p className="text-sm font-bold text-zinc-900 leading-snug">{t.full_name ?? 'A TALK member'}</p>
+                            {(t.title || t.company) && (
+                              <p className="text-xs text-zinc-500 mt-0.5">{[t.title, t.company].filter(Boolean).join(' at ')}</p>
+                            )}
+                            <p className="text-xs text-zinc-600 italic mt-0.5">&ldquo;{t.headline}&rdquo;</p>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>

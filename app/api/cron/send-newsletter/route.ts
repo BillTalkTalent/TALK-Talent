@@ -4,6 +4,8 @@ import { sendNewsletter } from '@/lib/newsletter-send'
 import { getActiveSponsor, buildSponsorTop, buildSponsorBottom } from '@/lib/newsletter-sponsor'
 import { getUpcomingEventsForNewsletter, buildUpcomingEventsBlock } from '@/lib/newsletter-events'
 import { getNewsletterStats, buildStatsBlock } from '@/lib/newsletter-stats'
+import { getRecentJobsForNewsletter, buildJobsBlock } from '@/lib/newsletter-jobs'
+import { getOpenToWorkForNewsletter, buildTalentBlock } from '@/lib/newsletter-talent'
 
 export const maxDuration = 300
 
@@ -39,6 +41,10 @@ export async function GET(req: NextRequest) {
   const eventsBlock = buildUpcomingEventsBlock(upcomingEvents, origin)
   const stats = await getNewsletterStats(adminDb)
   const statsBlock = buildStatsBlock(stats)
+  const recentJobs = await getRecentJobsForNewsletter(adminDb)
+  const jobsBlock = buildJobsBlock(recentJobs, origin)
+  const openToWork = await getOpenToWorkForNewsletter(adminDb)
+  const talentBlock = buildTalentBlock(openToWork, origin)
 
   const results = []
   for (const newsletter of newsletters) {
@@ -51,7 +57,7 @@ export async function GET(req: NextRequest) {
     const { sent } = await sendNewsletter(
       adminDb,
       newsletter.subject,
-      (firstName, unsubscribeUrl) => buildEmailHtml(newsletter.subject, newsletter.body_html, firstName, unsubscribeUrl, newsletter.intro, sponsorTop, sponsorBottom, eventsBlock, statsBlock),
+      (firstName, unsubscribeUrl) => buildEmailHtml(newsletter.subject, newsletter.body_html, firstName, unsubscribeUrl, newsletter.intro, sponsorTop, sponsorBottom, eventsBlock, statsBlock, jobsBlock, talentBlock),
     )
     await adminDb.from('newsletters').update({
       status: 'sent',
@@ -64,7 +70,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ sent: results })
 }
 
-function buildEmailHtml(subject: string, bodyHtml: string, memberName: string, unsubscribeUrl: string, intro = '', sponsorTop = '', sponsorBottom = '', eventsBlock = '', statsBlock = '') {
+function buildEmailHtml(subject: string, bodyHtml: string, memberName: string, unsubscribeUrl: string, intro = '', sponsorTop = '', sponsorBottom = '', eventsBlock = '', statsBlock = '', jobsBlock = '', talentBlock = '') {
   const introLine = (intro || '').trim() || "Here's your weekly roundup from the TALK community."
   return `<!DOCTYPE html>
 <html>
@@ -90,6 +96,8 @@ function buildEmailHtml(subject: string, bodyHtml: string, memberName: string, u
   </td></tr>
   ${sponsorTop}
   ${eventsBlock}
+  ${jobsBlock}
+  ${talentBlock}
   ${statsBlock}
   <tr><td style="background:#fff;padding:32px 36px 0;">
     <p style="margin:0 0 6px;color:#374151;font-size:15px;">Hi ${memberName},</p>

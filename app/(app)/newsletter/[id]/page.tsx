@@ -6,15 +6,22 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { formatInZone } from '@/lib/timezone'
 import { getUpcomingEventsForNewsletter } from '@/lib/newsletter-events'
 import { getNewsletterStats } from '@/lib/newsletter-stats'
+import { getRecentJobsForNewsletter } from '@/lib/newsletter-jobs'
 
 // Public, unauthenticated teaser for a sent newsletter — the landing page a
 // LinkedIn share link points to. Deliberately shows only public-safe
-// content (intro, real upcoming events, real weekly stats, a short teaser
-// of the TALK News section) and gates the rest behind "Apply to join" —
-// same reasoning as the public event teaser: real content builds trust,
-// but member-highlight/industry-news/career sections aren't meant for an
-// outside audience. Uses the service-role client since newsletters RLS is
-// admin-only.
+// content (intro, real upcoming events, real open jobs, real weekly stats,
+// a short teaser of the TALK News section) and gates the rest behind
+// "Apply to join" — same reasoning as the public event teaser: real content
+// builds trust, but member-highlight/industry-news/career sections aren't
+// meant for an outside audience. Uses the service-role client since
+// newsletters RLS is admin-only.
+//
+// Deliberately NOT included here: the "members open to work" block that the
+// actual email gets. Open job posts are company-facing and fine for anyone
+// to see, but the talent pool surfaces real members' names next to "actively
+// job searching" — members opted into sharing that with fellow approved
+// members, not with anonymous visitors to a public marketing page.
 export const dynamic = 'force-dynamic'
 
 const N = {
@@ -44,9 +51,10 @@ export default async function PublicNewsletterPage({ params }: { params: Promise
   // plain drafts, so an in-progress edit can't leak via a guessed ID.
   if (!newsletter || (newsletter.status !== 'sent' && newsletter.status !== 'scheduled')) notFound()
 
-  const [upcomingEvents, stats] = await Promise.all([
+  const [upcomingEvents, stats, recentJobs] = await Promise.all([
     getUpcomingEventsForNewsletter(adminDb, 3),
     getNewsletterStats(adminDb),
+    getRecentJobsForNewsletter(adminDb, 3),
   ])
 
   const sections = newsletter.sections_json ?? {}
@@ -121,6 +129,30 @@ export default async function PublicNewsletterPage({ params }: { params: Promise
                   </Link>
                 )
               })}
+            </div>
+          </div>
+        )}
+
+        {recentJobs.length > 0 && (
+          <div className="mb-10">
+            <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: N.muted }}>New jobs this week</p>
+            <div className="rounded-2xl border overflow-hidden" style={{ borderColor: N.border, background: N.cardBg }}>
+              {recentJobs.map((j, i) => (
+                <Link
+                  key={j.id}
+                  href={`/jobs/${j.id}`}
+                  className="flex items-center gap-3 px-5 py-3.5 hover:bg-black/[0.02] transition-colors"
+                  style={i < recentJobs.length - 1 ? { borderBottom: `1px solid ${N.border}` } : undefined}
+                >
+                  <Briefcase className="size-4 shrink-0" style={{ color: N.navy }} />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold truncate" style={{ color: N.text }}>{j.title}</p>
+                    <p className="text-xs" style={{ color: N.muted }}>
+                      {j.company} · {j.is_remote ? 'Remote' : (j.location || 'Location TBD')}
+                    </p>
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
         )}

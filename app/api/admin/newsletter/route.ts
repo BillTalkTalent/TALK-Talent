@@ -5,6 +5,8 @@ import { sendNewsletter } from '@/lib/newsletter-send'
 import { getActiveSponsor, buildSponsorTop, buildSponsorBottom } from '@/lib/newsletter-sponsor'
 import { getUpcomingEventsForNewsletter, buildUpcomingEventsBlock } from '@/lib/newsletter-events'
 import { getNewsletterStats, buildStatsBlock } from '@/lib/newsletter-stats'
+import { getRecentJobsForNewsletter, buildJobsBlock } from '@/lib/newsletter-jobs'
+import { getOpenToWorkForNewsletter, buildTalentBlock } from '@/lib/newsletter-talent'
 import { unsubUrl } from '@/lib/unsubscribe'
 import { Resend } from 'resend'
 
@@ -43,7 +45,7 @@ function compileSectionsToHtml(sections: Record<string, string>): string {
     }).join('\n')
 }
 
-function buildEmailHtml(subject: string, sections: Record<string, string>, memberName: string, unsubscribeUrl: string, intro = '', sponsorTop = '', sponsorBottom = '', eventsBlock = '', statsBlock = ''): string {
+function buildEmailHtml(subject: string, sections: Record<string, string>, memberName: string, unsubscribeUrl: string, intro = '', sponsorTop = '', sponsorBottom = '', eventsBlock = '', statsBlock = '', jobsBlock = '', talentBlock = ''): string {
   const introLine = (intro || '').trim() || "Here's your weekly roundup from the TALK community."
   const sectionsHtml = compileSectionsToHtml(sections)
   return `<!DOCTYPE html>
@@ -90,6 +92,10 @@ function buildEmailHtml(subject: string, sections: Record<string, string>, membe
   ${sponsorTop}
 
   ${eventsBlock}
+
+  ${jobsBlock}
+
+  ${talentBlock}
 
   ${statsBlock}
 
@@ -155,7 +161,11 @@ export async function POST(req: NextRequest) {
     const eventsBlock = buildUpcomingEventsBlock(upcomingEvents, origin)
     const stats = await getNewsletterStats(adminDb)
     const statsBlock = buildStatsBlock(stats)
-    const html = buildEmailHtml(subject || 'TALK newsletter', sections ?? {}, 'there', unsubUrl(origin, to), intro, sponsorTop, sponsorBottom, eventsBlock, statsBlock)
+    const recentJobs = await getRecentJobsForNewsletter(adminDb)
+    const jobsBlock = buildJobsBlock(recentJobs, origin)
+    const openToWork = await getOpenToWorkForNewsletter(adminDb)
+    const talentBlock = buildTalentBlock(openToWork, origin)
+    const html = buildEmailHtml(subject || 'TALK newsletter', sections ?? {}, 'there', unsubUrl(origin, to), intro, sponsorTop, sponsorBottom, eventsBlock, statsBlock, jobsBlock, talentBlock)
     const resend = new Resend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({
       from: process.env.FROM_EMAIL ?? 'TALK Community <onboarding@resend.dev>',
@@ -208,13 +218,17 @@ export async function POST(req: NextRequest) {
   const eventsBlock = buildUpcomingEventsBlock(upcomingEvents, sendOrigin)
   const stats = await getNewsletterStats(adminDb)
   const statsBlock = buildStatsBlock(stats)
+  const recentJobs = await getRecentJobsForNewsletter(adminDb)
+  const jobsBlock = buildJobsBlock(recentJobs, sendOrigin)
+  const openToWork = await getOpenToWorkForNewsletter(adminDb)
+  const talentBlock = buildTalentBlock(openToWork, sendOrigin)
 
   // Reaches all approved members (paginated), skips unsubscribes, throttled,
   // with a working unsubscribe link in every email.
   const { sent, skipped, total } = await sendNewsletter(
     adminDb,
     subject,
-    (firstName, unsubscribeUrl) => buildEmailHtml(subject, sections ?? {}, firstName, unsubscribeUrl, intro, sponsorTop, sponsorBottom, eventsBlock, statsBlock),
+    (firstName, unsubscribeUrl) => buildEmailHtml(subject, sections ?? {}, firstName, unsubscribeUrl, intro, sponsorTop, sponsorBottom, eventsBlock, statsBlock, jobsBlock, talentBlock),
   )
 
   if (total === 0) return NextResponse.json({ error: 'No eligible members found' }, { status: 400 })
