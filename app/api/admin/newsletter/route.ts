@@ -90,22 +90,12 @@ function buildEmailHtml(subject: string, sections: Record<string, string>, membe
 <tr><td align="center">
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:580px;">
 
-  <!-- Header -->
-  <tr><td style="background:linear-gradient(90deg,#0d0d0d 0%,#1a1a2e 100%);border-radius:16px 16px 0 0;padding:28px 36px;">
-    <table cellpadding="0" cellspacing="0">
-      <tr>
-        <td style="vertical-align:middle;padding-right:10px;">
-          <svg width="28" height="28" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="34" height="34" rx="9" fill="#F07058"/>
-            <rect x="8" y="12" width="18" height="3" rx="1.5" fill="white"/>
-            <rect x="8" y="18.5" width="13" height="3" rx="1.5" fill="white"/>
-          </svg>
-        </td>
-        <td style="vertical-align:middle;">
-          <span style="color:#fff;font-size:22px;font-weight:900;letter-spacing:-0.02em;">TALK</span>
-        </td>
-      </tr>
-    </table>
+  <!-- Header — matches the real site nav (components/app-topnav.tsx): navy
+       gradient background, coral "TA" + white "LK" wordmark. This used to be
+       a generic near-black gradient with plain white "TALK" text, which
+       looked like a different, unbranded product next to the actual site. -->
+  <tr><td style="background:linear-gradient(90deg,#0F1F35 0%,#162D4A 100%);border-radius:16px 16px 0 0;padding:28px 36px;">
+    <span style="font-size:22px;font-weight:900;letter-spacing:-0.02em;"><span style="color:#E8503A;">TA</span><span style="color:#ffffff;">LK</span></span>
     <p style="margin:10px 0 0;color:rgba(255,255,255,0.5);font-size:13px;line-height:1.4;">${subject}</p>
   </td></tr>
 

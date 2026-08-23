@@ -96,8 +96,8 @@ function buildEmailHtml(subject: string, rawBodyHtml: string, memberName: string
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:32px 16px;">
 <tr><td align="center">
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:580px;">
-  <tr><td style="background:linear-gradient(90deg,#0d0d0d 0%,#1a1a2e 100%);border-radius:16px 16px 0 0;padding:24px 36px;">
-    <span style="color:#fff;font-size:20px;font-weight:900;">TALK</span>
+  <tr><td style="background:linear-gradient(90deg,#0F1F35 0%,#162D4A 100%);border-radius:16px 16px 0 0;padding:24px 36px;">
+    <span style="font-size:20px;font-weight:900;"><span style="color:#E8503A;">TA</span><span style="color:#ffffff;">LK</span></span>
     <p style="margin:8px 0 0;color:rgba(255,255,255,0.5);font-size:13px;">${subject}</p>
   </td></tr>
   ${statsBlock}
