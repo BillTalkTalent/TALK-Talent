@@ -541,13 +541,14 @@ export default function NewsletterForm({
                     <p className="text-zinc-500 text-sm mt-1">{intro.trim() || DEFAULT_INTRO}</p>
                     <hr className="border-zinc-100 mt-4" />
                   </div>
-                  {filledSections.map(s => (
-                    <div key={s.key}>
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="h-0.5 w-5 rounded" style={{ background: s.color }} />
-                        <span className="text-xs font-black uppercase tracking-widest" style={{ color: s.color }}>{s.label}</span>
-                        <div className="h-0.5 flex-1 rounded bg-zinc-100" />
-                      </div>
+                  {filledSections.map((s, i) => (
+                    <div key={s.key} className={i > 0 ? 'pt-7 border-t border-zinc-200' : undefined}>
+                      <span
+                        className="inline-block text-[11px] font-black uppercase tracking-widest text-white rounded-md px-3.5 py-1.5 mb-3"
+                        style={{ background: s.color }}
+                      >
+                        {s.label}
+                      </span>
                       <div
                         className="prose prose-sm max-w-none text-zinc-700"
                         dangerouslySetInnerHTML={{ __html: sections[s.key] }}

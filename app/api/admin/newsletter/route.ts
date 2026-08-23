@@ -28,18 +28,27 @@ function styleImages(html: string): string {
   return html.replace(/<img /g, '<img style="max-width:100%;height:auto;border-radius:8px;display:block;margin:14px auto;" ')
 }
 
+// Section headers used to be a thin colored dash + 10px uppercase text
+// connected by a hairline — easy to miss scanning an inbox, and built with
+// display:flex, which Outlook desktop (Word's rendering engine) and several
+// other email clients don't support at all, so it could silently collapse
+// there. Replaced with a solid-color label badge (table-based, not flex —
+// the standard way to lay things out reliably across email clients) plus a
+// real rule above every section after the first, so each break reads as an
+// actual section change, not just a slightly different line of text.
 function compileSectionsToHtml(sections: Record<string, string>): string {
-  return SECTION_ORDER
-    .filter(key => sections[key] && sections[key] !== '<p></p>' && sections[key].trim())
-    .map(key => {
+  const activeKeys = SECTION_ORDER.filter(key => sections[key] && sections[key] !== '<p></p>' && sections[key].trim())
+  return activeKeys
+    .map((key, i) => {
       const meta = SECTION_META[key]
+      const topRule = i > 0 ? 'border-top:1px solid #e5e7eb;padding-top:30px;' : ''
       return `
-        <div style="margin-bottom:32px;">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
-            <div style="height:3px;width:20px;border-radius:99px;background:${meta.color};display:inline-block;"></div>
-            <span style="font-size:10px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:${meta.color};">${meta.label}</span>
-            <div style="height:1px;flex:1;background:#f3f4f6;display:inline-block;"></div>
-          </div>
+        <div style="margin-bottom:36px;${topRule}">
+          <table cellpadding="0" cellspacing="0" style="margin-bottom:16px;"><tr>
+            <td style="background:${meta.color};border-radius:6px;padding:6px 14px;">
+              <span style="font-size:11px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:#ffffff;">${meta.label}</span>
+            </td>
+          </tr></table>
           <div style="color:#374151;font-size:15px;line-height:1.7;">${styleImages(sections[key])}</div>
         </div>`
     }).join('\n')
