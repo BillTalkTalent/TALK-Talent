@@ -19,6 +19,7 @@ export type SponsorInitial = {
   offer_url: string | null
   offer_cta: string | null
   expires_at: string
+  placement: 'masthead' | 'mid'
 }
 
 export default function SponsorForm({
@@ -34,6 +35,7 @@ export default function SponsorForm({
   const [logoPreview, setLogoPreview] = useState<string | null>(initial?.logo_url ?? null)
   const [logoRemoved, setLogoRemoved] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [placement, setPlacement] = useState<'masthead' | 'mid'>(initial?.placement ?? 'masthead')
   const editing = !!initial
 
   function pickLogo(e: React.ChangeEvent<HTMLInputElement>) {
@@ -83,6 +85,36 @@ export default function SponsorForm({
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-1.5">
+        <Label>Placement *</Label>
+        <div className="grid grid-cols-2 gap-2">
+          {([
+            { value: 'masthead' as const, label: 'Masthead', desc: 'Top banner + bottom offer' },
+            { value: 'mid' as const, label: 'Mid-newsletter', desc: 'Compact banner mid-email' },
+          ]).map(opt => (
+            <label
+              key={opt.value}
+              className={`flex flex-col gap-0.5 rounded-lg border px-3 py-2.5 cursor-pointer text-sm ${
+                placement === opt.value ? 'border-[#0F1F35] bg-[#0F1F35]/5' : 'border-zinc-200 hover:border-zinc-300'
+              }`}
+            >
+              <span className="flex items-center gap-2 font-semibold text-zinc-900">
+                <input
+                  type="radio"
+                  name="placement"
+                  value={opt.value}
+                  checked={placement === opt.value}
+                  onChange={() => setPlacement(opt.value)}
+                  className="size-3.5"
+                />
+                {opt.label}
+              </span>
+              <span className="text-xs text-zinc-400 pl-5.5">{opt.desc}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
         <Label htmlFor="name">Sponsor name *</Label>
         <Input id="name" name="name" required defaultValue={initial?.name ?? ''} placeholder="Acme ATS" />
       </div>
@@ -115,27 +147,31 @@ export default function SponsorForm({
       <div className="space-y-1.5">
         <Label htmlFor="blurb">Blurb (one line)</Label>
         <Input id="blurb" name="blurb" maxLength={140} defaultValue={initial?.blurb ?? ''} placeholder="The ATS built for talent teams." />
-        <p className="text-xs text-zinc-400">Shown in the &ldquo;Presented by&rdquo; masthead at the top.</p>
+        <p className="text-xs text-zinc-400">
+          {placement === 'mid' ? 'Shown in the compact mid-newsletter banner.' : 'Shown in the "Presented by" masthead at the top.'}
+        </p>
       </div>
 
-      {/* Optional special offer — renders as a callout at the bottom */}
-      <div className="rounded-xl border border-zinc-200 p-4 space-y-3">
-        <p className="text-sm font-semibold text-zinc-800">Special offer <span className="font-normal text-zinc-400">(optional — shows at the bottom)</span></p>
-        <div className="space-y-1.5">
-          <Label htmlFor="offer">Offer</Label>
-          <Input id="offer" name="offer" maxLength={160} defaultValue={initial?.offer ?? ''} placeholder="30% off your first year for TALK members." />
-        </div>
-        <div className="grid grid-cols-2 gap-3">
+      {/* Optional special offer — only applies to the masthead placement (renders as a callout at the bottom) */}
+      {placement === 'masthead' && (
+        <div className="rounded-xl border border-zinc-200 p-4 space-y-3">
+          <p className="text-sm font-semibold text-zinc-800">Special offer <span className="font-normal text-zinc-400">(optional — shows at the bottom)</span></p>
           <div className="space-y-1.5">
-            <Label htmlFor="offer_url" className="text-xs">Offer link</Label>
-            <Input id="offer_url" name="offer_url" type="url" defaultValue={initial?.offer_url ?? ''} placeholder="https://acme.com/talk" />
+            <Label htmlFor="offer">Offer</Label>
+            <Input id="offer" name="offer" maxLength={160} defaultValue={initial?.offer ?? ''} placeholder="30% off your first year for TALK members." />
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="offer_cta" className="text-xs">Button label</Label>
-            <Input id="offer_cta" name="offer_cta" maxLength={30} defaultValue={initial?.offer_cta ?? ''} placeholder="Claim offer" />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="offer_url" className="text-xs">Offer link</Label>
+              <Input id="offer_url" name="offer_url" type="url" defaultValue={initial?.offer_url ?? ''} placeholder="https://acme.com/talk" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="offer_cta" className="text-xs">Button label</Label>
+              <Input id="offer_cta" name="offer_cta" maxLength={30} defaultValue={initial?.offer_cta ?? ''} placeholder="Claim offer" />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="space-y-1.5 max-w-[200px]">
         <Label htmlFor="expires_at">Runs until *</Label>

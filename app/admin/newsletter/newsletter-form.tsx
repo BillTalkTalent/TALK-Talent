@@ -69,6 +69,7 @@ export default function NewsletterForm({
     offer: string | null; offer_url: string | null; offer_cta: string | null; expires_at: string
   }
   const [activeSponsor, setActiveSponsor] = useState<ActiveSponsor | null>(null)
+  const [activeMidSponsor, setActiveMidSponsor] = useState<ActiveSponsor | null>(null)
   const [skipSponsor, setSkipSponsor] = useState(false)
   type UpcomingEvent = { id: string; title: string; event_date: string; timezone: string | null; venue_name: string | null; location: string | null; is_virtual: boolean }
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([])
@@ -93,13 +94,21 @@ export default function NewsletterForm({
   useEffect(() => {
     const today = new Date().toISOString().slice(0, 10)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ;(createClient() as any)
-      .from('newsletter_sponsors')
+    const db = createClient() as any
+    db.from('newsletter_sponsors')
       .select('name, logo_url, url, blurb, offer, offer_url, offer_cta, expires_at')
+      .eq('placement', 'masthead')
       .gte('expires_at', today)
       .order('created_at', { ascending: false })
       .limit(1)
       .then(({ data }: { data: ActiveSponsor[] | null }) => setActiveSponsor(data?.[0] ?? null))
+    db.from('newsletter_sponsors')
+      .select('name, logo_url, url, blurb, offer, offer_url, offer_cta, expires_at')
+      .eq('placement', 'mid')
+      .gte('expires_at', today)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .then(({ data }: { data: ActiveSponsor[] | null }) => setActiveMidSponsor(data?.[0] ?? null))
   }, [])
 
   useEffect(() => {
@@ -167,6 +176,7 @@ export default function NewsletterForm({
   }, [])
 
   const showSponsor = activeSponsor && !skipSponsor
+  const showMidSponsor = activeMidSponsor && !skipSponsor
 
   const showToast = (type: 'success' | 'error', msg: string) => {
     setToast({ type, msg })
@@ -336,22 +346,32 @@ export default function NewsletterForm({
 
       {/* Sponsor banner */}
       <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm px-6 py-4 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3 min-w-0">
-          <Megaphone className="size-4 text-zinc-400 shrink-0" />
-          {activeSponsor ? (
-            <p className="text-sm text-zinc-700 truncate">
-              Sponsored by <strong className="text-zinc-900">{activeSponsor.name}</strong>
-              <span className="text-zinc-400"> · top masthead{activeSponsor.offer ? ' + bottom offer' : ''} · runs until {activeSponsor.expires_at}</span>
-            </p>
-          ) : (
-            <p className="text-sm text-zinc-400">No active sponsor.</p>
-          )}
+        <div className="flex items-start gap-3 min-w-0">
+          <Megaphone className="size-4 text-zinc-400 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            {activeSponsor ? (
+              <p className="text-sm text-zinc-700 truncate">
+                Sponsored by <strong className="text-zinc-900">{activeSponsor.name}</strong>
+                <span className="text-zinc-400"> · masthead{activeSponsor.offer ? ' + bottom offer' : ''} · runs until {activeSponsor.expires_at}</span>
+              </p>
+            ) : (
+              <p className="text-sm text-zinc-400">No active masthead sponsor.</p>
+            )}
+            {activeMidSponsor ? (
+              <p className="text-sm text-zinc-700 truncate">
+                Sponsored by <strong className="text-zinc-900">{activeMidSponsor.name}</strong>
+                <span className="text-zinc-400"> · mid-newsletter banner · runs until {activeMidSponsor.expires_at}</span>
+              </p>
+            ) : (
+              <p className="text-sm text-zinc-400">No active mid-newsletter sponsor.</p>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-3 shrink-0">
-          {activeSponsor && (
+          {(activeSponsor || activeMidSponsor) && (
             <label className="flex items-center gap-1.5 text-xs text-zinc-500 cursor-pointer">
               <input type="checkbox" checked={skipSponsor} onChange={e => setSkipSponsor(e.target.checked)} className="size-3.5" />
-              Skip for this edition
+              Skip both for this edition
             </label>
           )}
           <a href="/admin/newsletter/sponsors" className="text-xs font-semibold text-[#E8503A] hover:underline whitespace-nowrap">Manage sponsors →</a>
@@ -558,10 +578,11 @@ export default function NewsletterForm({
                           dangerouslySetInnerHTML={{ __html: sections[s.key] }}
                         />
                       </div>
-                      {/* Mid-newsletter sponsor banner — sits right after the first section */}
-                      {i === 0 && showSponsor && activeSponsor!.url && (
+                      {/* Mid-newsletter sponsor banner — sits right after the first section.
+                          Independent from the masthead sponsor above/below — its own placement. */}
+                      {i === 0 && showMidSponsor && activeMidSponsor!.url && (
                         <a
-                          href={activeSponsor!.url}
+                          href={activeMidSponsor!.url}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="block mt-6 rounded-xl bg-[#0F1F35] overflow-hidden no-underline"
@@ -569,16 +590,16 @@ export default function NewsletterForm({
                           <div className="flex items-center justify-between gap-3 px-4 py-3.5">
                             <div className="flex items-center gap-3.5 min-w-0">
                               <div className="bg-white rounded-md px-2.5 py-1 shrink-0">
-                                {activeSponsor!.logo_url ? (
+                                {activeMidSponsor!.logo_url ? (
                                   // eslint-disable-next-line @next/next/no-img-element
-                                  <img src={activeSponsor!.logo_url} alt={activeSponsor!.name} className="h-4 w-auto block" />
+                                  <img src={activeMidSponsor!.logo_url} alt={activeMidSponsor!.name} className="h-4 w-auto block" />
                                 ) : (
-                                  <span className="text-xs font-black text-[#0F1F35] whitespace-nowrap">{activeSponsor!.name}</span>
+                                  <span className="text-xs font-black text-[#0F1F35] whitespace-nowrap">{activeMidSponsor!.name}</span>
                                 )}
                               </div>
                               <p className="text-[13px] leading-tight truncate">
                                 <span className="text-white/50 font-bold">Sponsored —</span>{' '}
-                                <span className="text-white font-semibold">{activeSponsor!.blurb || `Check out ${activeSponsor!.name}`}</span>
+                                <span className="text-white font-semibold">{activeMidSponsor!.blurb || `Check out ${activeMidSponsor!.name}`}</span>
                               </p>
                             </div>
                             <span className="text-xs font-extrabold text-[#F07058] shrink-0">Learn more →</span>

@@ -1,6 +1,8 @@
 // The active newsletter sponsor + its email callouts (top masthead + optional
 // bottom special-offer block).
 
+export type SponsorPlacement = 'masthead' | 'mid'
+
 export type Sponsor = {
   id: string
   name: string
@@ -11,17 +13,22 @@ export type Sponsor = {
   offer_url: string | null
   offer_cta: string | null
   expires_at: string
+  placement: SponsorPlacement
 }
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
-// The one active sponsor: not past its "runs until" date, newest wins.
+// The active sponsor for a given placement: not past its "runs until" date,
+// newest wins. 'masthead' and 'mid' each run their own sponsor independently
+// — promoting the same vendor in all three ad spots (top, mid, bottom) reads
+// as repetitive once there's more than one sponsor.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function getActiveSponsor(adminDb: any): Promise<Sponsor | null> {
+export async function getActiveSponsor(adminDb: any, placement: SponsorPlacement = 'masthead'): Promise<Sponsor | null> {
   const today = new Date().toISOString().slice(0, 10)
   const { data } = await adminDb
     .from('newsletter_sponsors')
     .select('*')
+    .eq('placement', placement)
     .gte('expires_at', today)
     .order('created_at', { ascending: false })
     .limit(1)

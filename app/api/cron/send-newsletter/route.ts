@@ -48,10 +48,11 @@ export async function GET(req: NextRequest) {
 
   const results = []
   for (const newsletter of newsletters) {
-    const sponsor = newsletter.skip_sponsor ? null : await getActiveSponsor(adminDb)
+    const sponsor = newsletter.skip_sponsor ? null : await getActiveSponsor(adminDb, 'masthead')
+    const midSponsor = newsletter.skip_sponsor ? null : await getActiveSponsor(adminDb, 'mid')
     const sponsorTop = sponsor ? buildSponsorTop(sponsor) : ''
     const sponsorBottom = sponsor ? buildSponsorBottom(sponsor) : ''
-    const sponsorMid = sponsor ? buildSponsorMid(sponsor) : ''
+    const sponsorMid = midSponsor ? buildSponsorMid(midSponsor) : ''
 
     // Reaches all approved members (paginated), skips unsubscribes, throttled,
     // with a working unsubscribe link in every email.

@@ -21,15 +21,20 @@ async function saveSponsor(fd: FormData) {
   await requireAdmin()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const admin = createAdminClient() as any
+  const placement = (fd.get('placement') as string) === 'mid' ? 'mid' : 'masthead'
   const payload = {
     name: (fd.get('name') as string)?.trim(),
     logo_url: (fd.get('logo_url') as string) || null,
     url: (fd.get('url') as string) || null,
     blurb: (fd.get('blurb') as string) || null,
-    offer: (fd.get('offer') as string)?.trim() || null,
-    offer_url: (fd.get('offer_url') as string) || null,
-    offer_cta: (fd.get('offer_cta') as string)?.trim() || null,
+    // The special-offer callout only ever renders for the masthead placement
+    // (buildSponsorBottom / the bottom-of-email slot) — clear it for a 'mid'
+    // sponsor so the admin list doesn't show a "has offer" badge that's dead.
+    offer: placement === 'masthead' ? (fd.get('offer') as string)?.trim() || null : null,
+    offer_url: placement === 'masthead' ? (fd.get('offer_url') as string) || null : null,
+    offer_cta: placement === 'masthead' ? (fd.get('offer_cta') as string)?.trim() || null : null,
     expires_at: fd.get('expires_at') as string,
+    placement,
   }
   const id = fd.get('id') as string | null
   if (id) {
@@ -66,7 +71,11 @@ export default async function SponsorsPage({
     .order('created_at', { ascending: false })
 
   const today = new Date().toISOString().slice(0, 10)
-  const activeId = (sponsors ?? []).find((s: { expires_at: string }) => s.expires_at >= today)?.id ?? null
+  // One active sponsor per placement — the newest un-expired 'masthead' sponsor
+  // and the newest un-expired 'mid' sponsor can run at the same time, so the
+  // top/bottom ad and the mid-newsletter banner don't have to be the same vendor.
+  const activeMastheadId = (sponsors ?? []).find((s: { expires_at: string; placement: string }) => s.placement === 'masthead' && s.expires_at >= today)?.id ?? null
+  const activeMidId = (sponsors ?? []).find((s: { expires_at: string; placement: string }) => s.placement === 'mid' && s.expires_at >= today)?.id ?? null
   const editing: SponsorInitial | null =
     (edit && (sponsors ?? []).find((s: { id: string }) => s.id === edit)) || null
 
@@ -78,9 +87,11 @@ export default async function SponsorsPage({
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-zinc-900">Newsletter Sponsors</h1>
         <p className="text-sm text-zinc-500">
-          The active sponsor gets a &ldquo;Presented by&rdquo; masthead at the top of every newsletter — plus a
-          &ldquo;Special offer&rdquo; callout at the bottom if you add one — automatically, until its run-until date.
-          One sponsor runs at a time (the newest un-expired one).
+          There are two independent sponsor slots. The active <strong>masthead</strong> sponsor gets a
+          &ldquo;Presented by&rdquo; banner at the top of every newsletter — plus a &ldquo;Special offer&rdquo;
+          callout at the bottom if you add one. The active <strong>mid-newsletter</strong> sponsor gets a compact
+          banner partway through the email. Each slot runs one sponsor at a time (the newest un-expired one for
+          that slot) — so the masthead and mid banner can promote two different vendors at once.
         </p>
       </div>
 
@@ -102,7 +113,7 @@ export default async function SponsorsPage({
             <ul className="divide-y divide-zinc-100">
               {sponsors.map((s: SponsorInitial) => {
                 const expired = s.expires_at < today
-                const isActive = s.id === activeId
+                const isActive = s.id === (s.placement === 'mid' ? activeMidId : activeMastheadId)
                 return (
                   <li key={s.id} className="py-3 flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3 min-w-0">
@@ -112,7 +123,9 @@ export default async function SponsorsPage({
                       )}
                       <div className="min-w-0">
                         <p className="font-medium text-zinc-900 truncate">{s.name}</p>
-                        <p className="text-xs text-zinc-400">runs until {s.expires_at}{s.offer ? ' · has offer' : ''}</p>
+                        <p className="text-xs text-zinc-400">
+                          {s.placement === 'mid' ? 'Mid-newsletter banner' : 'Masthead'} · runs until {s.expires_at}{s.offer ? ' · has offer' : ''}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">

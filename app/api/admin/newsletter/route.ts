@@ -163,10 +163,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Enter a valid test email' }, { status: 400 })
     }
     if (!process.env.RESEND_API_KEY) return NextResponse.json({ error: 'RESEND_API_KEY not configured' }, { status: 500 })
-    const sponsor = skipSponsor ? null : await getActiveSponsor(adminDb)
+    const sponsor = skipSponsor ? null : await getActiveSponsor(adminDb, 'masthead')
+    const midSponsor = skipSponsor ? null : await getActiveSponsor(adminDb, 'mid')
     const sponsorTop = sponsor ? buildSponsorTop(sponsor) : ''
     const sponsorBottom = sponsor ? buildSponsorBottom(sponsor) : ''
-    const sponsorMid = sponsor ? buildSponsorMid(sponsor) : ''
+    const sponsorMid = midSponsor ? buildSponsorMid(midSponsor) : ''
     const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
     const upcomingEvents = await getUpcomingEventsForNewsletter(adminDb)
     const eventsBlock = buildUpcomingEventsBlock(upcomingEvents, origin)
@@ -220,10 +221,11 @@ export async function POST(req: NextRequest) {
 
   // Auto-include the active sponsor (unless this edition opts out): "Presented
   // by" masthead at top, plus a "Special offer" callout at bottom if it has one.
-  const sponsor = skipSponsor ? null : await getActiveSponsor(adminDb)
+  const sponsor = skipSponsor ? null : await getActiveSponsor(adminDb, 'masthead')
+  const midSponsor = skipSponsor ? null : await getActiveSponsor(adminDb, 'mid')
   const sponsorTop = sponsor ? buildSponsorTop(sponsor) : ''
   const sponsorBottom = sponsor ? buildSponsorBottom(sponsor) : ''
-  const sponsorMid = sponsor ? buildSponsorMid(sponsor) : ''
+  const sponsorMid = midSponsor ? buildSponsorMid(midSponsor) : ''
 
   const sendOrigin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
   const upcomingEvents = await getUpcomingEventsForNewsletter(adminDb)
