@@ -103,6 +103,17 @@ async function loadFonts() {
   }
 }
 
+// Picks a badge icon from the eyebrow text so the card reads right at a
+// glance for whichever content type it's sharing (event, job post, forum
+// discussion) without every caller having to pass its own icon prop.
+function pickIcon(eyebrow: string): keyof typeof ICON_PATHS {
+  const e = eyebrow.toLowerCase();
+  if (e.includes("job")) return "briefcase";
+  if (e.includes("discussion") || e.includes("forum")) return "messageSquare";
+  if (e.includes("event") || e.includes("week")) return "calendarDays";
+  return "users";
+}
+
 export async function generateShareCardPng({
   eyebrow,
   title,
@@ -114,6 +125,7 @@ export async function generateShareCardPng({
 }): Promise<Buffer> {
   const truncatedTitle = title.length > 70 ? `${title.slice(0, 67)}…` : title;
   const fonts = await loadFonts();
+  const icon = pickIcon(eyebrow);
 
   const image = new ImageResponse(
     (
@@ -125,12 +137,40 @@ export async function generateShareCardPng({
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "flex-start",
+          position: "relative",
+          overflow: "hidden",
           background: `linear-gradient(160deg, ${NAVY_A} 0%, ${NAVY_B} 55%, ${NAVY_C} 100%)`,
-          padding: "130px 100px",
+          padding: "120px 100px 70px",
           fontFamily: "Poppins",
         }}
       >
-        <div style={{ display: "flex", fontSize: "72px", fontWeight: 900, letterSpacing: "-3px" }}>
+        {/* Ambient glow orbs — same brand treatment as the homepage hero and the newsletter share card */}
+        <div
+          style={{
+            display: "flex",
+            position: "absolute",
+            top: "-220px",
+            right: "-180px",
+            width: "720px",
+            height: "720px",
+            borderRadius: "50%",
+            background: `radial-gradient(circle, ${RED}59 0%, ${RED}00 70%)`,
+          }}
+        />
+        <div
+          style={{
+            display: "flex",
+            position: "absolute",
+            bottom: "-260px",
+            left: "-200px",
+            width: "760px",
+            height: "760px",
+            borderRadius: "50%",
+            background: "radial-gradient(circle, #2563EB4D 0%, #2563EB00 70%)",
+          }}
+        />
+
+        <div style={{ display: "flex", fontSize: "64px", fontWeight: 900, letterSpacing: "-3px" }}>
           <span style={{ color: RED }}>TA</span>
           <span style={{ color: "#ffffff" }}>LK</span>
         </div>
@@ -138,18 +178,27 @@ export async function generateShareCardPng({
         <div
           style={{
             display: "flex",
-            fontSize: "26px",
-            fontWeight: 600,
-            color: "#93C5FD",
-            textTransform: "uppercase",
-            letterSpacing: "3px",
-            padding: "10px 30px",
+            alignItems: "center",
+            gap: "12px",
+            padding: "10px 28px 10px 22px",
             border: "2px solid rgba(147,197,253,0.4)",
             borderRadius: "999px",
             marginTop: "40px",
           }}
         >
-          {eyebrow}
+          {renderIcon(icon, 26, "#93C5FD")}
+          <div
+            style={{
+              display: "flex",
+              fontSize: "26px",
+              fontWeight: 600,
+              color: "#93C5FD",
+              textTransform: "uppercase",
+              letterSpacing: "3px",
+            }}
+          >
+            {eyebrow}
+          </div>
         </div>
 
         <div
@@ -160,11 +209,22 @@ export async function generateShareCardPng({
             color: "#ffffff",
             textAlign: "center",
             lineHeight: 1.2,
-            marginTop: "100px",
+            marginTop: "80px",
           }}
         >
           {truncatedTitle}
         </div>
+
+        <div
+          style={{
+            display: "flex",
+            width: "110px",
+            height: "6px",
+            borderRadius: "999px",
+            marginTop: "30px",
+            background: `linear-gradient(90deg, ${RED}, #F07058)`,
+          }}
+        />
 
         {subtitle && (
           <div
@@ -174,7 +234,7 @@ export async function generateShareCardPng({
               fontWeight: 600,
               color: "rgba(255,255,255,0.65)",
               textAlign: "center",
-              marginTop: "24px",
+              marginTop: "26px",
             }}
           >
             {subtitle}
@@ -184,16 +244,34 @@ export async function generateShareCardPng({
         <div
           style={{
             display: "flex",
-            flexDirection: "column",
             alignItems: "center",
-            gap: "10px",
+            gap: "14px",
             marginTop: "auto",
+            padding: "22px 44px",
+            borderRadius: "999px",
+            background: `linear-gradient(90deg, ${RED}, #F07058)`,
+            boxShadow: `0 20px 50px ${RED}40`,
           }}
         >
-          <div style={{ display: "flex", fontSize: "30px", fontWeight: 600, color: "rgba(255,255,255,0.8)" }}>
+          <div style={{ display: "flex", fontSize: "28px", fontWeight: 800, color: "#ffffff" }}>
+            View on TALK
+          </div>
+          {renderIcon("arrowRight", 26, "#ffffff")}
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "8px",
+            marginTop: "36px",
+          }}
+        >
+          <div style={{ display: "flex", fontSize: "26px", fontWeight: 600, color: "rgba(255,255,255,0.75)" }}>
             The private community for TA leaders.
           </div>
-          <div style={{ display: "flex", fontSize: "24px", fontWeight: 600, color: "rgba(147,197,253,0.8)" }}>
+          <div style={{ display: "flex", fontSize: "22px", fontWeight: 600, color: "rgba(147,197,253,0.8)" }}>
             talktalent.com
           </div>
         </div>
