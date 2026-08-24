@@ -14,6 +14,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import CreateEventForm from './create-event-form'
 import DeleteEventButton from './delete-event-button'
 import SendTestDigestButton from './send-test-digest-button'
+import { ShareOnLinkedInButton } from '@/components/share-on-linkedin-button'
+import { buildLinkedInShareText } from '@/lib/linkedin-share-text'
 import { ImageIcon, Pencil, FlaskConical } from 'lucide-react'
 
 // Previews the weekly "what's coming up" digest (app/api/cron/event-digest)
@@ -125,8 +127,54 @@ export default async function AdminEventsPage() {
   const chapterNameById: Record<string, string> = {}
   for (const c of chapters ?? []) chapterNameById[c.id] = c.name
 
+  // Same "next real, published, non-test event" query the newsletter's
+  // upcoming-events block uses — reused here so "this week's event" always
+  // means the actual soonest one, not something an admin has to look up.
+  const admin = createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [thisWeeksEvent] = await getUpcomingEventsForNewsletter(admin as any, 1)
+  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
+
   return (
     <div className="space-y-6">
+      {/* Share this week's event to LinkedIn */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Share This Week&apos;s Event</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {thisWeeksEvent ? (
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <p className="font-medium text-zinc-900 truncate">{thisWeeksEvent.title}</p>
+                <p className="text-sm text-zinc-500">
+                  {formatInZone(thisWeeksEvent.event_date, thisWeeksEvent.timezone || 'America/New_York', {
+                    weekday: 'long', month: 'short', day: 'numeric', year: undefined,
+                    hour: 'numeric', minute: '2-digit',
+                  })}
+                  {' · '}
+                  {thisWeeksEvent.is_virtual ? 'Virtual' : (thisWeeksEvent.venue_name || thisWeeksEvent.location || 'In person')}
+                </p>
+              </div>
+              <ShareOnLinkedInButton
+                defaultText={buildLinkedInShareText(
+                  `${thisWeeksEvent.title}\n\n${origin}/events/${thisWeeksEvent.id}`
+                )}
+                card={{
+                  eyebrow: 'This Week at TALK',
+                  title: thisWeeksEvent.title,
+                  subtitle: `${formatInZone(thisWeeksEvent.event_date, thisWeeksEvent.timezone || 'America/New_York', {
+                    weekday: undefined, month: 'short', day: 'numeric', year: 'numeric', hour: undefined, minute: undefined, timeZoneName: undefined,
+                  })} · ${thisWeeksEvent.is_virtual ? 'Virtual' : (thisWeeksEvent.venue_name || thisWeeksEvent.location || 'In Person')}`,
+                }}
+              />
+            </div>
+          ) : (
+            <p className="text-sm text-zinc-500">No upcoming published event to share right now.</p>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Weekly event digest preview */}
       <Card>
         <CardHeader>
