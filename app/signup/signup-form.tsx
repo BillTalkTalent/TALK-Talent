@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { CheckCircle2 } from 'lucide-react'
+import { isValidLinkedinUrl, LINKEDIN_URL_HINT } from '@/lib/linkedin-url'
 
 const benefits = [
   'Curated network of TA leaders',
@@ -47,13 +48,21 @@ export default function SignupForm() {
       return
     }
 
+    // type="url" only checks "is this some URL" — it happily accepts a
+    // typo'd non-LinkedIn link (or any other domain). Catch that here
+    // instead of finding out at manual review time.
+    if (!isValidLinkedinUrl(linkedinUrl)) {
+      toast.error(LINKEDIN_URL_HINT)
+      return
+    }
+
     setLoading(true)
 
     try {
       const res = await fetch('/api/signup/find-matches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullName, linkedinUrl }),
+        body: JSON.stringify({ fullName, linkedinUrl: linkedinUrl.trim() }),
       })
       const { candidates } = await res.json()
       if (candidates?.length > 0) {
@@ -72,6 +81,7 @@ export default function SignupForm() {
     setLoading(true)
 
     const supabase = createClient()
+    const trimmedLinkedinUrl = linkedinUrl.trim()
 
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -80,7 +90,7 @@ export default function SignupForm() {
         // linkedin_url here (not just the follow-up upsert below) lets the
         // auto-create-profile DB trigger set it on the very first insert —
         // see migration 054.
-        data: { full_name: fullName, linkedin_url: linkedinUrl },
+        data: { full_name: fullName, linkedin_url: trimmedLinkedinUrl },
       },
     })
 
@@ -101,7 +111,7 @@ export default function SignupForm() {
         id: user.id,
         email,
         full_name: fullName,
-        linkedin_url: linkedinUrl,
+        linkedin_url: trimmedLinkedinUrl,
         status: 'pending' as const,
         role: 'member' as const,
         interested_event_id: eventId || null,

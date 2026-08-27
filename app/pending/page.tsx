@@ -2,15 +2,21 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { Clock, LogOut, ExternalLink } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Clock, LogOut, ExternalLink, Loader2 } from 'lucide-react'
 import type { Profile } from '@/lib/supabase/types'
+import { isValidLinkedinUrl, LINKEDIN_URL_HINT } from '@/lib/linkedin-url'
 
 export default function PendingPage() {
   const router = useRouter()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [fullNameInput, setFullNameInput] = useState('')
+  const [linkedinInput, setLinkedinInput] = useState('')
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -39,6 +45,51 @@ export default function PendingPage() {
     await supabase.auth.signOut()
     router.push('/login')
   }
+
+  // Members who signed up via "Continue with LinkedIn" land here with no
+  // linkedin_url on file at all — LinkedIn's OAuth data doesn't expose a
+  // profile URL, so there's no way to auto-fill it. Without this, they'd
+  // sit here indefinitely: the DB blocks approval without one, and nothing
+  // ever prompted them to provide it.
+  async function handleCompleteProfile(e: React.FormEvent) {
+    e.preventDefault()
+    if (!profile) return
+
+    const trimmedName = fullNameInput.trim()
+    const trimmedLinkedin = linkedinInput.trim()
+    if (needsName && !trimmedName) {
+      toast.error('Please enter your full name.')
+      return
+    }
+    if (needsLinkedin) {
+      if (!trimmedLinkedin) {
+        toast.error('Please paste your LinkedIn URL.')
+        return
+      }
+      if (!isValidLinkedinUrl(trimmedLinkedin)) {
+        toast.error(LINKEDIN_URL_HINT)
+        return
+      }
+    }
+
+    setSaving(true)
+    const supabase = createClient()
+    const updates: { full_name?: string; linkedin_url?: string } = {}
+    if (needsName) updates.full_name = trimmedName
+    if (needsLinkedin) updates.linkedin_url = trimmedLinkedin
+
+    const { error } = await supabase.from('profiles').update(updates).eq('id', profile.id)
+    setSaving(false)
+    if (error) {
+      toast.error('Failed to save — please try again.')
+      return
+    }
+    setProfile({ ...profile, ...updates })
+    toast.success('Thanks — your application is complete.')
+  }
+
+  const needsName = !profile?.full_name?.trim()
+  const needsLinkedin = !profile?.linkedin_url?.trim()
 
   if (loading) {
     return (
@@ -135,6 +186,49 @@ export default function PendingPage() {
                 <ExternalLink className="size-4 text-[#0077B5] shrink-0" />
                 <span className="truncate">{profile.linkedin_url.replace('https://www.linkedin.com/in/', '')}</span>
               </a>
+            )}
+
+            {/* Signed up via "Continue with LinkedIn" — that doesn't give us a
+                profile URL or always a name, and we can't review (or approve)
+                an application without one. Ask for it here instead of leaving
+                them stuck with no idea why nothing's happening. */}
+            {(needsName || needsLinkedin) && (
+              <form onSubmit={handleCompleteProfile} className="space-y-3 text-left">
+                <div className="rounded-xl border border-amber-400/20 bg-amber-400/10 px-4 py-3">
+                  <p className="text-sm font-semibold text-amber-200">One more thing before we can review you</p>
+                  <p className="text-xs text-amber-200/70 mt-1">
+                    {needsName && needsLinkedin
+                      ? "We're missing your name and LinkedIn profile — we can't review an application without them."
+                      : needsName
+                      ? "We're missing your name."
+                      : "We're missing your LinkedIn profile — we can't review an application without it."}
+                  </p>
+                </div>
+                {needsName && (
+                  <Input
+                    value={fullNameInput}
+                    onChange={(e) => setFullNameInput(e.target.value)}
+                    placeholder="Full name"
+                    className="bg-white/5 border-white/15 text-white placeholder:text-white/30"
+                  />
+                )}
+                {needsLinkedin && (
+                  <Input
+                    value={linkedinInput}
+                    onChange={(e) => setLinkedinInput(e.target.value)}
+                    placeholder="https://linkedin.com/in/yourname"
+                    className="bg-white/5 border-white/15 text-white placeholder:text-white/30"
+                  />
+                )}
+                <Button
+                  type="submit"
+                  disabled={saving}
+                  className="w-full text-white font-semibold"
+                  style={{ background: '#E8503A' }}
+                >
+                  {saving ? <><Loader2 className="size-4 animate-spin" /> Saving…</> : 'Complete my application'}
+                </Button>
+              </form>
             )}
 
             {/* What to expect */}

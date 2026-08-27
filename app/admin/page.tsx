@@ -10,6 +10,7 @@ import { Users, Clock, Calendar, Building2, Lock, AlertTriangle } from 'lucide-r
 import { Resend } from 'resend'
 import AdminMemberSearch from '@/components/admin-member-search'
 import { requireSuperAdmin } from '@/lib/admin-auth'
+import { isValidLinkedinUrl, LINKEDIN_URL_HINT } from '@/lib/linkedin-url'
 
 async function approveMember(id: string) {
   'use server'
@@ -275,6 +276,9 @@ async function setLinkedinUrl(id: string, formData: FormData) {
     const url = (formData.get('linkedin_url') as string)?.trim()
     if (!url) {
       throw new Error('LinkedIn URL cannot be empty')
+    }
+    if (!isValidLinkedinUrl(url)) {
+      throw new Error(LINKEDIN_URL_HINT)
     }
     const supabase = await createClient()
     const { error } = await supabase.from('profiles').update({ linkedin_url: url }).eq('id', id)
