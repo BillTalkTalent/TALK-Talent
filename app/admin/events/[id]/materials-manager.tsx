@@ -9,6 +9,14 @@ import { Upload, X, Loader2, FileText } from "lucide-react";
 
 type Material = { id: string; title: string; file_url: string };
 
+// Falls back to a cleaned-up filename when no title was typed — e.g.
+// "sourcing-playbook_v2.pdf" -> "sourcing playbook v2". Selecting a file is
+// the one thing that actually has to happen here; the title is just a nicer
+// label, so it shouldn't block adding it.
+function titleFromFilename(filename: string): string {
+  return filename.replace(/\.[^./]+$/, "").replace(/[-_]+/g, " ").trim() || filename;
+}
+
 export default function MaterialsManager({
   eventId,
   initialMaterials,
@@ -24,17 +32,14 @@ export default function MaterialsManager({
 
   async function handleAdd() {
     const file = fileInputRef.current?.files?.[0];
-    // The button used to only require a title, not a file — clicking "Add"
-    // with a title typed but no file picked just silently did nothing, no
-    // error, no spinner. Surface it instead of failing quietly.
-    if (!title.trim()) {
-      toast.error("Give the material a title first.");
-      return;
-    }
+    // The file is the only real requirement — the title used to be required
+    // too, which meant picking a file alone (a completely reasonable thing
+    // to try first) left the button stuck disabled with no explanation.
     if (!file) {
       toast.error("Choose a file to upload.");
       return;
     }
+    const materialTitle = title.trim() || titleFromFilename(file.name);
     setUploading(true);
 
     const supabase = createClient();
@@ -52,7 +57,7 @@ export default function MaterialsManager({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase as any)
       .from("event_materials")
-      .insert({ event_id: eventId, title: title.trim(), file_url: urlData.publicUrl })
+      .insert({ event_id: eventId, title: materialTitle, file_url: urlData.publicUrl })
       .select()
       .single();
 
@@ -95,8 +100,8 @@ export default function MaterialsManager({
 
       <div className="flex gap-2 items-end flex-wrap">
         <div className="flex-1 min-w-[160px] space-y-1">
-          <label className="text-xs text-zinc-500">Title</label>
-          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Slide deck, worksheet, etc." />
+          <label className="text-xs text-zinc-500">Title (optional)</label>
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Defaults to the filename" />
         </div>
         <div className="space-y-1">
           <label className="text-xs text-zinc-500">File</label>
@@ -107,7 +112,7 @@ export default function MaterialsManager({
             onChange={(e) => setHasFile(!!e.target.files?.length)}
           />
         </div>
-        <Button type="button" onClick={handleAdd} disabled={uploading || !title.trim() || !hasFile} size="sm">
+        <Button type="button" onClick={handleAdd} disabled={uploading || !hasFile} size="sm">
           {uploading ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
           Add
         </Button>
