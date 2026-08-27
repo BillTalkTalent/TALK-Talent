@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,12 +18,23 @@ export default function MaterialsManager({
 }) {
   const [materials, setMaterials] = useState<Material[]>(initialMaterials);
   const [title, setTitle] = useState("");
+  const [hasFile, setHasFile] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function handleAdd() {
     const file = fileInputRef.current?.files?.[0];
-    if (!file || !title.trim()) return;
+    // The button used to only require a title, not a file — clicking "Add"
+    // with a title typed but no file picked just silently did nothing, no
+    // error, no spinner. Surface it instead of failing quietly.
+    if (!title.trim()) {
+      toast.error("Give the material a title first.");
+      return;
+    }
+    if (!file) {
+      toast.error("Choose a file to upload.");
+      return;
+    }
     setUploading(true);
 
     const supabase = createClient();
@@ -31,7 +43,7 @@ export default function MaterialsManager({
 
     const { error: uploadError } = await supabase.storage.from("event-materials").upload(path, file, { upsert: false });
     if (uploadError) {
-      alert(`Upload failed: ${uploadError.message}`);
+      toast.error(`Upload failed: ${uploadError.message}`);
       setUploading(false);
       return;
     }
@@ -44,11 +56,16 @@ export default function MaterialsManager({
       .select()
       .single();
 
-    if (!error && data) {
-      setMaterials((prev) => [...prev, data]);
-      setTitle("");
-      if (fileInputRef.current) fileInputRef.current.value = "";
+    if (error || !data) {
+      toast.error(`Couldn't save: ${error?.message ?? "please try again"}`);
+      setUploading(false);
+      return;
     }
+
+    setMaterials((prev) => [...prev, data]);
+    setTitle("");
+    setHasFile(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
     setUploading(false);
   }
 
@@ -83,9 +100,14 @@ export default function MaterialsManager({
         </div>
         <div className="space-y-1">
           <label className="text-xs text-zinc-500">File</label>
-          <input ref={fileInputRef} type="file" className="block text-xs" />
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="block text-xs"
+            onChange={(e) => setHasFile(!!e.target.files?.length)}
+          />
         </div>
-        <Button type="button" onClick={handleAdd} disabled={uploading || !title.trim()} size="sm">
+        <Button type="button" onClick={handleAdd} disabled={uploading || !title.trim() || !hasFile} size="sm">
           {uploading ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
           Add
         </Button>
