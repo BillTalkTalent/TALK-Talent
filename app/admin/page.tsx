@@ -368,6 +368,34 @@ export default async function AdminPage({
     : { data: [] }
   const matchedNameById = new Map((matchedProfiles.data ?? []).map((p) => [p.id, p.full_name]))
 
+  // Safety net for the cases our matchers miss (e.g. two email/password
+  // signups whose LinkedIn URLs weren't typed identically): flag pending
+  // applicants who share an exact normalized name with another pending
+  // applicant, even though neither ever got a claimed_match_id set. Points
+  // the newer one at the older one so admins can merge instead of approving
+  // both as unrelated people.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const nameGroups = new Map<string, any[]>()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  for (const m of (pendingMembers ?? []) as any[]) {
+    const key = (m.full_name ?? '').trim().toLowerCase().replace(/\s+/g, ' ')
+    if (!key) continue
+    const group = nameGroups.get(key) ?? []
+    group.push(m)
+    nameGroups.set(key, group)
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const possibleDuplicateOf = new Map<string, any>()
+  for (const group of nameGroups.values()) {
+    if (group.length < 2) continue
+    const [oldest, ...rest] = [...group].sort(
+      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    )
+    for (const m of rest) {
+      possibleDuplicateOf.set(m.id, oldest)
+    }
+  }
+
   const stats = [
     { label: 'Approved Members', value: approvedCount ?? 0, icon: Users },
     { label: 'Pending Approvals', value: pendingCount ?? 0, icon: Clock },
@@ -464,6 +492,11 @@ export default async function AdminPage({
                         Claims to be: {matchedNameById.get(member.claimed_match_id) ?? 'an existing profile'}
                       </p>
                     )}
+                    {!member.claimed_match_id && possibleDuplicateOf.has(member.id) && (
+                      <p className="text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2 py-1 inline-block">
+                        Possible duplicate of an earlier pending application with the same name
+                      </p>
+                    )}
                   </div>
                   <div className="flex flex-col gap-2 flex-shrink-0 items-end">
                     {!isSuperAdmin ? (
@@ -480,9 +513,16 @@ export default async function AdminPage({
                         </Button>
                       </form>
                     )}
+                    {!member.claimed_match_id && possibleDuplicateOf.has(member.id) && (
+                      <form action={confirmMatch.bind(null, member.id, possibleDuplicateOf.get(member.id).id)}>
+                        <Button type="submit" size="sm" variant="outline" className="border-amber-300 text-amber-700 hover:bg-amber-50">
+                          Merge into earlier application
+                        </Button>
+                      </form>
+                    )}
                     <form action={approveMember.bind(null, member.id)}>
                       <Button type="submit" size="sm" variant="default">
-                        {member.claimed_match_id ? 'Approve as new instead' : 'Approve'}
+                        {member.claimed_match_id || possibleDuplicateOf.has(member.id) ? 'Approve as new instead' : 'Approve'}
                       </Button>
                     </form>
                     <form action={rejectMember} className="flex flex-col gap-1.5 items-end">
