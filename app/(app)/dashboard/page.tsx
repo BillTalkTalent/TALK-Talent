@@ -18,6 +18,7 @@ import {
 import GettingStartedCard from "@/components/getting-started-card";
 import ForumFeed, { type FeedTopic } from "@/components/forum-feed";
 import AnnouncementBanner, { type Announcement } from "@/components/announcement-banner";
+import AskTalkBar from "@/components/ask-talk-bar";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -390,6 +391,9 @@ export default async function DashboardPage() {
           <p className="text-white/60 mt-1.5 text-sm max-w-md">
             Here&apos;s what&apos;s happening in the TALK community today.
           </p>
+          <div className="mt-5 max-w-lg">
+            <AskTalkBar />
+          </div>
         </div>
       </div>
 
