@@ -6,9 +6,11 @@ import { getSearchTools, runSearchTool } from "@/lib/ai-search-tools";
 // Answers, streamed, can legitimately take a few tool round-trips.
 export const maxDuration = 60;
 
-const SYSTEM_PROMPT = `You are the "Ask TALK" search assistant for TALK, a private community for Talent Acquisition (TA) leaders.
+const SYSTEM_PROMPT = (today: string) => `You are the "Ask TALK" search assistant for TALK, a private community for Talent Acquisition (TA) leaders. Today's date is ${today}.
 
 You help members find things across the site: events (past and upcoming), job postings, forum discussions, other members, and vendors. Use the search tools to look things up before answering — never invent an event, job, member, forum post, vendor, or link. If nothing relevant turns up, say so plainly and suggest they try different terms, rather than guessing.
+
+search_events returns both past and future events — when a member asks for "upcoming" events, filter to event dates on or after today yourself before answering.
 
 Keep answers short and skimmable. When you reference something you found, include its relative link (e.g. /events/{id}) so the member can click straight through. If a query could mean more than one content type (e.g. "AI" could be a job, an event, or a forum thread), search the relevant tools and summarize across them rather than picking just one.`;
 
@@ -55,6 +57,7 @@ export async function POST(req: NextRequest) {
       const send = (text: string) => controller.enqueue(encoder.encode(text));
       try {
         const messages: Anthropic.MessageParam[] = turns.map((t) => ({ role: t.role, content: t.content }));
+        const system = SYSTEM_PROMPT(new Date().toISOString().slice(0, 10));
 
         for (let iteration = 0; iteration < MAX_TOOL_ITERATIONS; iteration++) {
           const anthropicStream = client.messages.stream({
@@ -64,7 +67,7 @@ export async function POST(req: NextRequest) {
             // reasoning — low effort keeps answers fast and cheap without
             // hurting quality here.
             output_config: { effort: "low" },
-            system: SYSTEM_PROMPT,
+            system,
             tools,
             messages,
           });
