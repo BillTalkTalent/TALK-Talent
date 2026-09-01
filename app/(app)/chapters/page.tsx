@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { BookOpen, MapPin, Check, Users, Search } from "lucide-react";
+import { BookOpen, MapPin, Check, Users, Search, LayoutDashboard } from "lucide-react";
 import type { Chapter } from "@/lib/supabase/types";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +32,12 @@ export default function ChaptersPage() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [geoSearch, setGeoSearch] = useState("");
+  // Who can manage which chapter — admins can manage all of them, chapter
+  // leads only the ones they lead. The manage button only ever lived on the
+  // per-chapter page (/chapters/[slug]), so it was invisible from this list
+  // unless you already knew to click into a chapter first.
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [ledChapterIds, setLedChapterIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     async function load() {
@@ -40,12 +46,15 @@ export default function ChaptersPage() {
       if (!user) return;
       setCurrentUserId(user.id);
 
-      const [{ data: chaptersData }, { data: membershipsData }, { data: allMemberships }] =
+      const [{ data: chaptersData }, { data: membershipsData }, { data: allMemberships }, { data: profileData }, { data: leadsData }] =
         await Promise.all([
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (supabase as any).from("chapters").select("*").order("sort_order"),
           supabase.from("chapter_memberships").select("chapter_id").eq("user_id", user.id),
           supabase.from("chapter_memberships").select("chapter_id"),
+          supabase.from("profiles").select("role").eq("id", user.id).single(),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (supabase as any).from("chapter_leads").select("chapter_id").eq("user_id", user.id),
         ]);
 
       const countMap: Record<string, number> = {};
@@ -57,10 +66,14 @@ export default function ChaptersPage() {
         (chaptersData ?? []).map((c: ChapterWithCount) => ({ ...c, memberCount: countMap[c.id] ?? 0 }))
       );
       setJoinedIds(new Set((membershipsData ?? []).map((m: { chapter_id: string }) => m.chapter_id)));
+      setIsAdmin(profileData?.role === "admin");
+      setLedChapterIds(new Set((leadsData ?? []).map((l: { chapter_id: string }) => l.chapter_id)));
       setLoading(false);
     }
     load();
   }, []);
+
+  const canManage = (chapterId: string) => isAdmin || ledChapterIds.has(chapterId);
 
   async function toggleChapter(chapterId: string) {
     if (!currentUserId) return;
@@ -185,17 +198,29 @@ export default function ChaptersPage() {
                     <Users className="size-3" />
                     {chapter.memberCount} {chapter.memberCount === 1 ? "member" : "members"}
                   </span>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); toggleChapter(chapter.id); }}
-                    className={cn(
-                      "text-xs font-bold px-3 py-1.5 rounded-xl transition-all",
-                      joined
-                        ? "bg-card text-[#8b5cf6] border border-[#8b5cf6]/30 hover:bg-red-50 hover:text-red-500 hover:border-red-200"
-                        : "bg-[#8b5cf6] text-white hover:bg-[#7c3aed] shadow-sm"
+                  <div className="flex items-center gap-1.5">
+                    {canManage(chapter.id) && (
+                      <a
+                        href={`/chapters/${chapter.slug}/manage`}
+                        onClick={(e) => e.stopPropagation()}
+                        title="Manage chapter"
+                        className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-xl text-accent-foreground bg-accent hover:bg-accent/90 transition-colors"
+                      >
+                        <LayoutDashboard className="size-3" /> Manage
+                      </a>
                     )}
-                  >
-                    {joined ? "Leave" : "Join"}
-                  </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); toggleChapter(chapter.id); }}
+                      className={cn(
+                        "text-xs font-bold px-3 py-1.5 rounded-xl transition-all",
+                        joined
+                          ? "bg-card text-[#8b5cf6] border border-[#8b5cf6]/30 hover:bg-red-50 hover:text-red-500 hover:border-red-200"
+                          : "bg-[#8b5cf6] text-white hover:bg-[#7c3aed] shadow-sm"
+                      )}
+                    >
+                      {joined ? "Leave" : "Join"}
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -249,6 +274,15 @@ export default function ChaptersPage() {
                           <span className="text-sm shrink-0">{chapter.icon}</span>
                           <span className="font-medium truncate text-xs hover:text-[#E8503A] transition-colors">{chapter.name}</span>
                         </a>
+                        {canManage(chapter.id) && (
+                          <a
+                            href={`/chapters/${chapter.slug}/manage`}
+                            title="Manage chapter"
+                            className="shrink-0 text-muted-foreground hover:text-accent-foreground transition-colors"
+                          >
+                            <LayoutDashboard className="size-3.5" />
+                          </a>
+                        )}
                         {/* Join/leave toggle */}
                         <button
                           onClick={() => toggleChapter(chapter.id)}
