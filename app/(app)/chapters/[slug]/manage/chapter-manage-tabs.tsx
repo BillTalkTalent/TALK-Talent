@@ -211,6 +211,11 @@ export default function ChapterManageTabs({
                     <span className={cn('text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border shrink-0', STATUS_STYLE[ev.status] ?? STATUS_STYLE.draft)}>
                       {ev.status}
                     </span>
+                    {ev.visibility === 'leads_only' && (
+                      <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border shrink-0 bg-violet-50 text-violet-600 border-violet-100">
+                        Leads only
+                      </span>
+                    )}
                     {canEdit && (
                       <div className="flex items-center gap-1 shrink-0">
                         <button onClick={() => openEditEventForm(ev)} className="p-1.5 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors" title="Edit">

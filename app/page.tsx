@@ -53,7 +53,7 @@ async function getHeroStats() {
   const admin = createAdminClient()
   const [members, events, discussions, jobs] = await Promise.all([
     admin.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'approved').eq('is_bot', false),
-    admin.from('events').select('id', { count: 'exact', head: true }).eq('status', 'published').eq('is_test', false),
+    admin.from('events').select('id', { count: 'exact', head: true }).eq('status', 'published').eq('is_test', false).eq('visibility', 'all'),
     admin.from('forum_topics').select('id', { count: 'exact', head: true }),
     admin.from('job_posts').select('id', { count: 'exact', head: true }).eq('status', 'active'),
   ])
@@ -102,6 +102,7 @@ async function getUpcomingEvents() {
     .select('id, title, event_date, venue_name, location, is_virtual, image_url, is_paid, price, currency, timezone')
     .eq('status', 'published')
     .eq('is_test', false)
+    .eq('visibility', 'all')
     .gte('event_date', new Date().toISOString())
     .order('event_date', { ascending: true })
     .limit(3)

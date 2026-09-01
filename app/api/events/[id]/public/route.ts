@@ -11,13 +11,14 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
   const { data: event } = await admin
     .from("events")
-    .select("id, title, description, event_date, end_date, location, is_virtual, image_url, is_paid, price, currency, timezone")
+    .select("id, title, description, event_date, end_date, location, is_virtual, image_url, is_paid, price, currency, timezone, visibility")
     .eq("id", id)
     .single();
 
-  if (!event) {
+  if (!event || event.visibility === "leads_only") {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
 
-  return NextResponse.json(event);
+  const { id: eventId, title, description, event_date, end_date, location, is_virtual, image_url, is_paid, price, currency, timezone } = event;
+  return NextResponse.json({ id: eventId, title, description, event_date, end_date, location, is_virtual, image_url, is_paid, price, currency, timezone });
 }

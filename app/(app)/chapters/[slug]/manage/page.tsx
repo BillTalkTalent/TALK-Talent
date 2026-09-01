@@ -50,7 +50,7 @@ export default async function ChapterManagePage({ params }: { params: Promise<{ 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase as any)
       .from('events')
-      .select('id, title, description, venue_name, location, event_type, is_virtual, virtual_url, event_date, end_date, timezone, max_attendees, status, image_url')
+      .select('id, title, description, venue_name, location, event_type, is_virtual, virtual_url, event_date, end_date, timezone, max_attendees, status, image_url, visibility')
       .eq('chapter_id', chapter.id)
       .order('event_date', { ascending: true }),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

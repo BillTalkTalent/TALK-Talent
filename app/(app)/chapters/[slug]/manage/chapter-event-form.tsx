@@ -28,6 +28,7 @@ export type ChapterManageEvent = {
   max_attendees: number | null
   status: string
   image_url: string | null
+  visibility: string
 }
 
 interface ChapterEventFormProps {
@@ -92,6 +93,7 @@ export default function ChapterEventForm({ chapterId, organizerId, event, onSave
       const endDateUtc = endDate ? zonedWallTimeToUTC(endDate, timezone).toISOString() : null
       const eventType = (fd.get('event_type') as string) || 'in_person'
       const isVirtual = eventType !== 'in_person'
+      const visibility = (fd.get('visibility') as string) || 'all'
 
       const payload = {
         title: fd.get('title') as string,
@@ -106,6 +108,7 @@ export default function ChapterEventForm({ chapterId, organizerId, event, onSave
         timezone,
         max_attendees: maxAttendees ? parseInt(maxAttendees, 10) : null,
         image_url: imageUrl,
+        visibility,
       }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -228,6 +231,20 @@ export default function ChapterEventForm({ chapterId, organizerId, event, onSave
           <option value="in_person">📍 In person</option>
           <option value="webinar">🎥 Virtual</option>
           <option value="hybrid">🔀 Hybrid</option>
+        </select>
+      </div>
+
+      <div className="space-y-2 sm:col-span-2">
+        <Label htmlFor="visibility">Who can see this *</Label>
+        <select
+          id="visibility"
+          name="visibility"
+          defaultValue={event?.visibility ?? 'all'}
+          required
+          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        >
+          <option value="all">All chapter members</option>
+          <option value="leads_only">Leads &amp; board only — e.g. an internal board meeting</option>
         </select>
       </div>
 

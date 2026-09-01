@@ -24,6 +24,7 @@ export async function getUpcomingEventsForNewsletter(adminDb: any, limit = 3): P
     .select('id, title, event_date, timezone, venue_name, location, is_virtual')
     .eq('status', 'published')
     .eq('is_test', false)
+    .eq('visibility', 'all')
     .gte('event_date', new Date().toISOString())
     .order('event_date', { ascending: true })
     .limit(limit)
