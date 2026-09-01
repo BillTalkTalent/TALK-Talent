@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, Users, Star, Globe, Mail, Pencil, LayoutDashboard } from 'lucide-react'
+import { ArrowLeft, Users, Star, Globe, Mail, Pencil, LayoutDashboard, MapPin, Video } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import ChapterBoard from './chapter-board'
 
@@ -24,7 +24,7 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
 
   if (!chapter) notFound()
 
-  const [membersResult, leadsResult, postsResult, myMembershipResult] = await Promise.all([
+  const [membersResult, leadsResult, postsResult, myMembershipResult, eventsResult] = await Promise.all([
     supabase
       .from('chapter_memberships')
       .select('user_id, profiles(id, full_name, avatar_url, title, company)')
@@ -48,10 +48,23 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
       .select('id', { count: 'exact', head: true })
       .eq('chapter_id', chapter.id)
       .eq('user_id', user?.id ?? ''),
+    // Only rows this viewer's RLS allows through — a leads_only event only
+    // shows up here for that chapter's leads, org-wide board members, and
+    // admins, same as everywhere else it appears.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any)
+      .from('events')
+      .select('id, title, event_date, venue_name, location, is_virtual, visibility')
+      .eq('chapter_id', chapter.id)
+      .eq('status', 'published')
+      .gte('event_date', new Date().toISOString())
+      .order('event_date', { ascending: true })
+      .limit(6),
   ])
 
   type MemberProfile = { id: string; full_name: string | null; avatar_url: string | null; title: string | null; company: string | null }
   type LeadProfile = MemberProfile & { role: string }
+  type ChapterEvent = { id: string; title: string; event_date: string; venue_name: string | null; location: string | null; is_virtual: boolean; visibility: string }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const members = (membersResult.data ?? []).map((m: any) => m.profiles).filter(Boolean) as MemberProfile[]
@@ -59,6 +72,7 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
   const leads = (leadsResult.data ?? []).map((l: any) => l.profiles).filter(Boolean) as LeadProfile[]
   const posts = postsResult.data ?? []
   const isMember = (myMembershipResult.count ?? 0) > 0
+  const upcomingEvents = (eventsResult.data ?? []) as ChapterEvent[]
 
   const { data: currentProfile } = await supabase
     .from('profiles')
@@ -198,6 +212,42 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
           </div>
         )}
       </div>
+
+      {/* Upcoming events for this chapter */}
+      {upcomingEvents.length > 0 && (
+        <div className="rounded-2xl bg-card border border-border shadow-sm p-6">
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-4">
+            Upcoming {chapter.name} Events
+          </p>
+          <div className="divide-y divide-border/60">
+            {upcomingEvents.map(ev => (
+              <Link key={ev.id} href={`/events/${ev.id}`}
+                className="flex items-center gap-3 py-3 -mx-2 px-2 rounded-lg hover:bg-muted/60 transition-colors">
+                <div className="w-11 text-center shrink-0 tabular-nums">
+                  <div className="text-[10px] font-bold text-primary uppercase">
+                    {new Date(ev.event_date).toLocaleDateString(undefined, { month: 'short' })}
+                  </div>
+                  <div className="text-base font-bold text-foreground">
+                    {new Date(ev.event_date).toLocaleDateString(undefined, { day: '2-digit' })}
+                  </div>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-foreground truncate">{ev.title}</p>
+                  <p className="flex items-center gap-1 text-xs text-muted-foreground truncate">
+                    {ev.is_virtual ? <Video className="size-3" /> : <MapPin className="size-3" />}
+                    {ev.is_virtual ? 'Virtual' : (ev.venue_name || ev.location || 'In person')}
+                  </p>
+                </div>
+                {ev.visibility === 'leads_only' && (
+                  <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border shrink-0 bg-violet-50 text-violet-600 border-violet-100">
+                    Leads only
+                  </span>
+                )}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Discussion + members */}
       <div className="grid gap-5 lg:grid-cols-3">
