@@ -34,12 +34,15 @@ const STATUS_STYLE: Record<string, string> = {
   cancelled: 'bg-zinc-100 text-zinc-500 border-zinc-200',
 }
 
+type LeadProfile = { id: string; full_name: string | null; avatar_url: string | null; title: string | null; company: string | null }
+
 export default function ChapterManageTabs({
   chapterId,
   chapterName,
   slug,
   currentUserId,
   roster,
+  leads,
   leadIds,
   events,
   stats,
@@ -49,6 +52,7 @@ export default function ChapterManageTabs({
   slug: string
   currentUserId: string
   roster: RosterMember[]
+  leads: LeadProfile[]
   leadIds: string[]
   events: ChapterManageEvent[]
   stats: { roster: number; upcomingEvents: number; boardThreads: number; leads: number }
@@ -120,7 +124,47 @@ export default function ChapterManageTabs({
           <p className="text-sm text-muted-foreground">
             Everything here is scoped to {chapterName} only — nothing you do affects other chapters.
           </p>
-          <div className="grid sm:grid-cols-3 gap-3">
+
+          <div className="pt-1">
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">
+              Leadership team {leads.length > 0 && `(${leads.length})`}
+            </p>
+            {leads.length === 0 ? (
+              <p className="text-sm text-muted-foreground italic">
+                No leads assigned yet — TALK admins manage who leads this chapter.
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-3">
+                {leads.map((lead) => (
+                  <Link
+                    key={lead.id}
+                    href={`/members/${lead.id}`}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-amber-100 bg-amber-50/50 hover:bg-amber-50 transition-colors"
+                  >
+                    <Avatar className="size-9 ring-2 ring-amber-200">
+                      {lead.avatar_url && <AvatarImage src={lead.avatar_url} alt={lead.full_name ?? ''} />}
+                      <AvatarFallback className="text-xs font-bold bg-amber-100 text-amber-700">
+                        {getInitials(lead.full_name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-semibold text-foreground">{lead.full_name}</p>
+                        <span className="inline-flex items-center gap-0.5 text-[9px] font-black text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded-full uppercase tracking-wide">
+                          <Star className="size-2.5 fill-amber-500 text-amber-500" /> Lead
+                        </span>
+                      </div>
+                      {(lead.title || lead.company) && (
+                        <p className="text-xs text-muted-foreground">{[lead.title, lead.company].filter(Boolean).join(' · ')}</p>
+                      )}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="grid sm:grid-cols-3 gap-3 pt-2 border-t border-border">
             <QuickLink icon={Users} label="View roster" onClick={() => setTab('roster')} />
             <QuickLink icon={Calendar} label="Manage events" onClick={() => setTab('events')} />
             <QuickLink icon={Mail} label="Message chapter" onClick={() => setTab('message')} />

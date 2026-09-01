@@ -45,7 +45,7 @@ export default async function ChapterManagePage({ params }: { params: Promise<{ 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase as any)
       .from('chapter_leads')
-      .select('user_id, profiles(id, full_name, avatar_url)')
+      .select('user_id, profiles(id, full_name, avatar_url, title, company)')
       .eq('chapter_id', chapter.id),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase as any)
@@ -65,7 +65,8 @@ export default async function ChapterManagePage({ params }: { params: Promise<{ 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const roster = (rosterResult.data ?? []).map((r: any) => ({ ...(r.profiles as MemberProfile), joined_at: r.joined_at })).filter((p: MemberProfile) => p?.id)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const leadIds = new Set((leadsResult.data ?? []).map((l: any) => l.user_id))
+  const leads = (leadsResult.data ?? []).map((l: any) => l.profiles as MemberProfile).filter((p: MemberProfile) => p?.id)
+  const leadIds = new Set(leads.map((l: MemberProfile) => l.id))
   const events = eventsResult.data ?? []
   const now = new Date()
   const upcomingCount = events.filter((e: { event_date: string; status: string }) => e.status !== 'cancelled' && new Date(e.event_date) >= now).length
@@ -104,6 +105,7 @@ export default async function ChapterManagePage({ params }: { params: Promise<{ 
         slug={slug}
         currentUserId={user.id}
         roster={roster}
+        leads={leads}
         leadIds={[...leadIds] as string[]}
         events={events}
         stats={{
