@@ -6,8 +6,9 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { Star, Calendar, MessageSquare, Users, Mail, Plus, Pencil, Trash2 } from 'lucide-react'
+import { Star, Calendar, MessageSquare, Users, Mail, Plus, Pencil, Trash2, ShieldCheck, ShieldMinus, UploadCloud } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
 import ChapterEventForm, { type ChapterManageEvent } from './chapter-event-form'
 import ChapterEmailComposer from './chapter-email-composer'
 
@@ -62,6 +63,8 @@ export default function ChapterManageTabs({
   const [formOpen, setFormOpen] = useState(false)
   const [editingEvent, setEditingEvent] = useState<ChapterManageEvent | null>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [togglingLead, setTogglingLead] = useState<string | null>(null)
+  const [publishing, setPublishing] = useState<string | null>(null)
 
   const leadSet = new Set(leadIds)
 
@@ -92,6 +95,31 @@ export default function ChapterManageTabs({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (supabase as any).from('events').delete().eq('id', id)
     setDeleting(null)
+    router.refresh()
+  }
+
+  async function onPublish(id: string) {
+    setPublishing(id)
+    const supabase = createClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase as any).from('events').update({ status: 'published' }).eq('id', id)
+    setPublishing(null)
+    if (error) { toast.error('Failed to publish.'); return }
+    toast.success('Published — live on the TALK calendar now.')
+    router.refresh()
+  }
+
+  async function toggleLead(userId: string, isCurrentlyLead: boolean) {
+    setTogglingLead(userId)
+    const supabase = createClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sb = supabase as any
+    const { error } = isCurrentlyLead
+      ? await sb.from('chapter_leads').delete().eq('chapter_id', chapterId).eq('user_id', userId)
+      : await sb.from('chapter_leads').upsert({ chapter_id: chapterId, user_id: userId })
+    setTogglingLead(null)
+    if (error) { toast.error('Failed to update lead status.'); return }
+    toast.success(isCurrentlyLead ? 'Removed as lead.' : 'Added as lead.')
     router.refresh()
   }
 
@@ -181,31 +209,49 @@ export default function ChapterManageTabs({
         <div className="rounded-2xl bg-card border border-border shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-foreground">{roster.length} member{roster.length !== 1 ? 's' : ''}</h3>
-            <span className="text-xs text-muted-foreground">Lead assignment is managed by TALK admins</span>
+            <span className="text-xs text-muted-foreground">Leads can promote or step down co-leads here</span>
           </div>
           {roster.length === 0 ? (
             <p className="text-sm text-muted-foreground italic">No members yet.</p>
           ) : (
             <div className="divide-y divide-border/60">
-              {roster.map((m) => (
-                <Link key={m.id} href={`/members/${m.id}`} className="flex items-center gap-3 py-2.5 hover:bg-muted/60 -mx-2 px-2 rounded-lg transition-colors">
-                  <Avatar size="sm">
-                    {m.avatar_url && <AvatarImage src={m.avatar_url} alt={m.full_name ?? ''} />}
-                    <AvatarFallback>{getInitials(m.full_name)}</AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-foreground truncate">{m.full_name ?? 'Unknown'}</p>
-                    {(m.title || m.company) && (
-                      <p className="text-xs text-muted-foreground truncate">{[m.title, m.company].filter(Boolean).join(' · ')}</p>
+              {roster.map((m) => {
+                const isLead = leadSet.has(m.id)
+                const isSelf = m.id === currentUserId
+                return (
+                  <Link key={m.id} href={`/members/${m.id}`} className="flex items-center gap-3 py-2.5 hover:bg-muted/60 -mx-2 px-2 rounded-lg transition-colors">
+                    <Avatar size="sm">
+                      {m.avatar_url && <AvatarImage src={m.avatar_url} alt={m.full_name ?? ''} />}
+                      <AvatarFallback>{getInitials(m.full_name)}</AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-foreground truncate">{m.full_name ?? 'Unknown'}{isSelf && ' (you)'}</p>
+                      {(m.title || m.company) && (
+                        <p className="text-xs text-muted-foreground truncate">{[m.title, m.company].filter(Boolean).join(' · ')}</p>
+                      )}
+                    </div>
+                    {isLead && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full uppercase tracking-wide shrink-0">
+                        <Star className="size-2.5 fill-amber-500 text-amber-500" /> Lead
+                      </span>
                     )}
-                  </div>
-                  {leadSet.has(m.id) && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full uppercase tracking-wide shrink-0">
-                      <Star className="size-2.5 fill-amber-500 text-amber-500" /> Lead
-                    </span>
-                  )}
-                </Link>
-              ))}
+                    <button
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleLead(m.id, isLead) }}
+                      disabled={togglingLead === m.id}
+                      title={isLead ? 'Remove as lead' : 'Make lead'}
+                      className={cn(
+                        'shrink-0 inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-xl border transition-colors disabled:opacity-50',
+                        isLead
+                          ? 'text-muted-foreground border-border hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20'
+                          : 'text-accent-foreground bg-accent border-transparent hover:bg-accent/90'
+                      )}
+                    >
+                      {isLead ? <ShieldMinus className="size-3.5" /> : <ShieldCheck className="size-3.5" />}
+                      {isLead ? 'Remove' : 'Make lead'}
+                    </button>
+                  </Link>
+                )
+              })}
             </div>
           )}
         </div>
@@ -235,7 +281,7 @@ export default function ChapterManageTabs({
           ) : (
             <div className="divide-y divide-border/60">
               {events.map((ev) => {
-                const canEdit = ev.status === 'draft'
+                const canDelete = ev.status === 'draft'
                 return (
                   <div key={ev.id} className="flex items-center gap-3 py-3">
                     <div className="w-11 text-center shrink-0 tabular-nums">
@@ -260,16 +306,26 @@ export default function ChapterManageTabs({
                         Leads only
                       </span>
                     )}
-                    {canEdit && (
-                      <div className="flex items-center gap-1 shrink-0">
-                        <button onClick={() => openEditEventForm(ev)} className="p-1.5 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors" title="Edit">
-                          <Pencil className="size-3.5" />
+                    <div className="flex items-center gap-1 shrink-0">
+                      {ev.status === 'draft' && (
+                        <button
+                          onClick={() => onPublish(ev.id)}
+                          disabled={publishing === ev.id}
+                          className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg text-emerald-600 bg-emerald-50 border border-emerald-100 hover:bg-emerald-100 transition-colors disabled:opacity-50"
+                          title="Publish to the TALK calendar"
+                        >
+                          <UploadCloud className="size-3.5" /> Publish
                         </button>
+                      )}
+                      <button onClick={() => openEditEventForm(ev)} className="p-1.5 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors" title="Edit">
+                        <Pencil className="size-3.5" />
+                      </button>
+                      {canDelete && (
                         <button onClick={() => onDelete(ev.id)} disabled={deleting === ev.id} className="p-1.5 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors" title="Delete">
                           <Trash2 className="size-3.5" />
                         </button>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 )
               })}

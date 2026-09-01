@@ -133,7 +133,7 @@ export default function ChapterEventForm({ chapterId, organizerId, event, onSave
     <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {!event && (
         <div className="sm:col-span-2 rounded-lg bg-amber-50 border border-amber-100 px-4 py-2.5 text-sm text-amber-800">
-          Submitted as a draft — a TALK admin reviews and publishes it before members see it.
+          Saved as a draft — hit &ldquo;Publish&rdquo; on it from the events list when it&apos;s ready to go live.
         </div>
       )}
 
