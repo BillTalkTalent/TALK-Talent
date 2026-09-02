@@ -51,13 +51,16 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
     // Only rows this viewer's RLS allows through — a leads_only event only
     // shows up here for that chapter's leads, org-wide board members, and
     // admins, same as everywhere else it appears.
+    // Matches events owned by this chapter (chapter_id) as well as events
+    // targeted to it from elsewhere (additional_chapter_ids) — e.g. a
+    // national event an admin also tagged to Boston.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase as any)
       .from('events')
       .select('id, title, event_date, venue_name, location, is_virtual, visibility')
-      .eq('chapter_id', chapter.id)
       .eq('status', 'published')
       .gte('event_date', new Date().toISOString())
+      .or(`chapter_id.eq.${chapter.id},additional_chapter_ids.cs.{${chapter.id}}`)
       .order('event_date', { ascending: true })
       .limit(6),
   ])

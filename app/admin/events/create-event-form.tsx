@@ -16,7 +16,9 @@ const DEFAULT_TZ = (() => {
   return TIME_ZONES.some((t) => t.value === z) ? z : "America/New_York";
 })();
 
-export default function CreateEventForm() {
+type ChapterOption = { id: string; name: string; type: string }
+
+export default function CreateEventForm({ chapters }: { chapters: ChapterOption[] }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -91,10 +93,12 @@ export default function CreateEventForm() {
 
       const eventType = (fd.get("event_type") as string) || "in_person";
       const isVirtual = eventType !== "in_person"; // virtual + hybrid have a link
+      const additionalChapterIds = fd.getAll("additional_chapter_ids") as string[];
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: insertError } = await (supabase as any).from("events").insert({
         title: fd.get("title") as string,
+        additional_chapter_ids: additionalChapterIds,
         description: (fd.get("description") as string) || null,
         venue_name: (fd.get("venue_name") as string) || null,
         location: (fd.get("location") as string) || null,
@@ -263,6 +267,34 @@ export default function CreateEventForm() {
         </select>
         <p className="text-xs text-zinc-400">
           Virtual and hybrid events show the virtual link; in-person and hybrid show the location.
+        </p>
+      </div>
+
+      {/* Also show on chapter pages — this event still appears on the main
+          calendar for everyone regardless of what's picked here. */}
+      <div className="space-y-2 sm:col-span-2">
+        <Label htmlFor="additional_chapter_ids">Also show on chapter pages (optional)</Label>
+        <select
+          id="additional_chapter_ids"
+          name="additional_chapter_ids"
+          multiple
+          size={6}
+          className="flex w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        >
+          <optgroup label="Topical">
+            {chapters.filter((c) => c.type === "topic").map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </optgroup>
+          <optgroup label="Geographic">
+            {chapters.filter((c) => c.type === "geographic").map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </optgroup>
+        </select>
+        <p className="text-xs text-zinc-400">
+          Hold Cmd/Ctrl to pick more than one. This event already shows on the main calendar for
+          everyone — picking chapters here also surfaces it on those chapters&apos; own pages.
         </p>
       </div>
 

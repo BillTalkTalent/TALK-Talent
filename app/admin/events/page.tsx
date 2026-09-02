@@ -123,7 +123,7 @@ export default async function AdminEventsPage() {
     .order('event_date', { ascending: false })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: chapters } = await (supabase as any).from('chapters').select('id, name')
+  const { data: chapters } = await (supabase as any).from('chapters').select('id, name, type').order('sort_order')
   const chapterNameById: Record<string, string> = {}
   for (const c of chapters ?? []) chapterNameById[c.id] = c.name
 
@@ -195,7 +195,7 @@ export default async function AdminEventsPage() {
           <CardTitle>Create Event</CardTitle>
         </CardHeader>
         <CardContent>
-          <CreateEventForm />
+          <CreateEventForm chapters={chapters ?? []} />
         </CardContent>
       </Card>
 

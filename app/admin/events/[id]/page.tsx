@@ -21,10 +21,12 @@ async function updateEvent(id: string, formData: FormData) {
   const endDate = formData.get('end_date') as string
   const timezone = (formData.get('timezone') as string) || 'America/New_York'
   const maxAttendees = formData.get('max_attendees') as string
+  const additionalChapterIds = formData.getAll('additional_chapter_ids') as string[]
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await (supabase as any).from('events').update({
     title: formData.get('title') as string,
+    additional_chapter_ids: additionalChapterIds,
     description: (formData.get('description') as string) || null,
     venue_name: (formData.get('venue_name') as string) || null,
     location: (formData.get('location') as string) || null,
@@ -59,6 +61,10 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
     .select('id, title, file_url')
     .eq('event_id', id)
     .order('created_at', { ascending: true })
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: chapters } = await (supabase as any).from('chapters').select('id, name, type').order('sort_order')
+  const selectedChapterIds = new Set<string>(event.additional_chapter_ids ?? [])
 
   // Pre-fill datetime-local inputs with the event's wall-clock time in its own
   // timezone (not raw UTC), so editing round-trips correctly.
@@ -154,6 +160,33 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
                 <option value="webinar">🎥 Virtual</option>
                 <option value="hybrid">🔀 Hybrid</option>
               </select>
+            </div>
+
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="additional_chapter_ids">Also show on chapter pages (optional)</Label>
+              <select
+                id="additional_chapter_ids"
+                name="additional_chapter_ids"
+                multiple
+                size={6}
+                defaultValue={[...selectedChapterIds]}
+                className="flex w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                <optgroup label="Topical">
+                  {(chapters ?? []).filter((c: { type: string }) => c.type === 'topic').map((c: { id: string; name: string }) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </optgroup>
+                <optgroup label="Geographic">
+                  {(chapters ?? []).filter((c: { type: string }) => c.type === 'geographic').map((c: { id: string; name: string }) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </optgroup>
+              </select>
+              <p className="text-xs text-zinc-400">
+                Hold Cmd/Ctrl to pick more than one. This event already shows on the main calendar
+                for everyone — picking chapters here also surfaces it on those chapters&apos; own pages.
+              </p>
             </div>
 
             <div className="sm:col-span-2 rounded-xl border border-zinc-200 p-4 space-y-3">
