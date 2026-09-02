@@ -46,20 +46,25 @@ export default function ChaptersPage() {
       if (!user) return;
       setCurrentUserId(user.id);
 
-      const [{ data: chaptersData }, { data: membershipsData }, { data: allMemberships }, { data: profileData }, { data: leadsData }] =
+      const [{ data: chaptersData }, { data: membershipsData }, { data: memberCounts }, { data: profileData }, { data: leadsData }] =
         await Promise.all([
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (supabase as any).from("chapters").select("*").order("sort_order"),
           supabase.from("chapter_memberships").select("chapter_id").eq("user_id", user.id),
-          supabase.from("chapter_memberships").select("chapter_id"),
+          // A real GROUP BY via RPC — fetching every membership row and
+          // counting client-side silently undercounts once total rows pass
+          // PostgREST's default 1000-row cap on unbounded selects (true
+          // platform-wide today).
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (supabase as any).rpc("chapter_member_counts"),
           supabase.from("profiles").select("role").eq("id", user.id).single(),
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (supabase as any).from("chapter_leads").select("chapter_id").eq("user_id", user.id),
         ]);
 
       const countMap: Record<string, number> = {};
-      for (const m of allMemberships ?? []) {
-        countMap[m.chapter_id] = (countMap[m.chapter_id] ?? 0) + 1;
+      for (const row of memberCounts ?? []) {
+        countMap[row.chapter_id] = Number(row.member_count);
       }
 
       setChapters(

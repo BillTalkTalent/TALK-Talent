@@ -24,12 +24,18 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
 
   if (!chapter) notFound()
 
-  const [membersResult, leadsResult, postsResult, myMembershipResult, eventsResult] = await Promise.all([
+  const [membersResult, memberCountResult, leadsResult, postsResult, myMembershipResult, eventsResult] = await Promise.all([
+    // Capped to what the sidebar actually renders (24 avatars) — the true
+    // total comes from memberCountResult below, not this array's length.
     supabase
       .from('chapter_memberships')
       .select('user_id, profiles(id, full_name, avatar_url, title, company)')
       .eq('chapter_id', chapter.id)
-      .limit(36),
+      .limit(24),
+    supabase
+      .from('chapter_memberships')
+      .select('id', { count: 'exact', head: true })
+      .eq('chapter_id', chapter.id),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase as any)
       .from('chapter_leads')
@@ -71,6 +77,7 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const members = (membersResult.data ?? []).map((m: any) => m.profiles).filter(Boolean) as MemberProfile[]
+  const memberCount = memberCountResult.count ?? members.length
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const leads = (leadsResult.data ?? []).map((l: any) => l.profiles).filter(Boolean) as LeadProfile[]
   const posts = postsResult.data ?? []
@@ -136,7 +143,7 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
               <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground flex-wrap">
                 <span className="flex items-center gap-1">
                   <Users className="size-3" />
-                  {members.length} member{members.length !== 1 ? 's' : ''}
+                  {memberCount} member{memberCount !== 1 ? 's' : ''}
                 </span>
                 {leads.length > 0 && (
                   <span className="flex items-center gap-1">
@@ -282,8 +289,8 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
               </Link>
             ))}
           </div>
-          {members.length > 24 && (
-            <p className="text-xs text-muted-foreground">+{members.length - 24} more members</p>
+          {memberCount > 24 && (
+            <p className="text-xs text-muted-foreground">+{memberCount - 24} more members</p>
           )}
           {members.length === 0 && (
             <p className="text-xs text-muted-foreground italic">No members yet</p>
