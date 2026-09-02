@@ -197,10 +197,44 @@ Two kinds, distinguished by `chapters.type`:
   the "Email Members" chapter picker (§5) and the legacy-matching note (§2) for why
   historical membership in these specifically needed a dedicated backfill.
 
-Members join/leave freely (`chapter_memberships`). Each chapter can have one or more
-**chapter leads** (`chapter_leads`) who — along with admins/board members — can edit
-the chapter and send email announcements to its members
-(`app/(app)/chapters/[slug]/announce`).
+Members join/leave freely (`chapter_memberships`) from `/chapters` (a topical grid
+plus a searchable geographic list, grouped by region). Each chapter can have one or
+more **chapter leads** (`chapter_leads`).
+
+**Chapter Manage panel** (`/chapters/[slug]/manage`) — reachable via a "Manage"
+button on the chapter's own page and a quick-access shortcut on each card in the
+`/chapters` list, gated to that chapter's leads and admins (`isAdmin || isLead`,
+checked client-side for the buttons and again server-side on the manage route
+itself, which redirects anyone else away). Four tabs:
+- **Overview** — the leadership team (avatar, name, title/company for each lead),
+  quick links into the other tabs.
+- **Roster & Roles** — the full member list; a lead can self-service promote a
+  member to co-lead or step one down (`chapter_leads` insert/delete, RLS-scoped so a
+  lead can only manage their *own* chapter's leads, and a new co-lead must already
+  be a member of that chapter). Admins keep unrestricted cross-chapter access via
+  `/admin/chapters`.
+- **Events** — leads create and edit their own chapter's events directly
+  (`events.chapter_id`), including publishing a draft themselves with no admin gate
+  in the way — see §4 for the full visibility model. Deleting stays admin/draft-only:
+  a lead shouldn't be able to remove an event people may have already
+  registered/paid for.
+- **Board Docs** — a private, per-chapter document library (`chapter_documents` +
+  the `chapter-documents` Storage bucket, both RLS-scoped to that specific chapter's
+  own leads and admins only — never visible to regular members, or to leads of other
+  chapters). Upload a file, tag it "Document" or "Meeting Minutes," download it via a
+  signed URL (the bucket is private, unlike `event-images`/`event-materials`), or
+  delete it.
+- **Message chapter** — email everyone in the chapter (`ChapterEmailComposer`).
+  Functionally supersedes the older standalone `/chapters/[slug]/announce` page,
+  which still exists in the codebase but nothing links to it anymore.
+
+Member counts (chapter page header, `/chapters` list cards) are computed with a real
+`count: 'exact'` query and a `chapter_member_counts()` SQL aggregate, not by fetching
+every `chapter_memberships` row and counting client-side — that pattern silently
+truncates once row counts pass PostgREST's default 1,000-row cap on an unbounded
+select, which chapter memberships did platform-wide (13,000+ rows) well before anyone
+noticed the displayed counts had stopped moving. Same class of bug as the
+`/admin/activity` fix in §7.
 
 ### Forum
 
@@ -264,10 +298,13 @@ salary range, apply URL or email. Admins can feature/manage any post.
 
 ### Vendor Directory & Reviews
 
-A directory of recruiting vendors/tools (`vendors`) — members can submit new ones
-(admin-approved) and leave structured reviews (`vendor_reviews`: overall/ease-of-use/
-support/value ratings, pros/cons, tenure). Admins manage featured logos and vendor
-enrichment fields.
+A directory of recruiting vendors/tools (`vendors`) — members can leave structured
+reviews (`vendor_reviews`: overall/ease-of-use/support/value ratings, pros/cons,
+tenure). Admins manage featured logos and vendor enrichment fields directly, or add
+a new vendor via a member suggestion: `/vendors/suggest` writes a `vendor_suggestions`
+row, reviewed at `/admin/suggestions` — clicking **Mark as Added** creates the actual
+`vendors` row from what was submitted (name, website, category, description), ready
+for an admin to finish out (logo, contact info, featured flag).
 
 ### Notifications
 
@@ -329,6 +366,28 @@ same person (the super admin) is both the only visible member and the approver.
   listing (homepage, `/events`, admin dashboard, event-reminder cron) — it exists
   purely to exercise the LinkedIn-share → apply → approve loop end-to-end without
   exposing it to real members.
+- **Visibility** (`events.visibility` — `all` | `leads_only`) — a chapter lead can
+  mark an event (e.g. an internal board meeting) leads-only. Visible only to that
+  chapter's leads, org-wide `board_member`-role profiles, and admins; hidden from the
+  public homepage teaser, the newsletter's auto-generated events block, the public
+  event share-link teaser, and the regular members' `/events` list and dashboard
+  widget. Enforced by RLS for every surface that reads through the caller's own
+  session (the events list, dashboard, Ask TALK search, checkout); the handful of
+  surfaces that read via the service-role client (homepage, public teaser route,
+  newsletter block) filter it explicitly, since RLS doesn't apply there.
+- **Chapter targeting** — `events.chapter_id` is the event's "owning" chapter (set by
+  a chapter lead creating it via the Manage panel, or an admin), and shows it on that
+  chapter's own page. Nothing filters the main calendar/dashboard/newsletter by
+  chapter, so any chapter's published event is automatically on the general/"national"
+  calendar too — no separate step. The reverse (a national event that should also
+  surface on one or more local chapters' pages, without making any of them its
+  "owning" chapter and handing that chapter's leads edit rights) uses a second field,
+  `events.additional_chapter_ids` (`uuid[]`) — a multi-select on the admin Create/Edit
+  Event forms. The chapter page's events query matches either field.
+- Chapter leads can upload an event's cover image from the Manage panel's event form
+  — this needed widening the `event-images` Storage bucket's insert/update/delete
+  policies, which had been admin-only since the bucket was created, well before
+  chapter leads could create events at all.
 
 ---
 
@@ -361,20 +420,32 @@ Supabase env vars in a build environment that has none.
 ### Newsletter
 
 `admin/newsletter` — section-based composer (TALK News, Member Highlight, Industry
-News, Career Opportunities), live preview, sponsor slot (auto-included "Presented by"
-masthead + optional offer callout), test-send, save-as-draft, schedule-for-later, or
-send now. Sending (`sendNewsletter()` in `lib/newsletter-send.ts`) paginates past
-Supabase's 1k-row cap, skips `email_unsubscribes`, throttles via Resend's batch
-endpoint. Scheduled sends fire from `/api/cron/send-newsletter`.
+News, Career Opportunities), live preview, test-send, save-as-draft,
+schedule-for-later, or send now. Sending (`sendNewsletter()` in
+`lib/newsletter-send.ts`) paginates past Supabase's 1k-row cap, skips
+`email_unsubscribes`, throttles via Resend's batch endpoint. Scheduled sends fire
+from `/api/cron/send-newsletter`.
 
-Two auto-generated blocks sit between the sponsor masthead and the greeting, so an
-admin skipping a section doesn't mean the newsletter goes out empty of real content:
-- **Upcoming events** (`lib/newsletter-events.ts`) — up to 3 real, published,
-  non-test events (same query as the homepage), rendered as a date-tile list linking
-  back to each event. Renders nothing if there are none.
+**Sponsors** — two independent placements (`newsletter_sponsors.placement`: `masthead`
+| `mid`), so promoting one vendor doesn't mean showing the same "Presented by" banner
+three times in one email. The masthead sponsor gets the header banner ("Presented by"
++ optional offer callout) and a matching footer callout; the mid sponsor gets its own
+simpler card (optional member-perk line instead of a full offer), inserted right
+after the newsletter's first content section via a marker
+(`MID_AD_MARKER`/`<!--MID_AD_SLOT-->`). Each placement has its own single active
+sponsor (`getActiveSponsor(adminDb, placement)`), managed at
+`admin/newsletter/sponsors`.
+
+Two more auto-generated blocks — before the masthead sponsor and right after it,
+respectively — mean an admin skipping a section doesn't leave the newsletter empty
+of real content:
 - **"This week in TALK" stats** (`lib/newsletter-stats.ts`) — real weekly counts
   (new members, forum posts, event RSVPs, new job posts) via cheap head-count
-  queries. Renders nothing if every count is zero.
+  queries, rendered first. Renders nothing if every count is zero.
+- **Upcoming events** (`lib/newsletter-events.ts`) — up to 3 real, published,
+  non-test, `visibility: 'all'` events (same query as the homepage, with the same
+  `leads_only` exclusion — see §4), rendered as a date-tile list linking back to each
+  event, right after the masthead sponsor. Renders nothing if there are none.
 
 **Public teaser page** (`app/(app)/newsletter/[id]/page.tsx`) — same public-teaser +
 apply-to-join pattern as events (§4), wired the same way (a `/newsletter/` entry in
@@ -410,9 +481,10 @@ one specific chapter) narrows the audience — `getChapters()` in
 
 ### Chapter announcements
 
-Board members/admins/leads can email everyone in a specific chapter
-(`app/(app)/chapters/[slug]/announce`) — much smaller blast radius than a full
-newsletter, so it isn't super-admin gated.
+Chapter leads/admins can email everyone in a specific chapter — much smaller blast
+radius than a full newsletter, so it isn't super-admin gated. Reachable today via the
+chapter Manage panel's "Message chapter" tab (§3); the original standalone
+`app/(app)/chapters/[slug]/announce` page still exists but nothing links to it.
 
 ### Unsubscribe & deliverability
 
@@ -443,9 +515,11 @@ generic card rather than a broken-image icon.
 
 ## 6. AI-Assisted Content
 
-Two features, deliberately built as a pair after rejecting an initial ask to have an
-AI post under a fake persona — impersonation is a direct threat to a platform whose
-whole value proposition is real conversations between real TA leaders.
+The news bot and News Brief were deliberately built as a pair after rejecting an
+initial ask to have an AI post under a fake persona — impersonation is a direct
+threat to a platform whose whole value proposition is real conversations between
+real TA leaders. Ask TALK, added later, is a different kind of AI feature — a
+retrieval assistant, not a content generator — and doesn't carry that same risk.
 
 ### TA News digest bot (automated, disclosed)
 
@@ -466,8 +540,24 @@ whole value proposition is real conversations between real TA leaders.
 editable draft. Nothing posts automatically; the admin reviews/edits and posts it
 under their own name via **Post to Forum**.
 
-Both require `ANTHROPIC_API_KEY` set in the environment to actually run — it's not
-configured by default the way `SUPABASE_SERVICE_ROLE_KEY` etc. are.
+### Ask TALK (member-facing site search)
+
+`/search` — a chat interface that answers questions by searching the site itself:
+events, jobs, forum discussions, members, and vendors. `app/api/ai-search/route.ts`
+runs a manual streaming tool-use loop (`claude-opus-5`, `output_config: { effort:
+"low" }`, up to 6 tool-call iterations) against five search tools
+(`lib/ai-search-tools.ts`). Each tool queries through the *caller's own*
+session-scoped Supabase client rather than the admin client, so results are
+automatically limited to what that member could see browsing the site themselves —
+no separate visibility logic needed (a `leads_only` event, for instance, just won't
+come back as a search result for someone who isn't a lead). The system prompt is
+handed today's date explicitly, since `search_events` intentionally returns both
+past and future events and needs to filter "upcoming" itself. A compact search bar
+in the dashboard hero (`components/ask-talk-bar.tsx`) hands off to `/search?q=...`
+with auto-send, so members don't have to find the nav entry first.
+
+All three AI features require `ANTHROPIC_API_KEY` set in the environment to actually
+run — it's not configured by default the way `SUPABASE_SERVICE_ROLE_KEY` etc. are.
 
 ---
 
@@ -481,8 +571,8 @@ All of `/admin/*` requires `role = 'admin'` (checked in both `middleware.ts` and
 |---|---|---|
 | `/admin` | Stats, pending-approval queue, member search/claim-link tool | Approve/reject/merge only |
 | `/admin/members` | Full roster, role changes, suspend/reactivate, super-admin grant | Role changes, suspend/reactivate, super-admin grant |
-| `/admin/chapters` | Manage chapters | No |
-| `/admin/events` | Create/edit events, recording & materials manager | No |
+| `/admin/chapters` | Manage chapters, assign/remove leads across any chapter | No |
+| `/admin/events` | Create/edit events (incl. targeting one or more chapters via `additional_chapter_ids`), recording & materials manager | No |
 | `/admin/jobs` | Moderate job posts | No |
 | `/admin/vendors` | Manage vendor directory, featured logos | No |
 | `/admin/newsletter` | Compose, draft, test-send | Send / schedule only |
@@ -550,11 +640,12 @@ they're safe to re-run against partially-applied state).
 `chat_channels`, `chat_messages`, `dm_conversations`, `dm_messages`,
 `conversation_participants`
 
-**Events**: `events` (incl. `venue_name`, `is_test`), `event_rsvps`,
-`event_registrations`, `event_materials`
+**Events**: `events` (incl. `venue_name`, `is_test`, `visibility`,
+`additional_chapter_ids`), `event_rsvps`, `event_registrations`, `event_materials`
 
-**Chapters**: `chapters`, `chapter_memberships`, `chapter_leads`,
-`legacy_chapter_slug_map` (old-site city slug → real chapter slug, migration 055)
+**Chapters**: `chapters`, `chapter_memberships`, `chapter_leads`, `chapter_documents`
+(Board Docs), `legacy_chapter_slug_map` (old-site city slug → real chapter slug,
+migration 055)
 
 **Analytics**: `page_views` (route navigation, insert-your-own-row RLS, admin-only
 reads), `activity_snapshots` (daily north-star rollups, RLS enabled with zero
@@ -600,10 +691,15 @@ policies — service-role only, same pattern as `linkedin_connections`)
 
 ---
 
-*Last written: reflects the state of the codebase through the rebuilt
-`/admin/activity` dashboard, the homepage redesign (real hero stats, company
-ticker, scroll reveal), the newsletter overhaul (real events/stats blocks, public
-teaser page, LinkedIn sharing, redesigned share card), mandatory LinkedIn URLs for
-approval, chapter email targeting, the geographic chapter-matching fix, and the
-event venue field. Update this doc as part of shipping any feature that changes the
-picture above.*
+*Last written: reflects the state of the codebase through the chapter Manage panel
+(self-service co-lead management, lead-created/published events, Board Docs), event
+visibility (`leads_only`) and multi-chapter targeting (`additional_chapter_ids`), the
+mid-newsletter sponsor placement split, Ask TALK site search, the vendor-suggestion
+→ vendor pipeline fix, and the chapter member-count fix (real aggregates instead of
+client-side counting past PostgREST's 1,000-row cap) — plus everything from the
+previous pass: the rebuilt `/admin/activity` dashboard, the homepage redesign (real
+hero stats, company ticker, scroll reveal), the newsletter overhaul (real
+events/stats blocks, public teaser page, LinkedIn sharing, redesigned share card),
+mandatory LinkedIn URLs for approval, chapter email targeting, the geographic
+chapter-matching fix, and the event venue field. Update this doc as part of shipping
+any feature that changes the picture above.*
