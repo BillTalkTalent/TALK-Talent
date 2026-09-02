@@ -8,6 +8,28 @@ import { Button } from "@/components/ui/button";
 async function updateSuggestionStatus(id: string, status: string) {
   "use server";
   const supabase = createAdminClient() as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+
+  // "Added" is supposed to mean the vendor is live in the directory — create
+  // the vendors row from what the member submitted so it actually shows up
+  // in /admin/vendors, ready for an admin to finish out (logo, contact info).
+  if (status === "added") {
+    const { data: suggestion } = await supabase
+      .from("vendor_suggestions")
+      .select("name, website, category, description, user_id")
+      .eq("id", id)
+      .single();
+
+    if (suggestion) {
+      await supabase.from("vendors").insert({
+        name: suggestion.name,
+        website: suggestion.website,
+        category: suggestion.category,
+        description: suggestion.description,
+        submitted_by: suggestion.user_id,
+      });
+    }
+  }
+
   await supabase.from("vendor_suggestions").update({ status }).eq("id", id);
   revalidatePath("/admin/suggestions");
 }
