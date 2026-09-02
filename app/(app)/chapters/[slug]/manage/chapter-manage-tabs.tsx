@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import ChapterEventForm, { type ChapterManageEvent } from './chapter-event-form'
 import ChapterEmailComposer from './chapter-email-composer'
+import ChapterDocumentsTab, { type ChapterDocument } from './chapter-documents-tab'
 
 function getInitials(name: string | null) {
   if (!name) return '?'
@@ -19,13 +20,14 @@ function getInitials(name: string | null) {
 
 type RosterMember = { id: string; full_name: string | null; avatar_url: string | null; title: string | null; company: string | null; joined_at: string }
 
-const TABS = ['overview', 'roster', 'events', 'message'] as const
+const TABS = ['overview', 'roster', 'events', 'documents', 'message'] as const
 type Tab = (typeof TABS)[number]
 
 const TAB_LABELS: Record<Tab, string> = {
   overview: 'Overview',
   roster: 'Roster & Roles',
   events: 'Events',
+  documents: 'Board Docs',
   message: 'Message chapter',
 }
 
@@ -46,6 +48,7 @@ export default function ChapterManageTabs({
   leads,
   leadIds,
   events,
+  documents,
   stats,
 }: {
   chapterId: string
@@ -56,6 +59,7 @@ export default function ChapterManageTabs({
   leads: LeadProfile[]
   leadIds: string[]
   events: ChapterManageEvent[]
+  documents: ChapterDocument[]
   stats: { roster: number; upcomingEvents: number; boardThreads: number; leads: number }
 }) {
   const router = useRouter()
@@ -333,6 +337,8 @@ export default function ChapterManageTabs({
           )}
         </div>
       )}
+
+      {tab === 'documents' && <ChapterDocumentsTab chapterId={chapterId} documents={documents} />}
 
       {tab === 'message' && <ChapterEmailComposer chapterId={chapterId} chapterName={chapterName} />}
     </div>

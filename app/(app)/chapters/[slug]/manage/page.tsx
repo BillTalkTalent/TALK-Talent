@@ -36,7 +36,7 @@ export default async function ChapterManagePage({ params }: { params: Promise<{ 
   const isLead = !!leadRow
   if (!isAdmin && !isLead) redirect(`/chapters/${slug}`)
 
-  const [rosterResult, leadsResult, eventsResult, boardCountResult] = await Promise.all([
+  const [rosterResult, leadsResult, eventsResult, boardCountResult, documentsResult] = await Promise.all([
     supabase
       .from('chapter_memberships')
       .select('user_id, joined_at, profiles(id, full_name, avatar_url, title, company)')
@@ -58,6 +58,12 @@ export default async function ChapterManagePage({ params }: { params: Promise<{ 
       .from('chapter_posts')
       .select('id', { count: 'exact', head: true })
       .eq('chapter_id', chapter.id),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any)
+      .from('chapter_documents')
+      .select('id, title, category, file_path, file_name, created_at, profiles(full_name)')
+      .eq('chapter_id', chapter.id)
+      .order('created_at', { ascending: false }),
   ])
 
   type MemberProfile = { id: string; full_name: string | null; avatar_url: string | null; title: string | null; company: string | null }
@@ -108,6 +114,7 @@ export default async function ChapterManagePage({ params }: { params: Promise<{ 
         leads={leads}
         leadIds={[...leadIds] as string[]}
         events={events}
+        documents={documentsResult.data ?? []}
         stats={{
           roster: roster.length,
           upcomingEvents: upcomingCount,
