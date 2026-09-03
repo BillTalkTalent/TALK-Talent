@@ -5,7 +5,11 @@ Sentry.init({
   environment: process.env.NODE_ENV,
   tracesSampleRate: 0.1,
   beforeSend(event) {
-    if (event.exception?.values?.[0]?.value?.includes('NEXT_REDIRECT')) return null
+    const message = event.exception?.values?.[0]?.value ?? ''
+    if (message.includes('NEXT_REDIRECT')) return null
+    // Expected validation failure (profiles_require_linkedin_for_approval) —
+    // already caught and surfaced as a banner on /admin, not a real error.
+    if (message.includes('no LinkedIn URL on file')) return null
     return event
   },
 })

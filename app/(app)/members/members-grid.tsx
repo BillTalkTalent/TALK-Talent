@@ -385,7 +385,7 @@ export default function MembersGrid({
         <span>
           {totalCount === 0
             ? "No members found"
-            : `Showing ${(currentPage - 1) * 48 + 1}–${Math.min(currentPage * 48, totalCount)} of ${totalCount.toLocaleString()} members`}
+            : `Showing ${(currentPage - 1) * 48 + 1}–${Math.min(currentPage * 48, totalCount)} of ${totalCount.toLocaleString('en-US')} members`}
           {currentLetter && !currentQ && (
             <span className="ml-1 font-semibold text-foreground">
               starting with &ldquo;{currentLetter}&rdquo;
