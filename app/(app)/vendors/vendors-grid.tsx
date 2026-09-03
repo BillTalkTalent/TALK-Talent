@@ -201,7 +201,7 @@ export default function VendorsGrid({
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">
             Showing <span className="font-semibold text-foreground">{currentCategory}</span>
-            {" "}— {totalCount.toLocaleString('en-US')} vendor{totalCount !== 1 ? "s" : ""}
+            {" "}— {totalCount.toLocaleString()} vendor{totalCount !== 1 ? "s" : ""}
           </span>
         </div>
       )}
