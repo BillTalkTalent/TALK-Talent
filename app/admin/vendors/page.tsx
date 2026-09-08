@@ -51,12 +51,28 @@ async function inviteVendorManager(vendorId: string, email: string, fullName: st
   revalidatePath('/admin/vendors')
 }
 
-export default async function AdminVendorsPage() {
+export default async function AdminVendorsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ leadId?: string }>
+}) {
+  const { leadId } = await searchParams
   const supabase = await createClient()
   const { data: vendors } = await supabase
     .from('vendors')
     .select('*')
     .order('created_at', { ascending: false })
+
+  let lead: { id: string; company_name: string; contact_name: string | null; contact_email: string; website: string | null; message: string | null } | null = null
+  if (leadId) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data } = await (supabase as any)
+      .from('vendor_leads')
+      .select('id, company_name, contact_name, contact_email, website, message')
+      .eq('id', leadId)
+      .single()
+    lead = data
+  }
 
   return (
     <div className="space-y-6">
@@ -65,7 +81,7 @@ export default async function AdminVendorsPage() {
           <CardTitle>Add Vendor</CardTitle>
         </CardHeader>
         <CardContent>
-          <CreateVendorForm />
+          <CreateVendorForm lead={lead} />
         </CardContent>
       </Card>
 

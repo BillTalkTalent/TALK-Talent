@@ -2,7 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { format } from "date-fns";
-import { Lightbulb, Mail, CheckCircle2, XCircle, Clock, MessageSquarePlus, Handshake } from "lucide-react";
+import { Lightbulb, Mail, CheckCircle2, XCircle, Clock, MessageSquarePlus, Handshake, ArrowRight } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 async function updateVendorLeadStatus(id: string, status: string) {
@@ -87,6 +88,7 @@ type VendorLead = {
   message: string | null;
   status: string;
   created_at: string;
+  converted_vendor_id: string | null;
 };
 
 export default async function AdminSuggestionsPage() {
@@ -159,6 +161,7 @@ export default async function AdminSuggestionsPage() {
       pending: { label: "New", cls: "bg-amber-50 text-amber-700 border-amber-200" },
       reviewed: { label: "Reviewed", cls: "bg-blue-50 text-blue-700 border-blue-200" },
       contacted: { label: "Contacted ✓", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+      converted: { label: "Converted ✓", cls: "bg-violet-50 text-violet-700 border-violet-200" },
       declined: { label: "Declined", cls: "bg-zinc-100 text-zinc-500 border-zinc-200" },
     };
     const s = map[status] ?? map.pending;
@@ -215,18 +218,37 @@ export default async function AdminSuggestionsPage() {
                   <p className="text-sm text-zinc-600 leading-relaxed">{l.message}</p>
                 )}
 
-                {l.status === "pending" && (
-                  <div className="flex items-center gap-2 pt-1">
-                    <form action={updateVendorLeadStatus.bind(null, l.id, "contacted")}>
-                      <Button size="sm" type="submit" className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white">
-                        <CheckCircle2 className="size-3.5" /> Mark Contacted
+                {l.status === "converted" ? (
+                  l.converted_vendor_id && (
+                    <Link
+                      href={`/vendors/${l.converted_vendor_id}`}
+                      target="_blank"
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-violet-700 hover:underline pt-1"
+                    >
+                      View vendor listing <ArrowRight className="size-3" />
+                    </Link>
+                  )
+                ) : l.status !== "declined" && (
+                  <div className="flex items-center gap-2 pt-1 flex-wrap">
+                    <Link href={`/admin/vendors?leadId=${l.id}`}>
+                      <Button size="sm" type="button" variant="outline" className="gap-1.5 border-violet-200 text-violet-700 hover:bg-violet-50">
+                        <Handshake className="size-3.5" /> Convert to vendor
                       </Button>
-                    </form>
-                    <form action={updateVendorLeadStatus.bind(null, l.id, "reviewed")}>
-                      <Button size="sm" type="submit" variant="outline" className="gap-1.5">
-                        <Clock className="size-3.5" /> Mark Reviewed
-                      </Button>
-                    </form>
+                    </Link>
+                    {l.status === "pending" && (
+                      <form action={updateVendorLeadStatus.bind(null, l.id, "contacted")}>
+                        <Button size="sm" type="submit" className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white">
+                          <CheckCircle2 className="size-3.5" /> Mark Contacted
+                        </Button>
+                      </form>
+                    )}
+                    {l.status === "pending" && (
+                      <form action={updateVendorLeadStatus.bind(null, l.id, "reviewed")}>
+                        <Button size="sm" type="submit" variant="outline" className="gap-1.5">
+                          <Clock className="size-3.5" /> Mark Reviewed
+                        </Button>
+                      </form>
+                    )}
                     <form action={updateVendorLeadStatus.bind(null, l.id, "declined")}>
                       <Button size="sm" type="submit" variant="ghost" className="gap-1.5 text-zinc-400 hover:text-red-500">
                         <XCircle className="size-3.5" /> Decline
