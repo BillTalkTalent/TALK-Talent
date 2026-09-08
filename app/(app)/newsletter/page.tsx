@@ -2,11 +2,18 @@ import Link from 'next/link'
 import { format } from 'date-fns'
 import { ArrowRight, Mail } from 'lucide-react'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 
 // Public archive of past newsletters — links out to each issue's existing
 // public teaser page (app/(app)/newsletter/[id]/page.tsx), which already
 // only shows public-safe content. RLS on `newsletters` is admin-only, so
 // this reads via the service-role client same as the teaser page does.
+//
+// Logged-in members hit this same route (app/(app)/layout.tsx only skips
+// its member chrome for logged-out visitors), so it renders two ways: a
+// full marketing page with its own header/signup-CTA for logged-out
+// visitors, and a bare content-only version for members, who already have
+// AppTopNav/AppFooter wrapping it and don't need a "join TALK" pitch.
 export const dynamic = 'force-dynamic'
 
 const N = {
@@ -16,17 +23,64 @@ const N = {
 }
 
 export default async function NewsletterArchivePage() {
+  const supabase = await createClient()
   const admin = createAdminClient()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const adminDb = admin as any
 
-  const { data: newsletters } = await adminDb
-    .from('newsletters')
-    .select('id, subject, preview_text, sent_at')
-    .eq('status', 'sent')
-    .order('sent_at', { ascending: false })
+  const [{ data: { user } }, { data: newsletters }] = await Promise.all([
+    supabase.auth.getUser(),
+    adminDb
+      .from('newsletters')
+      .select('id, subject, preview_text, sent_at')
+      .eq('status', 'sent')
+      .order('sent_at', { ascending: false }),
+  ])
 
   const issues: { id: string; subject: string; preview_text: string | null; sent_at: string }[] = newsletters ?? []
+  const isMember = !!user
+
+  const list = issues.length === 0 ? (
+    <div className="rounded-2xl border p-10 text-center mb-10" style={{ borderColor: N.border, background: N.cardBg }}>
+      <Mail className="size-6 mx-auto mb-3" style={{ color: N.muted }} />
+      <p className="text-sm" style={{ color: N.muted }}>No issues published yet — check back soon.</p>
+    </div>
+  ) : (
+    <div className="rounded-2xl border overflow-hidden mb-10" style={{ borderColor: N.border, background: N.cardBg }}>
+      {issues.map((n, i) => (
+        <Link
+          key={n.id}
+          href={`/newsletter/${n.id}`}
+          className="group flex items-start justify-between gap-4 px-6 py-5 hover:bg-black/[0.02] transition-colors"
+          style={i < issues.length - 1 ? { borderBottom: `1px solid ${N.border}` } : undefined}
+        >
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: N.navy }}>
+              {format(new Date(n.sent_at), 'MMMM d, yyyy')}
+            </p>
+            <p className="font-bold" style={{ color: N.text }}>{n.subject}</p>
+            {n.preview_text && (
+              <p className="text-sm mt-1 line-clamp-2" style={{ color: N.muted }}>{n.preview_text}</p>
+            )}
+          </div>
+          <ArrowRight className="size-4 shrink-0 mt-1 transition-transform group-hover:translate-x-0.5" style={{ color: N.muted }} />
+        </Link>
+      ))}
+    </div>
+  )
+
+  if (isMember) {
+    return (
+      <div className="max-w-3xl mx-auto px-6 py-10">
+        <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: N.red }}>TALK Newsletter</p>
+        <h1 className="text-3xl font-black tracking-tight mb-3" style={{ color: N.text }}>The archive</h1>
+        <p className="text-lg leading-relaxed mb-10" style={{ color: N.muted }}>
+          Past issues of the weekly TALK newsletter — pulled straight from your inbox.
+        </p>
+        {list}
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen font-sans" style={{ background: N.pageBg, color: N.text }}>
@@ -46,34 +100,7 @@ export default async function NewsletterArchivePage() {
           Past issues of the weekly TALK newsletter — a look at what talent acquisition leaders in the community are reading.
         </p>
 
-        {issues.length === 0 ? (
-          <div className="rounded-2xl border p-10 text-center mb-10" style={{ borderColor: N.border, background: N.cardBg }}>
-            <Mail className="size-6 mx-auto mb-3" style={{ color: N.muted }} />
-            <p className="text-sm" style={{ color: N.muted }}>No issues published yet — check back soon.</p>
-          </div>
-        ) : (
-          <div className="rounded-2xl border overflow-hidden mb-10" style={{ borderColor: N.border, background: N.cardBg }}>
-            {issues.map((n, i) => (
-              <Link
-                key={n.id}
-                href={`/newsletter/${n.id}`}
-                className="group flex items-start justify-between gap-4 px-6 py-5 hover:bg-black/[0.02] transition-colors"
-                style={i < issues.length - 1 ? { borderBottom: `1px solid ${N.border}` } : undefined}
-              >
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: N.navy }}>
-                    {format(new Date(n.sent_at), 'MMMM d, yyyy')}
-                  </p>
-                  <p className="font-bold" style={{ color: N.text }}>{n.subject}</p>
-                  {n.preview_text && (
-                    <p className="text-sm mt-1 line-clamp-2" style={{ color: N.muted }}>{n.preview_text}</p>
-                  )}
-                </div>
-                <ArrowRight className="size-4 shrink-0 mt-1 transition-transform group-hover:translate-x-0.5" style={{ color: N.muted }} />
-              </Link>
-            ))}
-          </div>
-        )}
+        {list}
 
         <div className="rounded-2xl p-8 text-center" style={{ background: `linear-gradient(160deg, ${N.navA} 0%, ${N.navB} 55%, #1A3A5C 100%)` }}>
           <p className="text-xl font-black text-white mb-2">Get it in your inbox.</p>

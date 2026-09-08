@@ -3,25 +3,30 @@ import { notFound } from 'next/navigation'
 import { format } from 'date-fns'
 import { ArrowRight, MapPin, Monitor, Users, MessageSquare, CalendarDays, Briefcase } from 'lucide-react'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 import { formatInZone } from '@/lib/timezone'
 import { getUpcomingEventsForNewsletter } from '@/lib/newsletter-events'
 import { getNewsletterStats } from '@/lib/newsletter-stats'
 import { getRecentJobsForNewsletter } from '@/lib/newsletter-jobs'
 
-// Public, unauthenticated teaser for a sent newsletter — the landing page a
-// LinkedIn share link points to. Deliberately shows only public-safe
-// content (intro, real upcoming events, real open jobs, real weekly stats,
-// a short teaser of the TALK News section) and gates the rest behind
-// "Apply to join" — same reasoning as the public event teaser: real content
-// builds trust, but member-highlight/industry-news/career sections aren't
-// meant for an outside audience. Uses the service-role client since
-// newsletters RLS is admin-only.
+// Two audiences hit this route. Logged-out visitors (e.g. a LinkedIn share
+// link) get a public, unauthenticated teaser — deliberately only
+// public-safe content (intro, real upcoming events, real open jobs, real
+// weekly stats, a short teaser of the TALK News section), gated behind
+// "Apply to join" for the rest. Same reasoning as the public event teaser:
+// real content builds trust, but member-highlight/industry-news/career
+// sections, and especially the "members open to work" block (real members'
+// names next to "actively job searching" — opted into sharing that with
+// fellow approved members, not anonymous visitors), aren't for an outside
+// audience.
 //
-// Deliberately NOT included here: the "members open to work" block that the
-// actual email gets. Open job posts are company-facing and fine for anyone
-// to see, but the talent pool surfaces real members' names next to "actively
-// job searching" — members opted into sharing that with fellow approved
-// members, not with anonymous visitors to a public marketing page.
+// Logged-in members (reached via the archive at /newsletter) instead get
+// the real body_html — the literal email they already received or could
+// have received, no redaction needed since they're exactly the intended
+// audience. That distinction is safety-critical: body_html must only ever
+// render when `isMember` is true.
+//
+// Uses the service-role client since newsletters RLS is admin-only.
 export const dynamic = 'force-dynamic'
 
 const N = {
@@ -36,15 +41,20 @@ function stripHtml(html: string): string {
 
 export default async function PublicNewsletterPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+  const supabase = await createClient()
   const admin = createAdminClient()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const adminDb = admin as any
 
-  const { data: newsletter } = await adminDb
-    .from('newsletters')
-    .select('id, subject, preview_text, intro, sections_json, status, sent_at')
-    .eq('id', id)
-    .single()
+  const [{ data: { user } }, { data: newsletter }] = await Promise.all([
+    supabase.auth.getUser(),
+    adminDb
+      .from('newsletters')
+      .select('id, subject, preview_text, intro, sections_json, body_html, status, sent_at')
+      .eq('id', id)
+      .single(),
+  ])
+  const isMember = !!user
 
   // Live once scheduled (so a link prepped ahead of a scheduled send
   // resolves right away, not just after it fires) or sent. Still 404s for
@@ -68,6 +78,28 @@ export default async function PublicNewsletterPage({ params }: { params: Promise
     { n: stats.newJobs, label: 'New jobs', icon: Briefcase },
   ]
   const hasStats = statTiles.some(t => t.n > 0)
+
+  // Members get the real thing — the literal email — not the redacted
+  // public teaser built below. No header/CTA here since AppTopNav/AppFooter
+  // (app/(app)/layout.tsx) already wrap this for a logged-in viewer.
+  if (isMember) {
+    return (
+      <div className="max-w-3xl mx-auto px-6 py-10">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: N.red }}>TALK Newsletter</p>
+          <Link href="/newsletter" className="text-xs font-semibold hover:underline" style={{ color: N.muted }}>All issues</Link>
+        </div>
+        <h1 className="text-3xl font-black tracking-tight mb-3" style={{ color: N.text }}>{newsletter.subject}</h1>
+        {newsletter.sent_at && (
+          <p className="text-sm mb-8" style={{ color: N.muted }}>{format(new Date(newsletter.sent_at), 'MMMM d, yyyy')}</p>
+        )}
+        <div
+          className="prose prose-sm max-w-none text-zinc-700"
+          dangerouslySetInnerHTML={{ __html: newsletter.body_html }}
+        />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen font-sans" style={{ background: N.pageBg, color: N.text }}>

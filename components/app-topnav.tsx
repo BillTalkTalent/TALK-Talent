@@ -19,6 +19,7 @@ import {
   GraduationCap,
   Bell,
   Megaphone,
+  Mail,
   MoreHorizontal,
   ChevronDown,
   Sparkles,
@@ -57,9 +58,10 @@ const mainNav = [
 
 // Lower-traffic destinations, tucked under a "More" dropdown to keep the row short.
 const moreNav = [
-  { href: '/search',   label: 'Ask TALK', icon: Search },
-  { href: '/polls',    label: 'Polls',    icon: BarChart2 },
-  { href: '/vendors',  label: 'Vendors',  icon: Building2 },
+  { href: '/search',      label: 'Ask TALK',    icon: Search },
+  { href: '/polls',       label: 'Polls',       icon: BarChart2 },
+  { href: '/vendors',     label: 'Vendors',     icon: Building2 },
+  { href: '/newsletter',  label: 'Newsletter',  icon: Mail },
 ]
 
 
