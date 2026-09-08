@@ -12,7 +12,17 @@ import { format } from "date-fns";
 import LogoUpload from "@/app/admin/vendors/logo-upload";
 import type { Vendor } from "@/lib/supabase/types";
 
-type VendorUpdate = { id: string; title: string; body: string | null; link_url: string | null; created_at: string };
+type VendorUpdate = { id: string; title: string; body: string | null; link_url: string | null; status: string; created_at: string };
+
+function updateStatusBadge(status: string) {
+  const map: Record<string, { label: string; cls: string }> = {
+    pending: { label: "Pending review", cls: "bg-amber-50 text-amber-700 border-amber-200" },
+    approved: { label: "Live", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+    rejected: { label: "Not approved", cls: "bg-zinc-100 text-zinc-500 border-zinc-200" },
+  };
+  const s = map[status] ?? map.pending;
+  return <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${s.cls}`}>{s.label}</span>;
+}
 type Opportunity = { id: string; title: string; description: string | null; price_label: string | null };
 type Inquiry = { id: string; opportunity_id: string | null; status: string };
 
@@ -255,7 +265,8 @@ export default function VendorPortalDashboard({
         <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-6 space-y-4">
           <h2 className="text-sm font-bold text-zinc-900">Share an update with TALK members</h2>
           <p className="text-xs text-zinc-500 -mt-2">
-            Posts show on your listing page in the vendor directory — not in the member forum.
+            Posts show on your listing page in the vendor directory — not in the member forum. TALK reviews each
+            post before it goes live, so it may take a bit to appear.
           </p>
           <form onSubmit={handlePost} className="space-y-3 rounded-xl border border-dashed border-zinc-200 p-4">
             <Input placeholder="Title" value={postTitle} onChange={(e) => setPostTitle(e.target.value)} />
@@ -280,7 +291,10 @@ export default function VendorPortalDashboard({
               {updates.map((u) => (
                 <div key={u.id} className="py-3 flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-zinc-900">{u.title}</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-sm font-semibold text-zinc-900">{u.title}</p>
+                      {updateStatusBadge(u.status)}
+                    </div>
                     {u.body && <p className="text-sm text-zinc-500 mt-0.5">{u.body}</p>}
                     {u.link_url && (
                       <a href={u.link_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline flex items-center gap-1 mt-1">

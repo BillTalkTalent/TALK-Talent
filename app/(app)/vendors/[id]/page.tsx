@@ -48,6 +48,7 @@ export default async function VendorDetailPage({
       .from('vendor_updates')
       .select('id, title, body, link_url, created_at')
       .eq('vendor_id', id)
+      .eq('status', 'approved')
       .order('created_at', { ascending: false }),
     supabase.auth.getUser(),
   ])

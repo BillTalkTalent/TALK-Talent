@@ -21,7 +21,7 @@ export default async function VendorPortalPage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase as any)
       .from("vendor_updates")
-      .select("id, title, body, link_url, created_at")
+      .select("id, title, body, link_url, status, created_at")
       .eq("vendor_id", account.vendor_id)
       .order("created_at", { ascending: false }),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
