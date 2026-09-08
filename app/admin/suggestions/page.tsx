@@ -2,8 +2,15 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { format } from "date-fns";
-import { Lightbulb, Mail, CheckCircle2, XCircle, Clock, MessageSquarePlus } from "lucide-react";
+import { Lightbulb, Mail, CheckCircle2, XCircle, Clock, MessageSquarePlus, Handshake } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+async function updateVendorLeadStatus(id: string, status: string) {
+  "use server";
+  const supabase = createAdminClient() as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  await supabase.from("vendor_leads").update({ status }).eq("id", id);
+  revalidatePath("/admin/suggestions");
+}
 
 async function updateSuggestionStatus(id: string, status: string) {
   "use server";
@@ -71,10 +78,21 @@ type TopicSuggestion = {
   profiles: { full_name: string | null; email: string } | null;
 };
 
+type VendorLead = {
+  id: string;
+  company_name: string;
+  contact_name: string | null;
+  contact_email: string;
+  website: string | null;
+  message: string | null;
+  status: string;
+  created_at: string;
+};
+
 export default async function AdminSuggestionsPage() {
   const adminDb = createAdminClient() as any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
-  const [suggestionsResult, invitationsResult, topicsResult] = await Promise.all([
+  const [suggestionsResult, invitationsResult, topicsResult, vendorLeadsResult] = await Promise.all([
     adminDb
       .from("vendor_suggestions")
       .select("*, profiles(full_name, email)")
@@ -87,11 +105,18 @@ export default async function AdminSuggestionsPage() {
       .from("topic_suggestions")
       .select("*, profiles(full_name, email)")
       .order("created_at", { ascending: false }),
+    adminDb
+      .from("vendor_leads")
+      .select("*")
+      .order("created_at", { ascending: false }),
   ]);
 
   const suggestions: Suggestion[] = suggestionsResult.data ?? [];
   const invitations: Invitation[] = invitationsResult.data ?? [];
   const topics: TopicSuggestion[] = topicsResult.data ?? [];
+  const vendorLeads: VendorLead[] = vendorLeadsResult.data ?? [];
+  const pendingLeads = vendorLeads.filter((l) => l.status === "pending");
+  const otherLeads = vendorLeads.filter((l) => l.status !== "pending");
 
   const pending = suggestions.filter((s) => s.status === "pending");
   const reviewed = suggestions.filter((s) => s.status !== "pending");
@@ -129,8 +154,91 @@ export default async function AdminSuggestionsPage() {
     );
   };
 
+  const leadStatusBadge = (status: string) => {
+    const map: Record<string, { label: string; cls: string }> = {
+      pending: { label: "New", cls: "bg-amber-50 text-amber-700 border-amber-200" },
+      reviewed: { label: "Reviewed", cls: "bg-blue-50 text-blue-700 border-blue-200" },
+      contacted: { label: "Contacted ✓", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+      declined: { label: "Declined", cls: "bg-zinc-100 text-zinc-500 border-zinc-200" },
+    };
+    const s = map[status] ?? map.pending;
+    return (
+      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${s.cls}`}>
+        {s.label}
+      </span>
+    );
+  };
+
   return (
     <div className="space-y-8">
+
+      {/* Vendor Partner Applications */}
+      <section className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Handshake className="size-5 text-emerald-600" />
+          <h2 className="text-base font-bold text-zinc-900">
+            Vendor Partner Applications
+            {pendingLeads.length > 0 && (
+              <span className="ml-2 text-xs font-bold text-white bg-emerald-600 px-2 py-0.5 rounded-full">
+                {pendingLeads.length} new
+              </span>
+            )}
+          </h2>
+        </div>
+
+        {vendorLeads.length === 0 ? (
+          <p className="text-sm text-zinc-400 italic">No applications yet.</p>
+        ) : (
+          <div className="space-y-3">
+            {[...pendingLeads, ...otherLeads].map((l) => (
+              <div key={l.id} className="rounded-xl border border-zinc-100 bg-white shadow-sm p-4 space-y-2">
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-bold text-sm text-zinc-900">{l.company_name}</p>
+                      {leadStatusBadge(l.status)}
+                    </div>
+                    <p className="text-xs text-zinc-500">
+                      {l.contact_name ? `${l.contact_name} · ` : ""}
+                      <a href={`mailto:${l.contact_email}`} className="text-blue-600 hover:underline">{l.contact_email}</a>
+                    </p>
+                    {l.website && (
+                      <a href={l.website} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">
+                        {l.website.replace(/^https?:\/\//, "")}
+                      </a>
+                    )}
+                  </div>
+                  <p className="text-xs text-zinc-400 shrink-0">{format(new Date(l.created_at), "MMM d, yyyy")}</p>
+                </div>
+
+                {l.message && (
+                  <p className="text-sm text-zinc-600 leading-relaxed">{l.message}</p>
+                )}
+
+                {l.status === "pending" && (
+                  <div className="flex items-center gap-2 pt-1">
+                    <form action={updateVendorLeadStatus.bind(null, l.id, "contacted")}>
+                      <Button size="sm" type="submit" className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white">
+                        <CheckCircle2 className="size-3.5" /> Mark Contacted
+                      </Button>
+                    </form>
+                    <form action={updateVendorLeadStatus.bind(null, l.id, "reviewed")}>
+                      <Button size="sm" type="submit" variant="outline" className="gap-1.5">
+                        <Clock className="size-3.5" /> Mark Reviewed
+                      </Button>
+                    </form>
+                    <form action={updateVendorLeadStatus.bind(null, l.id, "declined")}>
+                      <Button size="sm" type="submit" variant="ghost" className="gap-1.5 text-zinc-400 hover:text-red-500">
+                        <XCircle className="size-3.5" /> Decline
+                      </Button>
+                    </form>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* Vendor Suggestions */}
       <section className="space-y-4">

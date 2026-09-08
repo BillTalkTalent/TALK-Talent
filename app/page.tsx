@@ -124,6 +124,9 @@ export default async function LandingPage() {
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Wordmark size={26} />
           <div className="flex items-center gap-3">
+            <Link href="/partners" className="text-sm font-medium text-white/60 hover:text-white transition-colors px-4 py-2 hidden sm:block">
+              For Vendors
+            </Link>
             <Link href="/login" className="text-sm font-medium text-white/60 hover:text-white transition-colors px-4 py-2">
               Sign in
             </Link>
