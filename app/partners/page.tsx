@@ -112,6 +112,19 @@ export default function PartnersPage() {
           ))}
         </div>
 
+        <div className="relative rounded-3xl overflow-hidden mb-16 shadow-[0_20px_60px_rgba(15,31,53,0.1)]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/talk-event-tampa.jpg" alt="TA leaders connecting at a TALK chapter event" className="w-full h-[280px] sm:h-[360px] object-cover" />
+          <div className="absolute inset-0" style={{ background: `linear-gradient(0deg, ${N.navA}E6 0%, ${N.navA}00 55%)` }} />
+          <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
+            <p className="text-white font-bold text-lg">This is what TALK looks like in the room</p>
+            <p className="text-white/70 text-sm mt-1 max-w-lg">
+              Chapter meetups, dinners, and events across the country — the same TA leaders who&apos;ll see your
+              listing, meeting face to face.
+            </p>
+          </div>
+        </div>
+
         <div className="relative max-w-xl mx-auto">
           <div className="absolute -inset-1 rounded-3xl blur-2xl opacity-[0.15] pointer-events-none" style={{ background: `linear-gradient(135deg, ${N.navA}, ${N.red})` }} />
           <div className="relative rounded-2xl bg-white border p-8 shadow-[0_20px_60px_rgba(15,31,53,0.08)] overflow-hidden" style={{ borderColor: '#DDE6F0' }}>
