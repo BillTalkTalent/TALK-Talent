@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Users, Megaphone, BadgeCheck, ArrowRight, Sparkles } from 'lucide-react'
+import { Users, Megaphone, BadgeCheck, ArrowRight, Sparkles, CalendarDays, LineChart, MessagesSquare } from 'lucide-react'
 import VendorApplyForm from './vendor-apply-form'
 
 const N = {
@@ -27,6 +27,21 @@ const benefits = [
     icon: Megaphone,
     title: 'Share updates with the community',
     desc: 'Post news, resources, or announcements that show up right on your listing page for members to see.',
+  },
+  {
+    icon: CalendarDays,
+    title: 'Co-host events & webinars',
+    desc: 'Get in front of TA leaders in person and virtually — sponsor or co-host a session with the TALK community.',
+  },
+  {
+    icon: LineChart,
+    title: 'Polling & research access',
+    desc: 'TALK regularly runs polls and research with its TA leader community — partners can tap into that data and insight.',
+  },
+  {
+    icon: MessagesSquare,
+    title: 'Something else in mind?',
+    desc: 'TALK is always open to new ways to support connecting your brand with the TA community. Tell us what you’re thinking.',
   },
 ]
 
@@ -65,13 +80,19 @@ export default function PartnersPage() {
             </span>
           </h1>
           <p className="mt-5 text-white/70 text-lg leading-relaxed max-w-xl mx-auto">
-            TALK&apos;s vendor directory is where talent acquisition leaders discover, compare, and review
-            recruiting tools. Apply below to become a listed partner.
+            A directory listing is just the start. TALK partners with vendors on events, webinars, research, and
+            more — apply below and we&apos;ll talk through what fits.
           </p>
         </div>
       </section>
 
-      <section className="relative z-10 max-w-5xl mx-auto px-6 -mt-12 pb-24">
+      <section className="relative z-10 max-w-5xl mx-auto px-6 pt-12 pb-24">
+        <div className="text-center max-w-lg mx-auto mb-8">
+          <h2 className="text-lg font-bold">Ways to partner with TALK</h2>
+          <p className="text-sm mt-1.5" style={{ color: N.muted }}>
+            A listing is one avenue — most partners work with us on more than one of these.
+          </p>
+        </div>
         <div className="grid sm:grid-cols-3 gap-5 mb-16">
           {benefits.map(({ icon: Icon, title, desc }) => (
             <div
@@ -101,7 +122,8 @@ export default function PartnersPage() {
             </div>
             <h2 className="text-xl font-bold mb-1">Apply as a vendor partner</h2>
             <p className="text-sm mb-6" style={{ color: N.muted }}>
-              Tell us a bit about your company — we&apos;ll follow up to talk pricing and next steps.
+              Tell us a bit about your company and what you&apos;re looking for — a listing, an event, research,
+              or something else entirely. We&apos;ll follow up to talk through what fits.
             </p>
             <VendorApplyForm />
           </div>
