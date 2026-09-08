@@ -81,7 +81,10 @@ export default async function PublicNewsletterPage({ params }: { params: Promise
       </header>
 
       <div className="max-w-3xl mx-auto px-6 py-12">
-        <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: N.red }}>TALK Newsletter</p>
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: N.red }}>TALK Newsletter</p>
+          <Link href="/newsletter" className="text-xs font-semibold hover:underline" style={{ color: N.muted }}>All issues</Link>
+        </div>
         <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-3" style={{ color: N.text }}>{newsletter.subject}</h1>
         {newsletter.sent_at && (
           <p className="text-sm mb-8" style={{ color: N.muted }}>{format(new Date(newsletter.sent_at), 'MMMM d, yyyy')}</p>

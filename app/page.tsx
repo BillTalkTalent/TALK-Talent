@@ -478,6 +478,7 @@ export default async function LandingPage() {
           <div className="flex items-center gap-6 text-xs text-white/40">
             <Link href="/login" className="hover:text-white transition-colors">Sign in</Link>
             <Link href="/signup" className="hover:text-white transition-colors">Apply</Link>
+            <Link href="/newsletter" className="hover:text-white transition-colors">Newsletter</Link>
             <a href="/privacy" className="hover:text-white transition-colors">Privacy</a>
             <a href="/terms" className="hover:text-white transition-colors">Terms</a>
             <span>© {new Date().getFullYear()} TALK Community</span>
