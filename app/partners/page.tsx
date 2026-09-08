@@ -1,10 +1,11 @@
 import Link from 'next/link'
-import { Users, Megaphone, BadgeCheck, ArrowRight } from 'lucide-react'
+import { Users, Megaphone, BadgeCheck, ArrowRight, Sparkles } from 'lucide-react'
 import VendorApplyForm from './vendor-apply-form'
 
 const N = {
   navA: '#0F1F35',
   navB: '#162D4A',
+  navyMid: '#162D4A',
   red: '#E8503A',
   pageBg: '#F5F8FC',
   text: '#0F1F35',
@@ -44,26 +45,44 @@ export default function PartnersPage() {
         </div>
       </header>
 
+      {/* Hero — position: relative here paints this section in the CSS "positioned" paint
+          layer, which always renders above later static-flow siblings regardless of DOM
+          order. The cards section below needs its own z-10 stacking context or its
+          negative-margin overlap gets hidden behind this section's background. */}
       <section className="relative overflow-hidden" style={{ background: `linear-gradient(160deg, ${N.navA} 0%, ${N.navB} 55%, #1A3A5C 100%)` }}>
-        <div className="relative max-w-3xl mx-auto text-center pt-36 pb-20 px-6">
+        <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full opacity-10 blur-[120px] pointer-events-none" style={{ background: `radial-gradient(ellipse, ${N.red} 0%, transparent 70%)` }} />
+        <div className="absolute top-32 right-0 w-80 h-80 rounded-full opacity-10 blur-[100px] pointer-events-none" style={{ background: 'radial-gradient(ellipse, #3B82F6 0%, transparent 70%)' }} />
+
+        <div className="relative max-w-3xl mx-auto text-center pt-36 pb-24 px-6">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-xs font-bold mb-6 tracking-wide uppercase" style={{ borderColor: '#2563EB50', background: '#2563EB20', color: '#93C5FD' }}>
+            <span className="size-1.5 rounded-full bg-blue-400 animate-pulse" />
             Vendor Partner Program
           </div>
-          <h1 className="text-4xl sm:text-5xl font-black text-white leading-tight">
-            Get in front of the TA leaders<br className="hidden sm:block" /> who choose your tools
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-[1.08] tracking-tight">
+            Get in front of the TA leaders<br className="hidden sm:block" />{' '}
+            <span style={{ background: `linear-gradient(90deg, ${N.red}, #F07058)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              who choose your tools
+            </span>
           </h1>
-          <p className="mt-5 text-white/70 text-lg leading-relaxed">
+          <p className="mt-5 text-white/70 text-lg leading-relaxed max-w-xl mx-auto">
             TALK&apos;s vendor directory is where talent acquisition leaders discover, compare, and review
             recruiting tools. Apply below to become a listed partner.
           </p>
         </div>
       </section>
 
-      <section className="max-w-5xl mx-auto px-6 -mt-10 pb-24">
-        <div className="grid sm:grid-cols-3 gap-5 mb-14">
+      <section className="relative z-10 max-w-5xl mx-auto px-6 -mt-12 pb-24">
+        <div className="grid sm:grid-cols-3 gap-5 mb-16">
           {benefits.map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="rounded-2xl bg-white border p-6 shadow-sm" style={{ borderColor: '#DDE6F0' }}>
-              <div className="size-10 rounded-xl flex items-center justify-center mb-4" style={{ background: `${N.red}15` }}>
+            <div
+              key={title}
+              className="group relative rounded-2xl bg-white border p-6 shadow-[0_2px_8px_rgba(15,31,53,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(15,31,53,0.1)]"
+              style={{ borderColor: '#DDE6F0' }}
+            >
+              <div
+                className="size-11 rounded-xl flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110"
+                style={{ background: `linear-gradient(135deg, ${N.red}20, ${N.red}0D)` }}
+              >
                 <Icon className="size-5" style={{ color: N.red }} />
               </div>
               <p className="font-bold mb-1.5">{title}</p>
@@ -72,18 +91,26 @@ export default function PartnersPage() {
           ))}
         </div>
 
-        <div className="max-w-xl mx-auto rounded-2xl bg-white border p-8 shadow-sm" style={{ borderColor: '#DDE6F0' }}>
-          <h2 className="text-xl font-bold mb-1">Apply as a vendor partner</h2>
-          <p className="text-sm mb-6" style={{ color: N.muted }}>
-            Tell us a bit about your company — we&apos;ll follow up to talk pricing and next steps.
-          </p>
-          <VendorApplyForm />
+        <div className="relative max-w-xl mx-auto">
+          <div className="absolute -inset-1 rounded-3xl blur-2xl opacity-[0.15] pointer-events-none" style={{ background: `linear-gradient(135deg, ${N.navA}, ${N.red})` }} />
+          <div className="relative rounded-2xl bg-white border p-8 shadow-[0_20px_60px_rgba(15,31,53,0.08)] overflow-hidden" style={{ borderColor: '#DDE6F0' }}>
+            <div className="absolute top-0 left-0 right-0 h-1" style={{ background: `linear-gradient(90deg, ${N.red}, #F07058, ${N.navB})` }} />
+            <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide mb-3" style={{ color: N.red }}>
+              <Sparkles className="size-3.5" />
+              Apply in minutes
+            </div>
+            <h2 className="text-xl font-bold mb-1">Apply as a vendor partner</h2>
+            <p className="text-sm mb-6" style={{ color: N.muted }}>
+              Tell us a bit about your company — we&apos;ll follow up to talk pricing and next steps.
+            </p>
+            <VendorApplyForm />
+          </div>
         </div>
 
         <p className="text-center text-sm mt-8" style={{ color: N.muted }}>
           Already a partner?{' '}
-          <Link href="/vendor-portal/login" className="font-semibold hover:underline" style={{ color: N.text }}>
-            Vendor Partner Login <ArrowRight className="inline size-3.5" />
+          <Link href="/vendor-portal/login" className="group font-semibold hover:underline" style={{ color: N.text }}>
+            Vendor Partner Login <ArrowRight className="inline size-3.5 transition-transform group-hover:translate-x-0.5" />
           </Link>
         </p>
       </section>
