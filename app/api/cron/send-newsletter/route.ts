@@ -60,6 +60,7 @@ export async function GET(req: NextRequest) {
       adminDb,
       newsletter.subject,
       (firstName, unsubscribeUrl) => buildEmailHtml(newsletter.subject, newsletter.body_html, firstName, unsubscribeUrl, newsletter.intro, sponsorTop, sponsorBottom, eventsBlock, statsBlock, jobsBlock, talentBlock, sponsorMid),
+      newsletter.id,
     )
     await adminDb.from('newsletters').update({
       status: 'sent',

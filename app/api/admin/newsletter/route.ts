@@ -243,6 +243,7 @@ export async function POST(req: NextRequest) {
     adminDb,
     subject,
     (firstName, unsubscribeUrl) => buildEmailHtml(subject, sections ?? {}, firstName, unsubscribeUrl, intro, sponsorTop, sponsorBottom, eventsBlock, statsBlock, jobsBlock, talentBlock, sponsorMid),
+    newsletterId,
   )
 
   if (total === 0) return NextResponse.json({ error: 'No eligible members found' }, { status: 400 })

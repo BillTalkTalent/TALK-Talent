@@ -3,8 +3,10 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { format } from 'date-fns'
-import { Plus, Send, Clock, FileText, Users } from 'lucide-react'
+import { Plus, Send, Clock, FileText, Users, Eye, MousePointerClick } from 'lucide-react'
 import NewsletterForm from './newsletter-form'
+
+type EngagementRow = { newsletter_id: string; opens: number; unique_opens: number; clicks: number; unique_clicks: number }
 
 export default async function AdminNewsletterPage() {
   const supabase = await createClient()
@@ -14,15 +16,19 @@ export default async function AdminNewsletterPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const adminDb = createAdminClient() as any
 
-  const [newslettersResult, memberCountResult, viewerProfileResult] = await Promise.all([
+  const [newslettersResult, memberCountResult, viewerProfileResult, engagementResult] = await Promise.all([
     adminDb.from('newsletters').select('*').order('created_at', { ascending: false }),
     adminDb.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'approved').eq('is_bot', false),
     supabase.from('profiles').select('is_superadmin').eq('id', user.id).single(),
+    adminDb.rpc('newsletter_engagement_summary'),
   ])
 
   const newsletters = newslettersResult.data ?? []
   const memberCount = memberCountResult.count ?? 0
   const isSuperAdmin = !!viewerProfileResult.data?.is_superadmin
+  const engagementByNewsletter = new Map<string, EngagementRow>(
+    (engagementResult.data ?? []).map((e: EngagementRow) => [e.newsletter_id, e])
+  )
 
   const statusBadge = (status: string) => {
     const map: Record<string, string> = {
@@ -104,7 +110,12 @@ export default async function AdminNewsletterPage() {
             {newsletters.map((n: {
               id: string; subject: string; status: string;
               created_at: string; sent_at?: string; scheduled_for?: string; recipient_count?: number
-            }) => (
+            }) => {
+              const eng = engagementByNewsletter.get(n.id)
+              const hasRecipients = n.status === 'sent' && !!n.recipient_count
+              const openRate = hasRecipients && eng ? Math.round((eng.unique_opens / n.recipient_count!) * 100) : null
+              const clickRate = hasRecipients && eng ? Math.round((eng.unique_clicks / n.recipient_count!) * 100) : null
+              return (
               <Link
                 key={n.id}
                 href={`/admin/newsletter/${n.id}`}
@@ -125,9 +136,16 @@ export default async function AdminNewsletterPage() {
                       : `Created ${format(new Date(n.created_at), 'MMM d, yyyy')}`}
                   </p>
                 </div>
+                {openRate !== null && (
+                  <div className="hidden sm:flex items-center gap-3 text-xs font-semibold text-zinc-500 shrink-0">
+                    <span className="flex items-center gap-1"><Eye className="size-3.5 text-zinc-400" /> {openRate}%</span>
+                    <span className="flex items-center gap-1"><MousePointerClick className="size-3.5 text-zinc-400" /> {clickRate}%</span>
+                  </div>
+                )}
                 {statusBadge(n.status)}
               </Link>
-            ))}
+              )
+            })}
           </div>
         </div>
       ) : (

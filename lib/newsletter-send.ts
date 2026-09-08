@@ -46,6 +46,11 @@ export async function sendNewsletter(
   // Returns the full email HTML for one recipient, given their first name and
   // a ready-to-use unsubscribe URL to place in the footer.
   buildHtml: (firstName: string, unsubscribeUrl: string) => string,
+  // Recorded against each successful send so the Resend webhook can resolve
+  // an email.opened/email.clicked event's email_id back to this newsletter —
+  // see migration 082. Optional only so a caller that doesn't care about
+  // engagement tracking (there isn't one today) isn't forced to pass it.
+  newsletterId?: string,
 ): Promise<{ sent: number; skipped: number; total: number }> {
   const [members, unsub] = await Promise.all([fetchApprovedMembers(adminDb), fetchUnsubscribed(adminDb)])
 
@@ -68,10 +73,21 @@ export async function sendNewsletter(
   for (let i = 0; i < recipients.length; i += 50) {
     const batch = recipients.slice(i, i + 50)
     try {
-      const { error } = await resend.batch.send(
+      const { data, error } = await resend.batch.send(
         batch.map((r) => ({ from, replyTo, to: r.email, subject, html: buildHtml(r.first, unsubUrl(origin, r.email)) })),
       )
-      if (!error) sent += batch.length
+      if (!error) {
+        sent += batch.length
+        // Resend returns one { id } per email, in the same order as the
+        // request — pair them back up with the recipient so the webhook can
+        // later resolve an event's email_id to (newsletter, email).
+        if (newsletterId && data?.data) {
+          const rows = data.data
+            .map((d, idx) => ({ newsletter_id: newsletterId, email: batch[idx]?.email, resend_email_id: d.id }))
+            .filter((r) => r.email)
+          if (rows.length > 0) await adminDb.from('newsletter_recipients').insert(rows)
+        }
+      }
     } catch {
       /* skip this batch, keep going */
     }

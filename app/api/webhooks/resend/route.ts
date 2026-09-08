@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-// Resend webhook: records bounces/complaints and auto-suppresses dead addresses
-// so we never email them again. Verified with the Svix signature scheme Resend
-// uses, so only genuine Resend calls are accepted.
+// Resend webhook: records bounces/complaints (auto-suppressing dead addresses
+// so we never email them again) and, for newsletter sends specifically,
+// opens/clicks (see migration 082). Verified with the Svix signature scheme
+// Resend uses, so only genuine Resend calls are accepted.
 
 function verifySignature(secret: string, headers: Headers, body: string): boolean {
   const id = headers.get('svix-id')
@@ -45,6 +46,37 @@ export async function POST(req: NextRequest) {
   }
 
   const type = event.type ?? ''
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const admin = createAdminClient() as any
+
+  if (type === 'email.opened' || type === 'email.clicked') {
+    const data = event.data ?? {}
+    const emailId = data.email_id ? String(data.email_id) : null
+    if (!emailId) return NextResponse.json({ ok: true, ignored: 'no email_id' })
+
+    // Only newsletter sends get a newsletter_recipients row (see
+    // lib/newsletter-send.ts) — an open/click on any other Resend email
+    // (approval notices, invites, etc.) has nothing to look up and is
+    // silently ignored, which is correct: this table is newsletter-only.
+    const { data: recipient } = await admin
+      .from('newsletter_recipients')
+      .select('newsletter_id, email')
+      .eq('resend_email_id', emailId)
+      .maybeSingle()
+    if (!recipient) return NextResponse.json({ ok: true, ignored: 'not a newsletter send' })
+
+    const click = (data.click ?? {}) as { link?: string }
+    await admin.from('newsletter_events').insert({
+      newsletter_id: recipient.newsletter_id,
+      email: recipient.email,
+      event_type: type === 'email.opened' ? 'opened' : 'clicked',
+      link_url: type === 'email.clicked' ? (click.link ?? null) : null,
+      resend_email_id: emailId,
+    })
+    return NextResponse.json({ ok: true })
+  }
+
   if (type !== 'email.bounced' && type !== 'email.complained') {
     return NextResponse.json({ ok: true, ignored: type })
   }
@@ -56,9 +88,6 @@ export async function POST(req: NextRequest) {
   // Transient (soft) bounces are temporary (full mailbox, greylisting) → record only.
   const isComplaint = type === 'email.complained'
   const suppress = isComplaint || bounce.type !== 'Transient'
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const admin = createAdminClient() as any
 
   for (const raw of to) {
     const email = String(raw).toLowerCase().trim()
