@@ -8,9 +8,13 @@ interface LogoUploadProps {
   currentUrl: string | null;
   onUpload: (url: string) => void;
   onClear: () => void;
+  // A paying vendor account can only upload under "<vendor_id>/..." (see
+  // migration 076); admins uploading from /admin/vendors pass nothing and
+  // keep the old flat path, which their own storage policy allows anywhere.
+  pathPrefix?: string;
 }
 
-export default function LogoUpload({ currentUrl, onUpload, onClear }: LogoUploadProps) {
+export default function LogoUpload({ currentUrl, onUpload, onClear, pathPrefix }: LogoUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentUrl);
@@ -25,7 +29,8 @@ export default function LogoUpload({ currentUrl, onUpload, onClear }: LogoUpload
 
     const supabase = createClient();
     const ext = file.name.split(".").pop();
-    const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const path = pathPrefix ? `${pathPrefix}/${filename}` : filename;
 
     const { error } = await supabase.storage
       .from("vendor-logos")

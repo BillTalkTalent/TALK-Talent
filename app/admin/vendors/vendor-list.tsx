@@ -7,15 +7,26 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Pencil, Trash2, Check, X, Building2 } from "lucide-react";
+import { Pencil, Trash2, Check, X, Building2, Send, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import type { Vendor } from "@/lib/supabase/types";
 import LogoUpload from "./logo-upload";
 
-export default function VendorList({ vendors }: { vendors: Vendor[] }) {
+export default function VendorList({
+  vendors,
+  inviteVendorManager,
+}: {
+  vendors: Vendor[];
+  inviteVendorManager: (vendorId: string, email: string, fullName: string) => Promise<void>;
+}) {
   const router = useRouter();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [invitingId, setInvitingId] = useState<string | null>(null);
+  const [inviteSending, setInviteSending] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteName, setInviteName] = useState("");
 
   // Edit form state
   const [form, setForm] = useState<Partial<Vendor>>({});
@@ -30,6 +41,7 @@ export default function VendorList({ vendors }: { vendors: Vendor[] }) {
       contact_name: vendor.contact_name ?? "",
       contact_email: vendor.contact_email ?? "",
       is_featured: vendor.is_featured,
+      is_paying: vendor.is_paying,
       logo_url: vendor.logo_url ?? null,
     });
   }
@@ -52,12 +64,36 @@ export default function VendorList({ vendors }: { vendors: Vendor[] }) {
           contact_name: form.contact_name || null,
           contact_email: form.contact_email || null,
           is_featured: form.is_featured ?? false,
+          is_paying: form.is_paying ?? false,
           logo_url: form.logo_url ?? null,
         })
         .eq("id", vendorId);
       setEditingId(null);
       router.refresh();
     });
+  }
+
+  function startInvite(vendorId: string) {
+    setInvitingId(vendorId);
+    setInviteEmail("");
+    setInviteName("");
+  }
+
+  async function handleInviteSubmit(vendorId: string) {
+    if (!inviteEmail.trim()) {
+      toast.error("Enter an email address.");
+      return;
+    }
+    setInviteSending(true);
+    try {
+      await inviteVendorManager(vendorId, inviteEmail.trim(), inviteName.trim());
+      toast.success(`Invited ${inviteEmail.trim()} to manage this listing.`);
+      setInvitingId(null);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to send invite.");
+    } finally {
+      setInviteSending(false);
+    }
   }
 
   function handleDelete(vendorId: string) {
@@ -150,6 +186,18 @@ export default function VendorList({ vendors }: { vendors: Vendor[] }) {
                   Featured vendor
                 </Label>
               </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id={`paying-${vendor.id}`}
+                  checked={form.is_paying ?? false}
+                  onChange={(e) => setForm((f) => ({ ...f, is_paying: e.target.checked }))}
+                  className="size-4 rounded border-zinc-300"
+                />
+                <Label htmlFor={`paying-${vendor.id}`} className="cursor-pointer text-xs">
+                  Paying — can self-manage listing
+                </Label>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <Button
@@ -167,7 +215,8 @@ export default function VendorList({ vendors }: { vendors: Vendor[] }) {
           </li>
         ) : (
           // ── Read view ─────────────────────────────────────────
-          <li key={vendor.id} className="py-4 flex items-start justify-between gap-4">
+          <li key={vendor.id} className="py-4 space-y-3">
+          <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-3 min-w-0">
               {vendor.logo_url ? (
                 <img
@@ -184,6 +233,7 @@ export default function VendorList({ vendors }: { vendors: Vendor[] }) {
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="font-medium text-zinc-900">{vendor.name}</p>
                 {vendor.is_featured && <Badge variant="secondary">Featured</Badge>}
+                {vendor.is_paying && <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">Paying</Badge>}
                 {vendor.category && (
                   <Badge variant="outline" className="text-xs">{vendor.category}</Badge>
                 )}
@@ -227,6 +277,37 @@ export default function VendorList({ vendors }: { vendors: Vendor[] }) {
                 {deletingId === vendor.id ? "Deleting…" : "Delete"}
               </Button>
             </div>
+          </div>
+
+          {vendor.is_paying && (
+            invitingId === vendor.id ? (
+              <div className="rounded-xl border border-dashed border-zinc-200 p-3 flex flex-wrap items-end gap-2">
+                <div className="space-y-1">
+                  <Label className="text-xs">Invite email</Label>
+                  <Input
+                    type="email"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    placeholder="rep@vendorcompany.com"
+                    className="w-56"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Name (optional)</Label>
+                  <Input value={inviteName} onChange={(e) => setInviteName(e.target.value)} className="w-40" />
+                </div>
+                <Button size="sm" onClick={() => handleInviteSubmit(vendor.id)} disabled={inviteSending} className="gap-1.5">
+                  {inviteSending ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />}
+                  Send invite
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setInvitingId(null)}>Cancel</Button>
+              </div>
+            ) : (
+              <Button size="sm" variant="outline" onClick={() => startInvite(vendor.id)} className="gap-1.5">
+                <Send className="size-3.5" /> Invite manager
+              </Button>
+            )
+          )}
           </li>
         )
       )}

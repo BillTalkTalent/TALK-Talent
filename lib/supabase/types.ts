@@ -99,6 +99,7 @@ export type Database = {
           contact_email: string | null;
           logo_url: string | null;
           is_featured: boolean;
+          is_paying: boolean;
           submitted_by: string | null;
           created_at: string;
           updated_at: string;
@@ -113,6 +114,7 @@ export type Database = {
           contact_email?: string | null;
           logo_url?: string | null;
           is_featured?: boolean;
+          is_paying?: boolean;
           submitted_by?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["vendors"]["Insert"]>;

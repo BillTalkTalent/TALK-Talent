@@ -91,6 +91,13 @@ export default async function VendorsPage({
         currentIndustry={industry ?? ""}
         currentSize={size ?? ""}
       />
+
+      <p className="text-center text-xs text-muted-foreground pt-2">
+        Manage a vendor listing?{" "}
+        <Link href="/vendor-portal/login" className="font-semibold text-foreground hover:underline">
+          Vendor Partner Login
+        </Link>
+      </p>
     </div>
   );
 }

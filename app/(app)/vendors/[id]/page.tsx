@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { ArrowLeft, ExternalLink, Building2, Briefcase, Users } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Building2, Briefcase, Users, Megaphone } from 'lucide-react'
+import { format } from 'date-fns'
 import ReviewForm from './review-form'
 import VendorEditForm from './vendor-edit-form'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -33,13 +34,19 @@ export default async function VendorDetailPage({
   const { tab = 'reviews' } = await searchParams
   const supabase = await createClient()
 
-  const [vendorRes, reviewsRes, userRes] = await Promise.all([
+  const [vendorRes, reviewsRes, updatesRes, userRes] = await Promise.all([
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase as any).from('vendors').select('*').eq('id', id).single(),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase as any)
       .from('vendor_reviews')
       .select('*, profiles(id,full_name,avatar_url,title,company)')
+      .eq('vendor_id', id)
+      .order('created_at', { ascending: false }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any)
+      .from('vendor_updates')
+      .select('id, title, body, link_url, created_at')
       .eq('vendor_id', id)
       .order('created_at', { ascending: false }),
     supabase.auth.getUser(),
@@ -61,9 +68,12 @@ export default async function VendorDetailPage({
   const reviewList: any[] = reviewsRes.data ?? []
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const myReview = reviewList.find((r: any) => r.reviewer_id === user?.id) ?? null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const updateList: any[] = updatesRes.data ?? []
 
   const tabs = [
     { key: 'reviews', label: `Reviews (${reviewList.length})` },
+    ...(updateList.length > 0 ? [{ key: 'updates', label: `Updates (${updateList.length})` }] : []),
     { key: 'write', label: myReview ? 'Edit Your Review' : 'Write a Review' },
     ...(isAdmin ? [{ key: 'edit', label: '✏️ Edit Details' }] : []),
   ]
@@ -173,6 +183,28 @@ export default async function VendorDetailPage({
         <VendorEditForm vendor={vendor} />
       ) : tab === 'write' ? (
         <ReviewForm vendorId={vendor.id} existingReview={myReview} />
+      ) : tab === 'updates' ? (
+        <div className="space-y-3">
+          {updateList.map((u) => (
+            <div key={u.id} className="rounded-2xl bg-card border border-border shadow-sm p-5">
+              <div className="flex items-start gap-3">
+                <div className="size-9 rounded-xl flex items-center justify-center bg-sky-50 shrink-0">
+                  <Megaphone className="size-4 text-sky-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-foreground">{u.title}</p>
+                  <p className="text-xs text-muted-foreground">{format(new Date(u.created_at), 'MMM d, yyyy')}</p>
+                  {u.body && <p className="mt-2 text-sm text-foreground/80 whitespace-pre-wrap">{u.body}</p>}
+                  {u.link_url && (
+                    <a href={u.link_url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs text-indigo-600 hover:underline">
+                      <ExternalLink className="size-3" /> {u.link_url}
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="space-y-3">
           {reviewList.length === 0 ? (
