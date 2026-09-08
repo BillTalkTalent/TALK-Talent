@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { format } from "date-fns";
-import { Lightbulb, Mail, CheckCircle2, XCircle, Clock, MessageSquarePlus, Handshake, ArrowRight } from "lucide-react";
+import { Lightbulb, Mail, CheckCircle2, XCircle, Clock, MessageSquarePlus, Handshake, ArrowRight, Megaphone } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -10,6 +10,13 @@ async function updateVendorLeadStatus(id: string, status: string) {
   "use server";
   const supabase = createAdminClient() as any; // eslint-disable-line @typescript-eslint/no-explicit-any
   await supabase.from("vendor_leads").update({ status }).eq("id", id);
+  revalidatePath("/admin/suggestions");
+}
+
+async function updateSponsorshipInquiryStatus(id: string, status: string) {
+  "use server";
+  const supabase = createAdminClient() as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  await supabase.from("sponsorship_inquiries").update({ status }).eq("id", id);
   revalidatePath("/admin/suggestions");
 }
 
@@ -91,10 +98,19 @@ type VendorLead = {
   converted_vendor_id: string | null;
 };
 
+type SponsorshipInquiry = {
+  id: string;
+  status: string;
+  message: string | null;
+  created_at: string;
+  vendors: { id: string; name: string } | null;
+  sponsorship_opportunities: { title: string; price_label: string | null } | null;
+};
+
 export default async function AdminSuggestionsPage() {
   const adminDb = createAdminClient() as any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
-  const [suggestionsResult, invitationsResult, topicsResult, vendorLeadsResult] = await Promise.all([
+  const [suggestionsResult, invitationsResult, topicsResult, vendorLeadsResult, sponsorshipInquiriesResult] = await Promise.all([
     adminDb
       .from("vendor_suggestions")
       .select("*, profiles(full_name, email)")
@@ -111,6 +127,10 @@ export default async function AdminSuggestionsPage() {
       .from("vendor_leads")
       .select("*")
       .order("created_at", { ascending: false }),
+    adminDb
+      .from("sponsorship_inquiries")
+      .select("id, status, message, created_at, vendors(id, name), sponsorship_opportunities(title, price_label)")
+      .order("created_at", { ascending: false }),
   ]);
 
   const suggestions: Suggestion[] = suggestionsResult.data ?? [];
@@ -119,6 +139,10 @@ export default async function AdminSuggestionsPage() {
   const vendorLeads: VendorLead[] = vendorLeadsResult.data ?? [];
   const pendingLeads = vendorLeads.filter((l) => l.status === "pending");
   const otherLeads = vendorLeads.filter((l) => l.status !== "pending");
+
+  const sponsorshipInquiries: SponsorshipInquiry[] = sponsorshipInquiriesResult.data ?? [];
+  const pendingInquiries = sponsorshipInquiries.filter((i) => i.status === "pending");
+  const otherInquiries = sponsorshipInquiries.filter((i) => i.status !== "pending");
 
   const pending = suggestions.filter((s) => s.status === "pending");
   const reviewed = suggestions.filter((s) => s.status !== "pending");
@@ -172,8 +196,82 @@ export default async function AdminSuggestionsPage() {
     );
   };
 
+  const inquiryStatusBadge = (status: string) => {
+    const map: Record<string, { label: string; cls: string }> = {
+      pending: { label: "New", cls: "bg-amber-50 text-amber-700 border-amber-200" },
+      contacted: { label: "In discussion", cls: "bg-blue-50 text-blue-700 border-blue-200" },
+      booked: { label: "Booked ✓", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+      declined: { label: "Declined", cls: "bg-zinc-100 text-zinc-500 border-zinc-200" },
+    };
+    const s = map[status] ?? map.pending;
+    return (
+      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${s.cls}`}>
+        {s.label}
+      </span>
+    );
+  };
+
   return (
     <div className="space-y-8">
+
+      {/* Sponsorship Inquiries */}
+      <section className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Megaphone className="size-5 text-violet-600" />
+          <h2 className="text-base font-bold text-zinc-900">
+            Sponsorship Inquiries
+            {pendingInquiries.length > 0 && (
+              <span className="ml-2 text-xs font-bold text-white bg-violet-600 px-2 py-0.5 rounded-full">
+                {pendingInquiries.length} new
+              </span>
+            )}
+          </h2>
+        </div>
+
+        {sponsorshipInquiries.length === 0 ? (
+          <p className="text-sm text-zinc-400 italic">No sponsorship inquiries yet.</p>
+        ) : (
+          <div className="space-y-3">
+            {[...pendingInquiries, ...otherInquiries].map((i) => (
+              <div key={i.id} className="rounded-xl border border-zinc-100 bg-white shadow-sm p-4 space-y-2">
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-bold text-sm text-zinc-900">{i.vendors?.name ?? "Unknown vendor"}</p>
+                      {inquiryStatusBadge(i.status)}
+                    </div>
+                    <p className="text-xs text-zinc-500">
+                      {i.sponsorship_opportunities?.title ?? "Deleted opportunity"}
+                      {i.sponsorship_opportunities?.price_label && ` · ${i.sponsorship_opportunities.price_label}`}
+                    </p>
+                  </div>
+                  <p className="text-xs text-zinc-400 shrink-0">{format(new Date(i.created_at), "MMM d, yyyy")}</p>
+                </div>
+
+                {i.status !== "declined" && i.status !== "booked" && (
+                  <div className="flex items-center gap-2 pt-1 flex-wrap">
+                    <form action={updateSponsorshipInquiryStatus.bind(null, i.id, "contacted")}>
+                      <Button size="sm" type="submit" variant="outline" className="gap-1.5">
+                        <Clock className="size-3.5" /> Mark In Discussion
+                      </Button>
+                    </form>
+                    <form action={updateSponsorshipInquiryStatus.bind(null, i.id, "booked")}>
+                      <Button size="sm" type="submit" className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white">
+                        <CheckCircle2 className="size-3.5" /> Mark Booked
+                      </Button>
+                    </form>
+                    <form action={updateSponsorshipInquiryStatus.bind(null, i.id, "declined")}>
+                      <Button size="sm" type="submit" variant="ghost" className="gap-1.5 text-zinc-400 hover:text-red-500">
+                        <XCircle className="size-3.5" /> Decline
+                      </Button>
+                    </form>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* Vendor Partner Applications */}
       <section className="space-y-4">

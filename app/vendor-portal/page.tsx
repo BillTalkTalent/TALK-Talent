@@ -16,7 +16,7 @@ export default async function VendorPortalPage() {
 
   if (!account) redirect("/vendor-portal/login");
 
-  const [vendorResult, updatesResult] = await Promise.all([
+  const [vendorResult, updatesResult, opportunitiesResult, inquiriesResult] = await Promise.all([
     supabase.from("vendors").select("*").eq("id", account.vendor_id).single(),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase as any)
@@ -24,6 +24,18 @@ export default async function VendorPortalPage() {
       .select("id, title, body, link_url, created_at")
       .eq("vendor_id", account.vendor_id)
       .order("created_at", { ascending: false }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any)
+      .from("sponsorship_opportunities")
+      .select("id, title, description, price_label")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any)
+      .from("sponsorship_inquiries")
+      .select("id, opportunity_id, status")
+      .eq("vendor_id", account.vendor_id),
   ]);
 
   if (!vendorResult.data) redirect("/vendor-portal/login");
@@ -33,6 +45,8 @@ export default async function VendorPortalPage() {
       vendorId={account.vendor_id}
       vendor={vendorResult.data}
       updates={updatesResult.data ?? []}
+      opportunities={opportunitiesResult.data ?? []}
+      inquiries={inquiriesResult.data ?? []}
     />
   );
 }

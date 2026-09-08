@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import CreateVendorForm from './create-vendor-form'
 import VendorList from './vendor-list'
+import SponsorshipOpportunities from './sponsorship-opportunities'
 
 // Invites someone to self-manage a paying vendor's listing. Creates (or
 // reuses) the auth user for that email, links it to the vendor via
@@ -74,6 +75,13 @@ export default async function AdminVendorsPage({
     lead = data
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: opportunities } = await (supabase as any)
+    .from('sponsorship_opportunities')
+    .select('*')
+    .order('sort_order', { ascending: true })
+    .order('created_at', { ascending: true })
+
   return (
     <div className="space-y-6">
       <Card>
@@ -91,6 +99,19 @@ export default async function AdminVendorsPage({
         </CardHeader>
         <CardContent>
           <VendorList vendors={vendors ?? []} inviteVendorManager={inviteVendorManager} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Sponsorship Opportunities</CardTitle>
+          <p className="text-sm text-zinc-500">
+            Shown to paying vendors on their portal dashboard. Vendors can inquire — no automatic checkout,
+            inquiries land below in Suggestions &amp; Invites for you to follow up.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <SponsorshipOpportunities opportunities={opportunities ?? []} />
         </CardContent>
       </Card>
     </div>

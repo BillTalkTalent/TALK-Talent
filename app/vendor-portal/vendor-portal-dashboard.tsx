@@ -7,24 +7,31 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Building2, LogOut, Send, Trash2, Loader2, MessageSquarePlus } from "lucide-react";
+import { Building2, LogOut, Send, Trash2, Loader2, MessageSquarePlus, Megaphone, Handshake } from "lucide-react";
 import { format } from "date-fns";
 import LogoUpload from "@/app/admin/vendors/logo-upload";
 import type { Vendor } from "@/lib/supabase/types";
 
 type VendorUpdate = { id: string; title: string; body: string | null; link_url: string | null; created_at: string };
+type Opportunity = { id: string; title: string; description: string | null; price_label: string | null };
+type Inquiry = { id: string; opportunity_id: string | null; status: string };
 
 export default function VendorPortalDashboard({
   vendorId,
   vendor,
   updates,
+  opportunities,
+  inquiries,
 }: {
   vendorId: string;
   vendor: Vendor;
   updates: VendorUpdate[];
+  opportunities: Opportunity[];
+  inquiries: Inquiry[];
 }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
+  const [inquiringId, setInquiringId] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: vendor.name,
     description: vendor.description ?? "",
@@ -109,6 +116,25 @@ export default function VendorPortalDashboard({
     router.refresh();
   }
 
+  async function handleInquire(opportunityId: string) {
+    setInquiringId(opportunityId);
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase as any).from("sponsorship_inquiries").insert({
+      opportunity_id: opportunityId,
+      vendor_id: vendorId,
+      created_by: user?.id ?? null,
+    });
+    setInquiringId(null);
+    if (error) {
+      toast.error(`Failed to send inquiry: ${error.message}`);
+      return;
+    }
+    toast.success("Inquiry sent — we'll follow up soon.");
+    router.refresh();
+  }
+
   return (
     <div className="min-h-screen p-6" style={{ background: "#F5F8FC" }}>
       <div className="max-w-3xl mx-auto space-y-6">
@@ -176,6 +202,54 @@ export default function VendorPortalDashboard({
             </div>
           </form>
         </div>
+
+        {/* Sponsorship opportunities */}
+        {opportunities.length > 0 && (
+          <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-6 space-y-4">
+            <div>
+              <h2 className="text-sm font-bold text-zinc-900 flex items-center gap-2">
+                <Megaphone className="size-4 text-violet-500" /> Sponsorship opportunities
+              </h2>
+              <p className="text-xs text-zinc-500 mt-0.5">
+                Ways to get more visibility with TALK members. Inquiring doesn&apos;t book anything — we&apos;ll follow up to work out details.
+              </p>
+            </div>
+            <div className="space-y-3">
+              {opportunities.map((o) => {
+                const inquiry = inquiries.find((i) => i.opportunity_id === o.id);
+                return (
+                  <div key={o.id} className="flex items-start justify-between gap-3 rounded-xl border border-zinc-100 p-4">
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-semibold text-sm text-zinc-900">{o.title}</p>
+                        {o.price_label && <span className="text-xs font-semibold text-violet-700">{o.price_label}</span>}
+                      </div>
+                      {o.description && <p className="text-sm text-zinc-500 mt-0.5">{o.description}</p>}
+                    </div>
+                    <div className="shrink-0">
+                      {inquiry && inquiry.status !== "declined" ? (
+                        <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">
+                          {inquiry.status === "booked" ? "Booked ✓" : inquiry.status === "contacted" ? "In discussion" : "Inquiry sent"}
+                        </span>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={inquiringId === o.id}
+                          onClick={() => handleInquire(o.id)}
+                          className="gap-1.5 border-violet-200 text-violet-700 hover:bg-violet-50"
+                        >
+                          {inquiringId === o.id ? <Loader2 className="size-3.5 animate-spin" /> : <Handshake className="size-3.5" />}
+                          Inquire
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Updates feed */}
         <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-6 space-y-4">
