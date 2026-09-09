@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -49,6 +50,7 @@ type PaidEvent = Event & {
   currency: string;
   recording_url: string | null;
   allow_guest_rsvp?: boolean;
+  going_count?: number;
 };
 
 type RegistrationStatus = "none" | "pending" | "completed" | "refunded" | "cancelled";
@@ -164,7 +166,7 @@ function GuestRsvpForm({ event, eventId }: { event: PaidEvent; eventId: string }
 
   if (confirmed) {
     return (
-      <div className="rounded-xl p-5 space-y-3 bg-emerald-50 border border-emerald-100">
+      <div className="rounded-2xl p-5 space-y-3 bg-emerald-50 border border-emerald-100">
         <div className="flex items-start gap-2.5">
           <CheckCircle2 className="size-5 text-emerald-500 shrink-0 mt-0.5" />
           <div>
@@ -197,7 +199,7 @@ function GuestRsvpForm({ event, eventId }: { event: PaidEvent; eventId: string }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-xl p-5 space-y-3 bg-primary/[0.06]">
+    <form onSubmit={handleSubmit} className="rounded-2xl p-5 space-y-3 bg-primary/[0.06] border border-primary/10">
       <p className="text-sm font-bold text-foreground">RSVP — no TALK membership needed</p>
       <div className="space-y-1.5">
         <Label htmlFor="guest-name" className="text-xs">Full name *</Label>
@@ -226,88 +228,125 @@ function GuestRsvpForm({ event, eventId }: { event: PaidEvent; eventId: string }
   );
 }
 
+// Luma-inspired layout: a big rounded cover image up top, host line, bold
+// title on a plain white page (not a colored banner), then a clean "when /
+// where / who's going" info block above the RSVP itself — closer to how
+// luma.com lays out a public event page than the old dark-hero-banner style.
 function PublicEventTeaser({ event, eventId }: { event: PaidEvent; eventId: string }) {
   const isPaid = event.is_paid && event.price != null;
   const signupHref = `/signup?event=${eventId}&title=${encodeURIComponent(event.title)}`;
   const loginHref = `/login?next=${encodeURIComponent(`/events/${eventId}`)}`;
   const guestRsvpOpen = event.allow_guest_rsvp && new Date(event.event_date) >= new Date();
 
+  const tz = event.timezone || "America/New_York";
+  const month = formatInZone(event.event_date, tz, { month: "short", weekday: undefined, day: undefined, year: undefined, hour: undefined, minute: undefined, timeZoneName: undefined }).toUpperCase();
+  const day = formatInZone(event.event_date, tz, { day: "numeric", weekday: undefined, month: undefined, year: undefined, hour: undefined, minute: undefined, timeZoneName: undefined });
+
   return (
     <div className="min-h-screen" style={{ background: "#F5F8FC" }}>
-      {event.image_url && (
-        <div className="relative w-full aspect-[16/6] overflow-hidden bg-muted">
-          <img src={event.image_url} alt={event.title} className="w-full h-full object-contain" />
-        </div>
-      )}
-      <div className="max-w-2xl mx-auto p-6 pt-10 space-y-6">
-        <div
-          className="rounded-2xl p-6 text-white text-center space-y-2"
-          style={{ background: "linear-gradient(160deg, #0F1F35 0%, #162D4A 55%, #1A3A5C 100%)" }}
-        >
-          <p className="text-sm font-semibold uppercase tracking-widest" style={{ color: "#93C5FD" }}>
-            You&apos;re invited
-          </p>
-          <h1 className="text-2xl font-bold">{event.title}</h1>
-        </div>
+      <div className="max-w-xl mx-auto px-6 pt-10 pb-16">
+        <Link href="/" className="inline-flex items-baseline mb-6" style={{ fontFamily: "var(--font-poppins), system-ui", fontWeight: 900, fontSize: 22, letterSpacing: "-0.03em" }}>
+          <span style={{ color: "#E8503A" }}>TA</span><span style={{ color: "#0F1F35" }}>LK</span>
+        </Link>
 
-        <div className="rounded-2xl bg-card border border-border shadow-sm p-6 space-y-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <EventTypeBadge isVirtual={event.is_virtual} />
-            {isPaid && (
-              <span
-                className="inline-flex items-center gap-1 text-sm font-bold px-3 py-1 rounded-full text-white"
-                style={{ background: "linear-gradient(135deg, #E8503A, #F07058)" }}
-              >
-                <CreditCard className="size-3.5" />
-                {formatPrice(event.price!, event.currency)}
-              </span>
-            )}
+        {event.image_url ? (
+          <div className="rounded-2xl overflow-hidden bg-muted shadow-[0_12px_32px_rgba(15,31,53,0.12)] aspect-square">
+            <img src={event.image_url} alt={event.title} className="w-full h-full object-cover" />
           </div>
+        ) : (
+          <div
+            className="rounded-2xl aspect-square flex items-center justify-center shadow-[0_12px_32px_rgba(15,31,53,0.12)]"
+            style={{ background: "linear-gradient(160deg, #0F1F35 0%, #162D4A 55%, #1A3A5C 100%)" }}
+          >
+            <span style={{ fontFamily: "var(--font-poppins), system-ui", fontWeight: 900, fontSize: 48, letterSpacing: "-0.03em" }}>
+              <span style={{ color: "#E8503A" }}>TA</span><span style={{ color: "white" }}>LK</span>
+            </span>
+          </div>
+        )}
 
-          <EventWhen event={event} />
+        <p className="text-xs font-bold uppercase tracking-widest mt-6" style={{ color: "#E8503A" }}>Hosted by TALK</p>
+        <h1 className="text-3xl font-black tracking-tight mt-1.5" style={{ color: "#0F1F35" }}>{event.title}</h1>
 
-          {!event.is_virtual && (event.venue_name || event.location) && (
-            <span className="flex items-start gap-1.5 text-sm text-muted-foreground">
-              <MapPin className="size-4 shrink-0 mt-0.5" />
-              <span>
-                {event.venue_name && <span className="font-semibold text-foreground block">{event.venue_name}</span>}
-                {event.location}
-              </span>
+        <div className="flex flex-wrap items-center gap-2 mt-3">
+          <EventTypeBadge isVirtual={event.is_virtual} />
+          {isPaid && (
+            <span
+              className="inline-flex items-center gap-1 text-sm font-bold px-3 py-1 rounded-full text-white"
+              style={{ background: "linear-gradient(135deg, #E8503A, #F07058)" }}
+            >
+              <CreditCard className="size-3.5" />
+              {formatPrice(event.price!, event.currency)}
             </span>
           )}
-
-          {event.description && (
-            <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{event.description}</p>
+          {typeof event.going_count === "number" && event.going_count > 0 && (
+            <span className="inline-flex items-center gap-1 text-sm font-semibold" style={{ color: "#5A7090" }}>
+              <Users className="size-3.5" /> {event.going_count} going
+            </span>
           )}
+        </div>
 
+        <div className="rounded-2xl bg-white border shadow-sm mt-6 divide-y" style={{ borderColor: "#DDE6F0" }}>
+          <div className="p-4 flex items-center gap-3.5">
+            <div className="w-11 rounded-lg py-1.5 text-center shrink-0" style={{ background: "#E8503A15" }}>
+              <div className="text-[9px] font-bold uppercase" style={{ color: "#E8503A" }}>{month}</div>
+              <div className="text-lg font-black leading-tight" style={{ color: "#0F1F35" }}>{day}</div>
+            </div>
+            <EventWhen event={event} />
+          </div>
+
+          {(event.is_virtual || event.venue_name || event.location) && (
+            <div className="p-4 flex items-center gap-3.5">
+              <div className="size-11 rounded-lg flex items-center justify-center shrink-0" style={{ background: "#E8503A15" }}>
+                {event.is_virtual ? <Monitor className="size-4.5" style={{ color: "#E8503A" }} /> : <MapPin className="size-4.5" style={{ color: "#E8503A" }} />}
+              </div>
+              <div className="text-sm" style={{ color: "#5A7090" }}>
+                {event.is_virtual ? (
+                  <span className="font-semibold" style={{ color: "#0F1F35" }}>Virtual — link shared after you RSVP</span>
+                ) : (
+                  <>
+                    {event.venue_name && <span className="font-semibold block" style={{ color: "#0F1F35" }}>{event.venue_name}</span>}
+                    {event.location}
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {event.description && (
+          <p className="leading-relaxed whitespace-pre-wrap mt-6" style={{ color: "#5A7090" }}>{event.description}</p>
+        )}
+
+        <div className="mt-6">
           {guestRsvpOpen ? (
             <>
               <GuestRsvpForm event={event} eventId={eventId} />
-              <p className="text-sm text-muted-foreground text-center">
+              <p className="text-sm text-center mt-4" style={{ color: "#5A7090" }}>
                 Also a TA leader?{" "}
-                <a href={signupHref} className="font-semibold hover:underline text-accent">Apply to join TALK</a>
+                <a href={signupHref} className="font-semibold hover:underline" style={{ color: "#E8503A" }}>Apply to join TALK</a>
                 {" "}for the full community — or{" "}
-                <a href={loginHref} className="font-semibold hover:underline text-accent">sign in</a>.
+                <a href={loginHref} className="font-semibold hover:underline" style={{ color: "#E8503A" }}>sign in</a>.
               </p>
             </>
           ) : (
             <>
-              <div className="rounded-xl p-5 space-y-3 bg-primary/[0.06]">
-                <p className="text-sm font-semibold text-foreground">
+              <div className="rounded-2xl p-5 space-y-3" style={{ background: "#E8503A0D" }}>
+                <p className="text-sm font-semibold" style={{ color: "#0F1F35" }}>
                   🎉 We&apos;re excited you want to join us! TALK is a private, invite-only community —
                   apply below and we&apos;ll get you set up for this event.
                 </p>
                 <a
                   href={signupHref}
-                  className="inline-flex items-center justify-center w-full gap-2 px-6 py-3 rounded-xl text-base font-bold text-primary-foreground bg-primary transition-all hover:scale-[1.01]"
+                  className="inline-flex items-center justify-center w-full gap-2 px-6 py-3 rounded-xl text-base font-bold text-white transition-all hover:scale-[1.01]"
+                  style={{ background: "#E8503A" }}
                 >
                   Register — Apply to Join TALK
                 </a>
               </div>
 
-              <p className="text-sm text-muted-foreground text-center">
+              <p className="text-sm text-center mt-4" style={{ color: "#5A7090" }}>
                 Already a member?{" "}
-                <a href={loginHref} className="font-semibold hover:underline text-accent">
+                <a href={loginHref} className="font-semibold hover:underline" style={{ color: "#E8503A" }}>
                   Sign in
                 </a>
               </p>
