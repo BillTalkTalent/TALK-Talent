@@ -11,7 +11,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
   const { data: event } = await admin
     .from("events")
-    .select("id, title, description, event_date, end_date, location, is_virtual, image_url, is_paid, price, currency, timezone, visibility")
+    .select("id, title, description, event_date, end_date, location, venue_name, is_virtual, image_url, is_paid, price, currency, timezone, visibility, allow_guest_rsvp")
     .eq("id", id)
     .single();
 
@@ -19,6 +19,12 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
 
-  const { id: eventId, title, description, event_date, end_date, location, is_virtual, image_url, is_paid, price, currency, timezone } = event;
-  return NextResponse.json({ id: eventId, title, description, event_date, end_date, location, is_virtual, image_url, is_paid, price, currency, timezone });
+  const { id: eventId, title, description, event_date, end_date, location, venue_name, is_virtual, image_url, is_paid, price, currency, timezone, allow_guest_rsvp } = event;
+  // virtual_url deliberately excluded here (same as before) — even for a
+  // guest-open event, the join link is only revealed after a successful
+  // RSVP (see /api/events/[id]/guest-rsvp), not to anyone browsing the page.
+  return NextResponse.json({
+    id: eventId, title, description, event_date, end_date, location, venue_name, is_virtual,
+    image_url, is_paid, price, currency, timezone, allow_guest_rsvp,
+  });
 }

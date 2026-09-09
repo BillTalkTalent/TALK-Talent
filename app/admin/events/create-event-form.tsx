@@ -94,6 +94,7 @@ export default function CreateEventForm({ chapters }: { chapters: ChapterOption[
       const eventType = (fd.get("event_type") as string) || "in_person";
       const isVirtual = eventType !== "in_person"; // virtual + hybrid have a link
       const additionalChapterIds = fd.getAll("additional_chapter_ids") as string[];
+      const allowGuestRsvp = (fd.get("allow_guest_rsvp") as string) === "on";
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: insertError } = await (supabase as any).from("events").insert({
@@ -116,6 +117,7 @@ export default function CreateEventForm({ chapters }: { chapters: ChapterOption[
         is_paid: paidFlag,
         price: priceCents,
         currency: (fd.get("currency") as string) || "usd",
+        allow_guest_rsvp: allowGuestRsvp,
         organizer_id: (await supabase.auth.getUser()).data.user?.id,
       });
 
@@ -353,6 +355,25 @@ export default function CreateEventForm({ chapters }: { chapters: ChapterOption[
             </p>
           </div>
         )}
+      </div>
+
+      {/* Guest RSVP toggle */}
+      <div className="sm:col-span-2 rounded-xl border border-zinc-200 p-4 space-y-2">
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="allow_guest_rsvp"
+            name="allow_guest_rsvp"
+            className="size-4 rounded border-zinc-300"
+          />
+          <Label htmlFor="allow_guest_rsvp" className="cursor-pointer font-semibold">
+            Allow guest RSVP (no TALK membership required)
+          </Label>
+        </div>
+        <p className="text-xs text-zinc-400">
+          Anyone with the event link can RSVP with just their name, email, and LinkedIn profile — no account or
+          approval needed. Good for a recruiting/growth event; leave off for members-first events.
+        </p>
       </div>
 
       {error && (

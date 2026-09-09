@@ -18,7 +18,10 @@ const isEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)
 
 // Free events RSVP into event_rsvps; paid events register (and pay) into
 // event_registrations — the audience for "everyone going" lives in whichever
-// one this event actually uses.
+// one this event actually uses. Free events additionally pull in guest RSVPs
+// (event_guest_rsvps, migration 083) — non-members who RSVP'd with just an
+// email are still part of "everyone going" for this blast. Paid events have
+// no guest-RSVP concept, so nothing extra to pull there.
 async function fetchAttendeeEmails(
   admin: ReturnType<typeof createAdminClient>,
   eventId: string,
@@ -35,6 +38,15 @@ async function fetchAttendeeEmails(
     const e = (row.profiles?.email ?? '').toLowerCase().trim()
     if (isEmail(e)) emails.add(e)
   }
+
+  if (!isPaid) {
+    const { data: guests } = await a.from('event_guest_rsvps').select('email').eq('event_id', eventId).eq('status', 'going')
+    for (const row of guests ?? []) {
+      const e = (row.email ?? '').toLowerCase().trim()
+      if (isEmail(e)) emails.add(e)
+    }
+  }
+
   return [...emails]
 }
 

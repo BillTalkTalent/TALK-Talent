@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -47,6 +48,7 @@ type PaidEvent = Event & {
   price: number | null;
   currency: string;
   recording_url: string | null;
+  allow_guest_rsvp?: boolean;
 };
 
 type RegistrationStatus = "none" | "pending" | "completed" | "refunded" | "cancelled";
@@ -134,10 +136,101 @@ function getInitials(name: string | null): string {
 // shared event links (LinkedIn, direct invites, etc.). Registering routes
 // through /signup with the event attached, so approval drops them straight
 // back onto this event instead of the generic dashboard.
+function GuestRsvpForm({ event, eventId }: { event: PaidEvent; eventId: string }) {
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [confirmed, setConfirmed] = useState<{ is_virtual: boolean; virtual_url: string | null; venue_name: string | null; location: string | null } | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setSubmitting(true);
+    const res = await fetch(`/api/events/${eventId}/guest-rsvp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fullName, email, linkedinUrl }),
+    });
+    const data = await res.json();
+    setSubmitting(false);
+    if (!res.ok) {
+      setError(data?.error ?? "Something went wrong. Please try again.");
+      return;
+    }
+    setConfirmed(data);
+  }
+
+  if (confirmed) {
+    return (
+      <div className="rounded-xl p-5 space-y-3 bg-emerald-50 border border-emerald-100">
+        <div className="flex items-start gap-2.5">
+          <CheckCircle2 className="size-5 text-emerald-500 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-bold text-emerald-900">You&apos;re on the list!</p>
+            <p className="text-xs text-emerald-700 mt-0.5">A confirmation with a calendar invite is on its way to {email}.</p>
+          </div>
+        </div>
+        {confirmed.is_virtual && confirmed.virtual_url && (
+          <a
+            href={confirmed.virtual_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-2 w-full px-5 py-2.5 rounded-lg text-sm font-bold text-white transition-all hover:scale-[1.01]"
+            style={{ background: "#0d9488" }}
+          >
+            <ExternalLink className="size-4" /> Join Virtual Event
+          </a>
+        )}
+        {!confirmed.is_virtual && (confirmed.venue_name || confirmed.location) && (
+          <p className="text-sm text-emerald-800">
+            <MapPin className="inline size-3.5 mb-0.5" /> {confirmed.venue_name ?? confirmed.location}
+          </p>
+        )}
+        <div className="flex gap-2">
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          <a href={buildGoogleCalendarUrl(event as any)} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-emerald-700 hover:underline">Add to Google Calendar</a>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="rounded-xl p-5 space-y-3 bg-primary/[0.06]">
+      <p className="text-sm font-bold text-foreground">RSVP — no TALK membership needed</p>
+      <div className="space-y-1.5">
+        <Label htmlFor="guest-name" className="text-xs">Full name *</Label>
+        <Input id="guest-name" value={fullName} onChange={(e) => setFullName(e.target.value)} required className="bg-white" />
+      </div>
+      <div className="grid grid-cols-2 gap-2.5">
+        <div className="space-y-1.5">
+          <Label htmlFor="guest-email" className="text-xs">Email *</Label>
+          <Input id="guest-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-white" />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="guest-li" className="text-xs">LinkedIn profile *</Label>
+          <Input id="guest-li" type="url" placeholder="linkedin.com/in/…" value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} required className="bg-white" />
+        </div>
+      </div>
+      {error && <p className="text-xs text-red-600">{error}</p>}
+      <button
+        type="submit"
+        disabled={submitting}
+        className="inline-flex items-center justify-center w-full gap-2 px-6 py-3 rounded-xl text-base font-bold text-primary-foreground bg-primary transition-all hover:scale-[1.01] disabled:opacity-60"
+      >
+        {submitting && <Loader2 className="size-4 animate-spin" />}
+        RSVP — I&apos;m Going
+      </button>
+    </form>
+  );
+}
+
 function PublicEventTeaser({ event, eventId }: { event: PaidEvent; eventId: string }) {
   const isPaid = event.is_paid && event.price != null;
   const signupHref = `/signup?event=${eventId}&title=${encodeURIComponent(event.title)}`;
   const loginHref = `/login?next=${encodeURIComponent(`/events/${eventId}`)}`;
+  const guestRsvpOpen = event.allow_guest_rsvp && new Date(event.event_date) >= new Date();
 
   return (
     <div className="min-h-screen" style={{ background: "#F5F8FC" }}>
@@ -187,25 +280,39 @@ function PublicEventTeaser({ event, eventId }: { event: PaidEvent; eventId: stri
             <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{event.description}</p>
           )}
 
-          <div className="rounded-xl p-5 space-y-3 bg-primary/[0.06]">
-            <p className="text-sm font-semibold text-foreground">
-              🎉 We&apos;re excited you want to join us! TALK is a private, invite-only community —
-              apply below and we&apos;ll get you set up for this event.
-            </p>
-            <a
-              href={signupHref}
-              className="inline-flex items-center justify-center w-full gap-2 px-6 py-3 rounded-xl text-base font-bold text-primary-foreground bg-primary transition-all hover:scale-[1.01]"
-            >
-              Register — Apply to Join TALK
-            </a>
-          </div>
+          {guestRsvpOpen ? (
+            <>
+              <GuestRsvpForm event={event} eventId={eventId} />
+              <p className="text-sm text-muted-foreground text-center">
+                Also a TA leader?{" "}
+                <a href={signupHref} className="font-semibold hover:underline text-accent">Apply to join TALK</a>
+                {" "}for the full community — or{" "}
+                <a href={loginHref} className="font-semibold hover:underline text-accent">sign in</a>.
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="rounded-xl p-5 space-y-3 bg-primary/[0.06]">
+                <p className="text-sm font-semibold text-foreground">
+                  🎉 We&apos;re excited you want to join us! TALK is a private, invite-only community —
+                  apply below and we&apos;ll get you set up for this event.
+                </p>
+                <a
+                  href={signupHref}
+                  className="inline-flex items-center justify-center w-full gap-2 px-6 py-3 rounded-xl text-base font-bold text-primary-foreground bg-primary transition-all hover:scale-[1.01]"
+                >
+                  Register — Apply to Join TALK
+                </a>
+              </div>
 
-          <p className="text-sm text-muted-foreground text-center">
-            Already a member?{" "}
-            <a href={loginHref} className="font-semibold hover:underline text-accent">
-              Sign in
-            </a>
-          </p>
+              <p className="text-sm text-muted-foreground text-center">
+                Already a member?{" "}
+                <a href={loginHref} className="font-semibold hover:underline text-accent">
+                  Sign in
+                </a>
+              </p>
+            </>
+          )}
         </div>
       </div>
     </div>

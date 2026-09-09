@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ArrowLeft, DollarSign, Video } from 'lucide-react'
+import { ArrowLeft, DollarSign, Video, ExternalLink } from 'lucide-react'
+import { format } from 'date-fns'
 import Link from 'next/link'
 import { TIME_ZONES, zonedWallTimeToUTC, utcToZonedInputValue } from '@/lib/timezone'
 import MaterialsManager from './materials-manager'
@@ -43,6 +44,7 @@ async function updateEvent(id: string, formData: FormData) {
     price: priceCents,
     currency: (formData.get('currency') as string) || 'usd',
     recording_url: (formData.get('recording_url') as string) || null,
+    allow_guest_rsvp: formData.get('allow_guest_rsvp') === 'on',
   }).eq('id', id)
 
   revalidatePath('/admin/events')
@@ -61,6 +63,14 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
     .select('id, title, file_url')
     .eq('event_id', id)
     .order('created_at', { ascending: true })
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: guestRsvps } = await (supabase as any)
+    .from('event_guest_rsvps')
+    .select('id, full_name, email, linkedin_url, status, created_at')
+    .eq('event_id', id)
+    .eq('status', 'going')
+    .order('created_at', { ascending: false })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: chapters } = await (supabase as any).from('chapters').select('id, name, type').order('sort_order')
@@ -220,6 +230,19 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
               </div>
             </div>
 
+            <div className="sm:col-span-2 rounded-xl border border-zinc-200 p-4 space-y-2">
+              <div className="flex items-center gap-2">
+                <input type="checkbox" id="allow_guest_rsvp" name="allow_guest_rsvp" defaultChecked={event.allow_guest_rsvp} className="size-4 rounded border-zinc-300" />
+                <Label htmlFor="allow_guest_rsvp" className="cursor-pointer font-semibold">
+                  Allow guest RSVP (no TALK membership required)
+                </Label>
+              </div>
+              <p className="text-xs text-zinc-400">
+                Anyone with the event link can RSVP with just their name, email, and LinkedIn profile — no account
+                or approval needed. Good for a recruiting/growth event; leave off for members-first events.
+              </p>
+            </div>
+
             <div className="sm:col-span-2 space-y-2 rounded-xl border border-zinc-200 p-4">
               <Label htmlFor="recording_url" className="font-semibold">
                 <Video className="size-3.5 inline mr-0.5 text-indigo-600" />
@@ -248,6 +271,37 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
           <MaterialsManager eventId={id} initialMaterials={materials ?? []} />
         </CardContent>
       </Card>
+
+      {event.allow_guest_rsvp && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Guest RSVPs ({(guestRsvps ?? []).length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {(guestRsvps ?? []).length === 0 ? (
+              <p className="text-sm text-zinc-400 italic">No guest RSVPs yet.</p>
+            ) : (
+              <div className="divide-y divide-zinc-100">
+                {guestRsvps.map((g: { id: string; full_name: string; email: string; linkedin_url: string; created_at: string }) => (
+                  <div key={g.id} className="py-3 flex items-center justify-between gap-3 flex-wrap">
+                    <div>
+                      <p className="text-sm font-semibold text-zinc-900">{g.full_name}</p>
+                      <p className="text-xs text-zinc-500">
+                        <a href={`mailto:${g.email}`} className="hover:underline">{g.email}</a>
+                        {" · "}
+                        <a href={g.linkedin_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-blue-600 hover:underline">
+                          <ExternalLink className="size-3" /> LinkedIn
+                        </a>
+                      </p>
+                    </div>
+                    <p className="text-xs text-zinc-400">{format(new Date(g.created_at), 'MMM d, yyyy')}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }
