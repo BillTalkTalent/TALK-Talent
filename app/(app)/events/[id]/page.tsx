@@ -51,6 +51,7 @@ type PaidEvent = Event & {
   recording_url: string | null;
   allow_guest_rsvp?: boolean;
   going_count?: number;
+  external_attendee_count?: number;
 };
 
 type RegistrationStatus = "none" | "pending" | "completed" | "refunded" | "cancelled";
@@ -432,6 +433,7 @@ export default function EventDetailPage() {
 
   const [event, setEvent] = useState<PaidEvent | null>(null);
   const [attendees, setAttendees] = useState<Profile[]>([]);
+  const [guestGoingCount, setGuestGoingCount] = useState(0);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [rsvpStatus, setRsvpStatus] = useState<"going" | "not_going" | null>(null);
@@ -462,7 +464,7 @@ export default function EventDetailPage() {
       return;
     }
 
-    const [eventResult, rsvpsResult, profileResult, materialsResult] = await Promise.all([
+    const [eventResult, rsvpsResult, profileResult, materialsResult, guestCountResult] = await Promise.all([
       db.from("events").select("*").eq("id", params.id).single(),
       supabase
         .from("event_rsvps")
@@ -471,11 +473,16 @@ export default function EventDetailPage() {
         .eq("status", "going"),
       supabase.from("profiles").select("role").eq("id", user.id).single(),
       db.from("event_materials").select("id, title, file_url").eq("event_id", params.id).order("created_at", { ascending: true }),
+      db.from("event_guest_rsvps").select("id", { count: "exact", head: true }).eq("event_id", params.id).eq("status", "going"),
     ]);
 
     setEvent(eventResult.data as PaidEvent);
     setIsAdmin(profileResult.data?.role === "admin");
     setMaterials(materialsResult.data ?? []);
+    // Guests + admin-entered external-platform attendees (e.g. a Luma-split
+    // event) both go into the summary "going" count below, not the named
+    // attendee list — that list is members only.
+    setGuestGoingCount(guestCountResult.count ?? 0);
 
     if (rsvpsResult.data) {
       const attendeeProfiles = rsvpsResult.data
@@ -698,7 +705,7 @@ export default function EventDetailPage() {
             </span>
             <span className="flex items-center gap-1.5">
               <Users className="size-4 text-muted-foreground/60" />
-              {attendees.length} going
+              {attendees.length + guestGoingCount + (event.external_attendee_count ?? 0)} going
               {event.max_attendees && ` / ${event.max_attendees} max`}
             </span>
           </div>

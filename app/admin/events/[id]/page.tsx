@@ -23,6 +23,8 @@ async function updateEvent(id: string, formData: FormData) {
   const timezone = (formData.get('timezone') as string) || 'America/New_York'
   const maxAttendees = formData.get('max_attendees') as string
   const additionalChapterIds = formData.getAll('additional_chapter_ids') as string[]
+  const externalAttendeeCountStr = formData.get('external_attendee_count') as string
+  const externalAttendeeCount = externalAttendeeCountStr ? Math.max(0, parseInt(externalAttendeeCountStr, 10)) : 0
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await (supabase as any).from('events').update({
@@ -45,6 +47,7 @@ async function updateEvent(id: string, formData: FormData) {
     currency: (formData.get('currency') as string) || 'usd',
     recording_url: (formData.get('recording_url') as string) || null,
     allow_guest_rsvp: formData.get('allow_guest_rsvp') === 'on',
+    external_attendee_count: externalAttendeeCount,
   }).eq('id', id)
 
   revalidatePath('/admin/events')
@@ -240,6 +243,16 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
               <p className="text-xs text-zinc-400">
                 Anyone with the event link can RSVP with just their name, email, and LinkedIn profile — no account
                 or approval needed. Good for a recruiting/growth event; leave off for members-first events.
+              </p>
+            </div>
+
+            <div className="sm:col-span-2 space-y-1.5">
+              <Label htmlFor="external_attendee_count">Attendees confirmed elsewhere (Luma, Eventbrite, etc.)</Label>
+              <Input id="external_attendee_count" name="external_attendee_count" type="number" min="0" step="1" defaultValue={event.external_attendee_count ?? 0} className="max-w-32" />
+              <p className="text-xs text-zinc-400">
+                If this event&apos;s RSVPs are split across platforms, add the real count from the other one here —
+                it gets added to the public &ldquo;going&rdquo; number so it reflects true total attendance, not
+                just TALK&apos;s side.
               </p>
             </div>
 
