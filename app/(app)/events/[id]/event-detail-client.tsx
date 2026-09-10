@@ -192,6 +192,7 @@ function GuestRsvpForm({ event, eventId }: { event: PaidEvent; eventId: string }
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [company, setCompany] = useState(""); // honeypot — left blank by real visitors
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState<{ rsvpId: string; is_virtual: boolean; virtual_url: string | null; venue_name: string | null; location: string | null } | null>(null);
@@ -203,7 +204,7 @@ function GuestRsvpForm({ event, eventId }: { event: PaidEvent; eventId: string }
     const res = await fetch(`/api/events/${eventId}/guest-rsvp`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ fullName, email, linkedinUrl }),
+      body: JSON.stringify({ fullName, email, linkedinUrl, company }),
     });
     const data = await res.json();
     setSubmitting(false);
@@ -268,8 +269,23 @@ function GuestRsvpForm({ event, eventId }: { event: PaidEvent; eventId: string }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-2xl p-5 space-y-3 bg-primary/[0.06] border border-primary/10">
+    <form onSubmit={handleSubmit} className="relative rounded-2xl p-5 space-y-3 bg-primary/[0.06] border border-primary/10">
       <p className="text-sm font-bold text-foreground">RSVP — no TALK membership needed</p>
+      {/* Honeypot — invisible to real visitors, catches naive bots that
+          fill every field. Off-screen rather than display:none, since some
+          bots skip fields hidden that way. */}
+      <div className="absolute -left-[9999px] top-0" aria-hidden="true">
+        <label htmlFor="guest-company">Company</label>
+        <input
+          id="guest-company"
+          name="company"
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+          value={company}
+          onChange={(e) => setCompany(e.target.value)}
+        />
+      </div>
       <div className="space-y-1.5">
         <Label htmlFor="guest-name" className="text-xs">Full name *</Label>
         <Input id="guest-name" value={fullName} onChange={(e) => setFullName(e.target.value)} required className="bg-white" />

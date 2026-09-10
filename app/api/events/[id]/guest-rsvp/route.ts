@@ -18,7 +18,47 @@ function icsFor(event: { title: string; description: string | null; event_date: 
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: eventId } = await params;
-  const { fullName, email, linkedinUrl } = await req.json();
+  const { fullName, email, linkedinUrl, company } = await req.json();
+
+  const admin = createAdminClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const adminDb = admin as any;
+  const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || null;
+
+  // Rate limit: cap at 8 guest RSVP submissions per IP per 10 minutes,
+  // across all events — guest RSVP now defaults to on everywhere (migration
+  // 086), so this endpoint is reachable from every event page, not just the
+  // few that opted in before. Fails OPEN if the tracking table or query
+  // errors, same as the existing recovery-endpoint rate limit, so a bug here
+  // can never block a real RSVP.
+  try {
+    const since = new Date(Date.now() - 10 * 60_000).toISOString();
+    const { count } = await adminDb
+      .from("guest_rsvp_attempts")
+      .select("id", { count: "exact", head: true })
+      .eq("ip", ip)
+      .gte("created_at", since);
+    if (ip && (count ?? 0) >= 8) {
+      return NextResponse.json({ error: "Too many requests. Please try again in a few minutes." }, { status: 429 });
+    }
+    await adminDb.from("guest_rsvp_attempts").insert({ ip, event_id: eventId });
+  } catch {
+    /* table missing or transient error — fail open and allow the RSVP */
+  }
+
+  // Honeypot: a hidden field no real visitor sees or fills, but a naive
+  // form-filling bot will. Pretend success without touching the DB or
+  // sending an email — don't tip the bot off that it was caught.
+  if (typeof company === "string" && company.trim()) {
+    return NextResponse.json({
+      ok: true,
+      rsvpId: "00000000-0000-0000-0000-000000000000",
+      is_virtual: false,
+      virtual_url: null,
+      venue_name: null,
+      location: null,
+    });
+  }
 
   const name = (fullName ?? "").trim();
   const mail = (email ?? "").trim().toLowerCase();
@@ -27,10 +67,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!name) return NextResponse.json({ error: "Name is required." }, { status: 400 });
   if (!isEmail(mail)) return NextResponse.json({ error: "Enter a valid email." }, { status: 400 });
   if (!isLinkedIn(li)) return NextResponse.json({ error: "Enter a valid LinkedIn profile URL." }, { status: 400 });
-
-  const admin = createAdminClient();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const adminDb = admin as any;
 
   const { data: event } = await adminDb
     .from("events")
