@@ -43,6 +43,7 @@ export default async function DashboardPage() {
     activeTopicsCountResult,
     jobCountResult,
     rsvpResults,
+    guestRsvpResults,
     myForumPostsResult,
     myRsvpResult,
     myChapterMembershipsResult,
@@ -88,6 +89,11 @@ export default async function DashboardPage() {
       .eq("status", "active"),
     supabase
       .from("event_rsvps")
+      .select("event_id")
+      .eq("status", "going"),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any)
+      .from("event_guest_rsvps")
       .select("event_id")
       .eq("status", "going"),
     supabase
@@ -237,6 +243,8 @@ export default async function DashboardPage() {
   const activeDiscussionsCount = activeTopicsCountResult.count ?? 0;
   const jobsPostedCount = jobCountResult.count ?? 0;
   const allRsvps = rsvpResults.data ?? [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const allGuestRsvps = (guestRsvpResults.data ?? []) as any[];
 
   // Active polls — exclude any past closes_at even if status is still "open"
   type PollEntry = { id: string; question: string; closes_at: string | null; status: string };
@@ -300,6 +308,9 @@ export default async function DashboardPage() {
   const rsvpCountMap: Record<string, number> = {};
   for (const rsvp of allRsvps) {
     rsvpCountMap[rsvp.event_id] = (rsvpCountMap[rsvp.event_id] ?? 0) + 1;
+  }
+  for (const guestRsvp of allGuestRsvps) {
+    rsvpCountMap[guestRsvp.event_id] = (rsvpCountMap[guestRsvp.event_id] ?? 0) + 1;
   }
 
   const firstName = profile?.full_name?.split(" ")[0] ?? "there";
@@ -449,7 +460,7 @@ export default async function DashboardPage() {
                 const moLabel = formatInZone(event.event_date, tz, { weekday: undefined, year: undefined, month: "short", day: undefined, hour: undefined, minute: undefined, timeZoneName: undefined });
                 const dayLabel = formatInZone(event.event_date, tz, { weekday: undefined, year: undefined, month: undefined, day: "numeric", hour: undefined, minute: undefined, timeZoneName: undefined });
                 const timeLabel = formatInZone(event.event_date, tz, { weekday: undefined, year: undefined, month: undefined, day: undefined, hour: "numeric", minute: "2-digit" });
-                const rsvpCount = rsvpCountMap[event.id] ?? 0;
+                const rsvpCount = (rsvpCountMap[event.id] ?? 0) + ((event as unknown as { external_attendee_count?: number }).external_attendee_count ?? 0);
                 return (
                   <Link
                     key={event.id}

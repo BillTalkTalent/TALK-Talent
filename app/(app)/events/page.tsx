@@ -18,21 +18,32 @@ import type { Event } from "@/lib/supabase/types";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format-price";
 
-type PaidEvent = Event & { is_paid: boolean; price: number | null; currency: string };
+type PaidEvent = Event & { is_paid: boolean; price: number | null; currency: string; external_attendee_count?: number };
 
+// Combines member RSVPs, guest RSVPs, and each event's admin-entered
+// external_attendee_count (for events split across TALK and another
+// platform, e.g. Luma — see migration 085) into one true "going" count.
 async function getAttendeeCountMap(
   supabase: Awaited<ReturnType<typeof createClient>>,
   eventIds: string[]
 ): Promise<Record<string, number>> {
   if (eventIds.length === 0) return {};
-  const { data } = await supabase
-    .from("event_rsvps")
-    .select("event_id")
-    .in("event_id", eventIds)
-    .eq("status", "going");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = supabase as any;
+  const [rsvpsResult, guestRsvpsResult, eventsResult] = await Promise.all([
+    supabase.from("event_rsvps").select("event_id").in("event_id", eventIds).eq("status", "going"),
+    db.from("event_guest_rsvps").select("event_id").in("event_id", eventIds).eq("status", "going"),
+    db.from("events").select("id, external_attendee_count").in("id", eventIds),
+  ]);
   const map: Record<string, number> = {};
-  for (const row of data ?? []) {
+  for (const row of rsvpsResult.data ?? []) {
     map[row.event_id] = (map[row.event_id] ?? 0) + 1;
+  }
+  for (const row of guestRsvpsResult.data ?? []) {
+    map[row.event_id] = (map[row.event_id] ?? 0) + 1;
+  }
+  for (const row of eventsResult.data ?? []) {
+    if (row.external_attendee_count) map[row.id] = (map[row.id] ?? 0) + row.external_attendee_count;
   }
   return map;
 }
