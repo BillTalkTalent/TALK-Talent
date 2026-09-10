@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Resend } from "resend";
+import { formatInZone } from "@/lib/timezone";
 
 // Public — no TALK account needed. Only works for an event an admin has
 // explicitly opted into guest RSVPs (events.allow_guest_rsvp), which is the
@@ -33,7 +34,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const { data: event } = await adminDb
     .from("events")
-    .select("id, title, description, event_date, end_date, is_virtual, virtual_url, venue_name, location, allow_guest_rsvp, status")
+    .select("id, title, description, event_date, end_date, is_virtual, virtual_url, venue_name, location, allow_guest_rsvp, status, timezone")
     .eq("id", eventId)
     .single();
 
@@ -58,7 +59,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const resend = new Resend(process.env.RESEND_API_KEY);
     const from = process.env.FROM_EMAIL ?? "TALK Community <onboarding@resend.dev>";
     const origin = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.talktalent.com";
-    const when = new Date(event.event_date).toLocaleString("en-US", { dateStyle: "full", timeStyle: "short" });
+    // event_date is stored as a UTC instant — format it in the event's own
+    // timezone (not the server's, which on Vercel is UTC) or a webinar
+    // scheduled for 1pm ET shows up in the email as 5pm.
+    const when = formatInZone(event.event_date, event.timezone || "America/New_York");
 
     await resend.emails.send({
       from,
