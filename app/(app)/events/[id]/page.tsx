@@ -135,6 +135,33 @@ function getInitials(name: string | null): string {
   return name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase();
 }
 
+// Keyless Google Maps embed (maps.google.com/maps?...&output=embed) — no API
+// key/billing needed, unlike the official Maps Embed API. Used on both the
+// public teaser and the member event page for in-person/hybrid events.
+function EventLocationMap({ query }: { query: string }) {
+  const src = `https://maps.google.com/maps?q=${encodeURIComponent(query)}&z=15&output=embed`;
+  const openHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+  return (
+    <div className="relative rounded-xl overflow-hidden border border-border" style={{ height: 220 }}>
+      <iframe
+        src={src}
+        className="w-full h-full border-0"
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
+        title="Event location map"
+      />
+      <a
+        href={openHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="absolute top-2 left-2 inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-lg bg-white/95 shadow-sm hover:bg-white text-foreground"
+      >
+        <ExternalLink className="size-3.5" /> Open in Maps
+      </a>
+    </div>
+  );
+}
+
 // Shown to anyone who isn't a TALK member yet — the landing page behind
 // shared event links (LinkedIn, direct invites, etc.). Registering routes
 // through /signup with the event attached, so approval drops them straight
@@ -323,6 +350,19 @@ function PublicEventTeaser({ event, eventId }: { event: PaidEvent; eventId: stri
 
         {event.description && (
           <p className="leading-relaxed whitespace-pre-wrap mt-6" style={{ color: "#5A7090" }}>{event.description}</p>
+        )}
+
+        {!event.is_virtual && (event.venue_name || event.location) && (
+          <div className="mt-6">
+            <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "#8098B8" }}>Location</p>
+            <div className="mt-2 rounded-2xl bg-white border shadow-sm p-4" style={{ borderColor: "#DDE6F0" }}>
+              {event.venue_name && <p className="font-bold text-sm" style={{ color: "#0F1F35" }}>{event.venue_name}</p>}
+              {event.location && <p className="text-sm mt-0.5" style={{ color: "#5A7090" }}>{event.location}</p>}
+              <div className="mt-3">
+                <EventLocationMap query={[event.venue_name, event.location].filter(Boolean).join(", ")} />
+              </div>
+            </div>
+          </div>
         )}
 
         <div className="mt-6">
@@ -765,28 +805,31 @@ export default function EventDetailPage() {
             {/* In-person / hybrid location */}
             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             {!event.is_virtual || (event as any)?.event_type === "hybrid" ? (
-              <div className="rounded-xl border border-accent/15 bg-accent/[0.03] p-4 flex items-center justify-between gap-3 flex-wrap">
-                <div className="flex items-center gap-3">
-                  <div className="size-9 rounded-lg flex items-center justify-center shrink-0 bg-accent/10">
-                    <MapPin className="size-4 text-accent" />
+              <>
+                <div className="rounded-xl border border-accent/15 bg-accent/[0.03] p-4 flex items-center justify-between gap-3 flex-wrap">
+                  <div className="flex items-center gap-3">
+                    <div className="size-9 rounded-lg flex items-center justify-center shrink-0 bg-accent/10">
+                      <MapPin className="size-4 text-accent" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">
+                        {event.venue_name ?? event.location ?? "Location TBD"}
+                      </p>
+                      {event.venue_name && event.location && (
+                        <p className="text-xs text-muted-foreground mt-0.5">{event.location}</p>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-0.5">Arrive any time after the start — no check-in link needed</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">
-                      {event.venue_name ?? event.location ?? "Location TBD"}
-                    </p>
-                    {event.venue_name && event.location && (
-                      <p className="text-xs text-muted-foreground mt-0.5">{event.location}</p>
-                    )}
-                    <p className="text-xs text-muted-foreground mt-0.5">Arrive any time after the start — no check-in link needed</p>
-                  </div>
+                  {mapsHref && (
+                    <Button variant="outline" size="sm" render={<a href={mapsHref} target="_blank" rel="noopener noreferrer" />}>
+                      <ExternalLink className="size-3.5" />
+                      Get Directions
+                    </Button>
+                  )}
                 </div>
-                {mapsHref && (
-                  <Button variant="outline" size="sm" render={<a href={mapsHref} target="_blank" rel="noopener noreferrer" />}>
-                    <ExternalLink className="size-3.5" />
-                    Get Directions
-                  </Button>
-                )}
-              </div>
+                {mapsQuery && <EventLocationMap query={mapsQuery} />}
+              </>
             ) : null}
           </div>
         </div>
