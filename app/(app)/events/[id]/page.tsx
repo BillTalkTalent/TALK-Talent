@@ -251,8 +251,14 @@ function PublicEventTeaser({ event, eventId }: { event: PaidEvent; eventId: stri
         </Link>
 
         {event.image_url ? (
-          <div className="rounded-2xl overflow-hidden bg-muted shadow-[0_12px_32px_rgba(15,31,53,0.12)] aspect-square">
-            <img src={event.image_url} alt={event.title} className="w-full h-full object-cover" />
+          // Event graphics come in whatever aspect ratio the organizer made
+          // them in — a square Luma-style asset, a 16:9 webinar slide,
+          // anything. Forcing a square crop here cut off real content
+          // (title text, speaker info) on wide images, so this shows the
+          // image at its own natural ratio instead, letterboxed on a navy
+          // backdrop that matches the rest of the page rather than cropped.
+          <div className="rounded-2xl overflow-hidden shadow-[0_12px_32px_rgba(15,31,53,0.12)] p-1.5" style={{ background: "linear-gradient(160deg, #0F1F35 0%, #162D4A 55%, #1A3A5C 100%)" }}>
+            <img src={event.image_url} alt={event.title} className="w-full h-auto max-h-[420px] object-contain mx-auto rounded-xl" />
           </div>
         ) : (
           <div
