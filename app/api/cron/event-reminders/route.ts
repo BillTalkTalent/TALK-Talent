@@ -36,14 +36,40 @@ export async function GET(request: NextRequest) {
   let totalSent = 0
 
   for (const event of events) {
-    // Get all RSVPs for this event
-    const { data: rsvps } = await db
-      .from('event_rsvps')
-      .select('user_id, profiles(email, full_name)')
-      .eq('event_id', event.id)
-      .eq('status', 'going')
+    // Get all RSVPs for this event — members (event_rsvps) and guests
+    // (event_guest_rsvps, the no-account LinkedIn/email RSVP flow) both get
+    // the same day-of reminder. Guests previously fell through here
+    // entirely, so anyone who RSVP'd via a shared link weeks earlier got a
+    // confirmation email and then silence until the event itself.
+    const [{ data: rsvps }, { data: guestRsvps }] = await Promise.all([
+      db
+        .from('event_rsvps')
+        .select('user_id, profiles(email, full_name)')
+        .eq('event_id', event.id)
+        .eq('status', 'going'),
+      db
+        .from('event_guest_rsvps')
+        .select('email, full_name')
+        .eq('event_id', event.id)
+        .eq('status', 'going'),
+    ])
 
-    if (!rsvps || rsvps.length === 0) continue
+    const recipients: { email: string; firstName: string }[] = [
+      ...(rsvps ?? [])
+        .filter((r: { profiles: { email: string; full_name: string | null } | null }) => r.profiles?.email)
+        .map((r: { profiles: { email: string; full_name: string | null } }) => ({
+          email: r.profiles.email,
+          firstName: r.profiles.full_name?.split(' ')[0] ?? 'there',
+        })),
+      ...(guestRsvps ?? [])
+        .filter((g: { email: string | null }) => g.email)
+        .map((g: { email: string; full_name: string | null }) => ({
+          email: g.email,
+          firstName: g.full_name?.split(' ')[0] ?? 'there',
+        })),
+    ]
+
+    if (recipients.length === 0) continue
 
     const dateStr = formatInZone(event.event_date, event.timezone || 'America/New_York', {
       weekday: 'long', month: 'long', day: 'numeric',
@@ -52,18 +78,13 @@ export async function GET(request: NextRequest) {
     const locationLine = event.is_virtual ? 'Virtual event' : (event.venue_name ?? event.location ?? 'Location TBD')
 
     // Send in batches of 50
-    const emails = rsvps
-      .filter((r: { profiles: { email: string; full_name: string | null } | null }) => r.profiles?.email)
-      .map((r: { profiles: { email: string; full_name: string | null } }) => {
-        const firstName = r.profiles.full_name?.split(' ')[0] ?? 'there'
-        return {
-          from,
-          replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
-          to: r.profiles.email,
-          subject: `Reminder: "${event.title}" is tomorrow`,
-          html: buildReminderEmail(firstName, event, dateStr, locationLine, origin),
-        }
-      })
+    const emails = recipients.map(({ email, firstName }) => ({
+      from,
+      replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
+      to: email,
+      subject: `Reminder: "${event.title}" is tomorrow`,
+      html: buildReminderEmail(firstName, event, dateStr, locationLine, origin),
+    }))
 
     for (let i = 0; i < emails.length; i += 50) {
       const batch = emails.slice(i, i + 50)
