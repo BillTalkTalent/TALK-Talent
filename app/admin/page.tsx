@@ -6,7 +6,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Users, Clock, Calendar, Building2, Lock, AlertTriangle } from 'lucide-react'
+import { Users, Clock, Calendar, Building2, Lock, AlertTriangle, UserPlus } from 'lucide-react'
 import { Resend } from 'resend'
 import AdminMemberSearch from '@/components/admin-member-search'
 import { requireSuperAdmin } from '@/lib/admin-auth'
@@ -345,6 +345,7 @@ export default async function AdminPage({
     { count: pendingCount },
     { count: eventCount },
     { count: vendorCount },
+    { count: guestRsvpCount },
     { data: viewerProfile },
   ] = await Promise.all([
     supabase
@@ -356,6 +357,8 @@ export default async function AdminPage({
     supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
     supabase.from('events').select('*', { count: 'exact', head: true }).eq('is_test', false),
     supabase.from('vendors').select('*', { count: 'exact', head: true }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any).from('event_guest_rsvps').select('*', { count: 'exact', head: true }).eq('status', 'going'),
     supabase.from('profiles').select('is_superadmin').eq('id', user?.id ?? '').single(),
   ])
 
@@ -368,11 +371,12 @@ export default async function AdminPage({
     : { data: [] }
   const matchedNameById = new Map((matchedProfiles.data ?? []).map((p) => [p.id, p.full_name]))
 
-  const stats = [
+  const stats: { label: string; value: number; icon: typeof Users; href?: string }[] = [
     { label: 'Approved Members', value: approvedCount ?? 0, icon: Users },
     { label: 'Pending Approvals', value: pendingCount ?? 0, icon: Clock },
     { label: 'Total Events', value: eventCount ?? 0, icon: Calendar },
     { label: 'Total Vendors', value: vendorCount ?? 0, icon: Building2 },
+    { label: 'Guest RSVPs', value: guestRsvpCount ?? 0, icon: UserPlus, href: '/admin/guest-rsvps' },
   ]
 
   return (
@@ -385,22 +389,25 @@ export default async function AdminPage({
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map(({ label, value, icon: Icon }) => (
-          <Card key={label}>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-zinc-100 rounded-md">
-                  <Icon className="size-4 text-zinc-600" />
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        {stats.map(({ label, value, icon: Icon, href }) => {
+          const card = (
+            <Card className={href ? 'transition-colors hover:bg-zinc-50' : undefined}>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-zinc-100 rounded-md">
+                    <Icon className="size-4 text-zinc-600" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-zinc-900">{value}</p>
+                    <p className="text-xs text-zinc-500">{label}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-zinc-900">{value}</p>
-                  <p className="text-xs text-zinc-500">{label}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          )
+          return href ? <Link key={label} href={href}>{card}</Link> : <div key={label}>{card}</div>
+        })}
       </div>
 
       {/* Find a member & send their claim link */}
@@ -520,6 +527,9 @@ export default async function AdminPage({
         </Button>
         <Button variant="outline" size="sm" render={<Link href="/admin/vendors" />}>
           Manage Vendors
+        </Button>
+        <Button variant="outline" size="sm" render={<Link href="/admin/guest-rsvps" />}>
+          Guest RSVPs
         </Button>
       </div>
     </div>
