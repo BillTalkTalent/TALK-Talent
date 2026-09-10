@@ -367,6 +367,7 @@ export default function CreateEventForm({ chapters }: { chapters: ChapterOption[
             type="checkbox"
             id="allow_guest_rsvp"
             name="allow_guest_rsvp"
+            defaultChecked
             className="size-4 rounded border-zinc-300"
           />
           <Label htmlFor="allow_guest_rsvp" className="cursor-pointer font-semibold">
