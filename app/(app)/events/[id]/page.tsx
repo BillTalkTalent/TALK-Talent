@@ -145,7 +145,7 @@ function GuestRsvpForm({ event, eventId }: { event: PaidEvent; eventId: string }
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [confirmed, setConfirmed] = useState<{ is_virtual: boolean; virtual_url: string | null; venue_name: string | null; location: string | null } | null>(null);
+  const [confirmed, setConfirmed] = useState<{ rsvpId: string; is_virtual: boolean; virtual_url: string | null; venue_name: string | null; location: string | null } | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -191,9 +191,10 @@ function GuestRsvpForm({ event, eventId }: { event: PaidEvent; eventId: string }
             <MapPin className="inline size-3.5 mb-0.5" /> {confirmed.venue_name ?? confirmed.location}
           </p>
         )}
-        <div className="flex gap-2">
+        <div className="flex items-center gap-3">
           {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           <a href={buildGoogleCalendarUrl(event as any)} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-emerald-700 hover:underline">Add to Google Calendar</a>
+          <Link href={`/events/${eventId}/cancel-rsvp?rsvp=${confirmed.rsvpId}`} className="text-xs font-medium text-emerald-700/70 hover:underline">Can&apos;t make it?</Link>
         </div>
       </div>
     );

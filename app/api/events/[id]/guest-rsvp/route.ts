@@ -45,12 +45,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "This event has already happened." }, { status: 400 });
   }
 
-  const { error } = await adminDb
+  const { data: rsvpRow, error } = await adminDb
     .from("event_guest_rsvps")
     .upsert(
       { event_id: eventId, full_name: name, email: mail, linkedin_url: li, status: "going" },
       { onConflict: "event_id,email" }
-    );
+    )
+    .select("id")
+    .single();
 
   if (error) return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
 
@@ -63,6 +65,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     // timezone (not the server's, which on Vercel is UTC) or a webinar
     // scheduled for 1pm ET shows up in the email as 5pm.
     const when = formatInZone(event.event_date, event.timezone || "America/New_York");
+    const cancelUrl = `${origin}/events/${eventId}/cancel-rsvp?rsvp=${rsvpRow.id}`;
 
     await resend.emails.send({
       from,
@@ -74,6 +77,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         <p>You're confirmed for <strong>${event.title}</strong> — ${when}.</p>
         <p><a href="${origin}/events/${eventId}">View event details</a></p>
         <p>A calendar invite is attached.</p>
+        <p style="color:#667;font-size:13px;">Can't make it anymore? <a href="${cancelUrl}">Cancel your RSVP</a>.</p>
       `,
       attachments: [{ filename: "event.ics", content: icsFor(event) }],
     });
@@ -84,6 +88,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   // Only revealed now, post-RSVP — not to anyone browsing the public page.
   return NextResponse.json({
     ok: true,
+    rsvpId: rsvpRow.id,
     is_virtual: event.is_virtual,
     virtual_url: event.is_virtual ? event.virtual_url : null,
     venue_name: event.venue_name,
