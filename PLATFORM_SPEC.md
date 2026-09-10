@@ -389,6 +389,77 @@ same person (the super admin) is both the only visible member and the approver.
   policies, which had been admin-only since the bucket was created, well before
   chapter leads could create events at all.
 
+### Guest RSVP — no-membership attendance
+
+Modeled on Luma: a non-member can RSVP to an event directly from a shared link,
+with no TALK account and no admin approval gate — built to lower the friction of
+inviting people from outside the community (LinkedIn, a forwarded email) to a
+specific event.
+
+- **Per-event opt-in** (`events.allow_guest_rsvp`, migration 083) — defaults to
+  `true` for new events as of migration 086. It originally defaulted to `false`,
+  which meant an admin had to remember to flip it on per event; a real event
+  shipped without it, silently forcing anonymous visitors into the full "Apply to
+  join TALK" flow instead of the RSVP form this feature exists for.
+- **`event_guest_rsvps`** (full name, email, required LinkedIn URL, status
+  `going`/`cancelled`) — a separate table from `event_rsvps`, same reasoning as
+  `vendor_leads`: keeps this from ever intersecting member-only RLS. Unique on
+  `(event_id, email)` — migration 084 fixed the original unique *index* (on
+  `lower(email)`) not matching the upsert's `on_conflict` target, which only
+  works against a plain constraint on the literal columns.
+- **`POST /api/events/[id]/guest-rsvp`** — public, service-role. Validates
+  name/email/required LinkedIn, checks the event is guest-open and not past,
+  upserts, and sends a confirmation email (ICS attachment, cancel link) via
+  Resend, formatted in the event's own timezone via `formatInZone` (not the
+  server's, which is UTC on Vercel — an earlier version used a bare
+  `toLocaleString()` and showed a 1pm ET event as 5pm). `virtual_url` is only
+  ever returned in this post-RSVP response — never from the public teaser route,
+  same non-negotiable as the member flow.
+- **Cancel** — `/events/[id]/cancel-rsvp?rsvp={id}`, a confirm-then-act page (not
+  a bare link, so email-client link-prefetching can't trigger it) that calls
+  `POST .../guest-rsvp/cancel`. The RSVP row's own uuid is the capability token —
+  same trust model as an unsubscribe link, no separate secret needed. Reachable
+  from the confirmation email and from the in-page "You're on the list!" panel.
+- **Spam guard** (migration 087, `guest_rsvp_attempts`) — added once guest RSVP
+  became on-by-default everywhere, widening the public surface. A honeypot field
+  (hidden, off-screen — not `display:none`, since some bots skip that) makes the
+  route return a fake success without writing anything; an IP-based rate limit (8
+  submissions / 10 min) fails open on any table/query error, same pattern as
+  `recovery_attempts` (§2).
+- **Invite via Email** (`app/(app)/events/[id]/invite-friend-actions.ts`) — any
+  signed-in member, not just admins, can send one non-member an invite email for
+  a specific event from the event page itself. Copy adapts to whether that event
+  has guest RSVP on ("RSVP in a minute" vs. "applying to join TALK").
+- **Public teaser redesign** — Luma-inspired layout (cover image, mini
+  calendar-date badge, info cards, "N going"). The cover image shows at its own
+  natural aspect ratio (`object-contain`, letterboxed on a navy gradient) rather
+  than a forced `aspect-square` crop, which cut off real content on wide (16:9)
+  images. An embedded, keyless Google Maps iframe
+  (`maps.google.com/maps?...&output=embed` — no API key/billing needed) plus
+  "Open in Maps" shows for in-person events, on both the public teaser and the
+  member event page.
+- **Link previews** — `app/(app)/events/[id]/page.tsx` is a thin async server
+  wrapper (`generateMetadata`) around the actual page, which lives in
+  `event-detail-client.tsx`, purely so a shared event link carries real Open
+  Graph/Twitter Card data (the event's own title/description/image) instead of
+  the site-wide default — a client component can't export `generateMetadata`
+  itself.
+- **Add-to-calendar** — Google, Outlook, Yahoo, and Apple/iCal links (not just
+  Google) on both the guest confirmation panel and the member event page.
+- **"N going"** on every surface (public teaser, dashboard, `/events` list, the
+  member event page) sums three sources: `event_rsvps`, guest RSVPs, and
+  `events.external_attendee_count` — a real, admin-entered count for an event
+  whose RSVPs are split across TALK and an external platform (e.g. a chapter
+  happy hour also running on Luma), migration 085. Not a fabricated padding
+  number — it represents people confirmed elsewhere for the same real event.
+- **Admin visibility** — each event's own admin page lists its guest RSVPs;
+  `/admin/guest-rsvps` is the cross-event rollup (total going/cancelled, a
+  breakdown by event, full list) — see §7.
+- **Post-event nurture** (`/api/cron/guest-nurture`, daily) — emails a guest
+  whose event ended 1–3 days ago inviting them to apply and join, skipping
+  anyone whose RSVP email already matches an existing member profile.
+  `event_guest_rsvps.nurture_sent_at` (migration 088) makes it idempotent.
+
 ---
 
 ## 5. Content & Communications
@@ -581,6 +652,7 @@ All of `/admin/*` requires `role = 'admin'` (checked in both `middleware.ts` and
 | `/admin/news-brief` | AI-assisted draft-for-review posting | No |
 | `/admin/suggestions` | Review member invites & vendor suggestions | No |
 | `/admin/activity` | Community-wide activity & engagement dashboard (below) | No |
+| `/admin/guest-rsvps` | Cross-event guest RSVP rollup — totals, per-event breakdown, full list (§4) | No |
 
 A regular admin sees every restricted control either hidden or shown disabled with a
 short explanation ("Only the super admin can…") rather than a control that just
@@ -641,7 +713,9 @@ they're safe to re-run against partially-applied state).
 `conversation_participants`
 
 **Events**: `events` (incl. `venue_name`, `is_test`, `visibility`,
-`additional_chapter_ids`), `event_rsvps`, `event_registrations`, `event_materials`
+`additional_chapter_ids`, `allow_guest_rsvp`, `external_attendee_count`),
+`event_rsvps`, `event_registrations`, `event_materials`, `event_guest_rsvps`
+(incl. `nurture_sent_at`), `guest_rsvp_attempts` (rate-limit tracking, §4)
 
 **Chapters**: `chapters`, `chapter_memberships`, `chapter_leads`, `chapter_documents`
 (Board Docs), `legacy_chapter_slug_map` (old-site city slug → real chapter slug,
@@ -685,21 +759,29 @@ policies — service-role only, same pattern as `linkedin_connections`)
 |---|---|---|
 | `/api/cron/ta-news-digest` | Daily, 7am UTC | TA news bot posts to Industry News |
 | `/api/cron/forum-digest` | Daily, 9am UTC | Email digest of the last 24h's forum activity |
-| `/api/cron/event-reminders` | Daily, 10am UTC | Reminder emails for events in the next 24–25h |
+| `/api/cron/event-reminders` | Daily, 10am UTC | Reminder emails for events in the next 24–25h — members and guest RSVPs alike |
+| `/api/cron/guest-nurture` | Daily, 2pm UTC | "Apply to join TALK" nudge for guest RSVPs whose event ended 1–3 days ago (§4) |
 | `/api/cron/send-newsletter` | Every request checks for due sends | Fires newsletters scheduled for "now" |
 | `/api/cron/activity-snapshot` | Daily, 11:55pm UTC | Writes the day's north-star numbers to `activity_snapshots` for the `/admin/activity` trend chart |
 
 ---
 
-*Last written: reflects the state of the codebase through the chapter Manage panel
-(self-service co-lead management, lead-created/published events, Board Docs), event
-visibility (`leads_only`) and multi-chapter targeting (`additional_chapter_ids`), the
-mid-newsletter sponsor placement split, Ask TALK site search, the vendor-suggestion
-→ vendor pipeline fix, and the chapter member-count fix (real aggregates instead of
-client-side counting past PostgREST's 1,000-row cap) — plus everything from the
-previous pass: the rebuilt `/admin/activity` dashboard, the homepage redesign (real
-hero stats, company ticker, scroll reveal), the newsletter overhaul (real
-events/stats blocks, public teaser page, LinkedIn sharing, redesigned share card),
-mandatory LinkedIn URLs for approval, chapter email targeting, the geographic
-chapter-matching fix, and the event venue field. Update this doc as part of shipping
-any feature that changes the picture above.*
+*Last written: reflects the state of the codebase through the full Guest RSVP
+build-out (§4) — the no-membership RSVP flow itself, defaulting it on for new
+events, the honeypot + rate-limit spam guard, member-facing "Invite via Email,"
+the Luma-inspired public teaser redesign (natural-aspect cover image, embedded
+map, Open Graph link previews), multi-provider add-to-calendar links, the
+`external_attendee_count` field for platform-split events, the cross-event
+`/admin/guest-rsvps` rollup, and the post-event join-TALK nurture cron — plus
+everything from the previous pass: the chapter Manage panel (self-service co-lead
+management, lead-created/published events, Board Docs), event visibility
+(`leads_only`) and multi-chapter targeting (`additional_chapter_ids`), the
+mid-newsletter sponsor placement split, Ask TALK site search, the
+vendor-suggestion → vendor pipeline fix, the chapter member-count fix (real
+aggregates instead of client-side counting past PostgREST's 1,000-row cap), the
+rebuilt `/admin/activity` dashboard, the homepage redesign (real hero stats,
+company ticker, scroll reveal), the newsletter overhaul (real events/stats
+blocks, public teaser page, LinkedIn sharing, redesigned share card), mandatory
+LinkedIn URLs for approval, chapter email targeting, the geographic
+chapter-matching fix, and the event venue field. Update this doc as part of
+shipping any feature that changes the picture above.*
