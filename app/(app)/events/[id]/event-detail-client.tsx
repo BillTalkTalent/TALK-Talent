@@ -131,6 +131,36 @@ function buildIcalDataUri(e: any): string {
   const ics = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nSUMMARY:${e.title??''}\r\nDTSTART:${fmt(e.event_date)}\r\nDTEND:${fmt(e.end_date??e.event_date)}\r\nDESCRIPTION:${(e.description??'').slice(0,200)}\r\nLOCATION:${e.is_virtual?(e.virtual_url??'Online'):inPersonLocationText(e)}\r\nEND:VEVENT\r\nEND:VCALENDAR`
   return `data:text/calendar;charset=utf8,${encodeURIComponent(ics)}`
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function buildOutlookCalendarUrl(e: any): string {
+  const p = new URLSearchParams({
+    path: '/calendar/action/compose',
+    rru: 'addevent',
+    subject: e.title ?? '',
+    startdt: new Date(e.event_date).toISOString(),
+    enddt: new Date(e.end_date ?? e.event_date).toISOString(),
+    body: e.description ?? '',
+    location: e.is_virtual ? (e.virtual_url ?? 'Online') : inPersonLocationText(e),
+  })
+  return `https://outlook.live.com/calendar/0/deeplink/compose?${p}`
+}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function buildYahooCalendarUrl(e: any): string {
+  const fmt = (d: string) => new Date(d).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'')
+  const start = new Date(e.event_date)
+  const end = new Date(e.end_date ?? e.event_date)
+  const durMin = Math.max(30, Math.round((end.getTime() - start.getTime()) / 60000))
+  const dur = `${String(Math.floor(durMin / 60)).padStart(2, '0')}${String(durMin % 60).padStart(2, '0')}`
+  const p = new URLSearchParams({
+    v: '60', view: 'd', type: '20',
+    title: e.title ?? '',
+    st: fmt(e.event_date),
+    dur,
+    desc: e.description ?? '',
+    in_loc: e.is_virtual ? (e.virtual_url ?? 'Online') : inPersonLocationText(e),
+  })
+  return `https://calendar.yahoo.com/?${p}`
+}
 
 function getInitials(name: string | null): string {
   if (!name) return "?";
@@ -241,11 +271,20 @@ function GuestRsvpForm({ event, eventId }: { event: PaidEvent; eventId: string }
             <MapPin className="inline size-3.5 mb-0.5" /> {confirmed.venue_name ?? confirmed.location}
           </p>
         )}
-        <div className="flex items-center gap-3">
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          <a href={buildGoogleCalendarUrl(event as any)} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-emerald-700 hover:underline">Add to Google Calendar</a>
-          <Link href={`/events/${eventId}/cancel-rsvp?rsvp=${confirmed.rsvpId}`} className="text-xs font-medium text-emerald-700/70 hover:underline">Can&apos;t make it?</Link>
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-emerald-700/70">Add to calendar:</p>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            <a href={buildGoogleCalendarUrl(event as any)} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-emerald-700 hover:underline">Google</a>
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            <a href={buildOutlookCalendarUrl(event as any)} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-emerald-700 hover:underline">Outlook</a>
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            <a href={buildYahooCalendarUrl(event as any)} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-emerald-700 hover:underline">Yahoo</a>
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            <a href={buildIcalDataUri(event as any)} download={`${event.title}.ics`} className="text-xs font-medium text-emerald-700 hover:underline">Apple/iCal</a>
+          </div>
         </div>
+        <Link href={`/events/${eventId}/cancel-rsvp?rsvp=${confirmed.rsvpId}`} className="text-xs font-medium text-emerald-700/70 hover:underline">Can&apos;t make it?</Link>
 
         {/* Peak-intent invite prompt — right after confirming, not buried
             later in the page. Plain share-intent links (no LinkedIn OAuth,
@@ -879,9 +918,13 @@ export default function EventDetailClient() {
 
           <div className="flex gap-2 flex-wrap">
             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            <a href={buildGoogleCalendarUrl(event as any)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground hover:bg-muted transition-colors"><CalendarDays className="size-3.5"/>Add to Google Calendar</a>
+            <a href={buildGoogleCalendarUrl(event as any)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground hover:bg-muted transition-colors"><CalendarDays className="size-3.5"/>Google</a>
             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            <a href={buildIcalDataUri(event as any)} download={`${event.title}.ics`} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground hover:bg-muted transition-colors"><CalendarDays className="size-3.5"/>Add to iCal</a>
+            <a href={buildOutlookCalendarUrl(event as any)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground hover:bg-muted transition-colors"><CalendarDays className="size-3.5"/>Outlook</a>
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            <a href={buildYahooCalendarUrl(event as any)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground hover:bg-muted transition-colors"><CalendarDays className="size-3.5"/>Yahoo</a>
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            <a href={buildIcalDataUri(event as any)} download={`${event.title}.ics`} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground hover:bg-muted transition-colors"><CalendarDays className="size-3.5"/>Apple/iCal</a>
           </div>
 
           {event.description && (
