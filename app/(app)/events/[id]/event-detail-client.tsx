@@ -22,6 +22,7 @@ import {
 import { ShareOnLinkedInButton } from "@/components/share-on-linkedin-button";
 import { buildLinkedInShareText } from "@/lib/linkedin-share-text";
 import { getRsvpAudienceCount, emailRsvps } from "./email-rsvps-actions";
+import { inviteFriendToEvent } from "./invite-friend-actions";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { formatInZone, localZone } from "@/lib/timezone";
@@ -40,6 +41,7 @@ import {
   Mail,
   Video,
   FileText,
+  UserPlus,
 } from "lucide-react";
 import type { Event, Profile } from "@/lib/supabase/types";
 import { formatPrice } from "@/lib/format-price";
@@ -441,6 +443,70 @@ function PublicEventTeaser({ event, eventId }: { event: PaidEvent; eventId: stri
         </div>
       </div>
     </div>
+  );
+}
+
+// Available to any signed-in member (unlike EmailRsvpsButton, which is
+// admin-only) — lets them forward this specific event to one person outside
+// TALK by email, the same "someone you know should come" loop the guest
+// confirmation panel offers, but reachable from the member view too.
+function InviteFriendButton({ eventId }: { eventId: string }) {
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [note, setNote] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleSend() {
+    setLoading(true);
+    try {
+      const result = await inviteFriendToEvent(eventId, email, note);
+      if (result.ok) {
+        toast.success(`Invite sent to ${email}`);
+        setOpen(false);
+        setEmail("");
+        setNote("");
+      } else {
+        toast.error(result.error ?? "Failed to send invite.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger render={<Button type="button" variant="outline" />}>
+        <UserPlus className="size-4" />
+        Invite via Email
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Invite someone to this event</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <p className="text-xs text-muted-foreground">
+            They&apos;ll get an email with the event details and a link — no TALK account needed to see it.
+          </p>
+          <Input
+            type="email"
+            placeholder="their.email@company.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <Textarea
+            placeholder="Add a personal note (optional)…"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            rows={3}
+          />
+          <DialogFooter>
+            <Button type="button" onClick={handleSend} disabled={loading || !email.trim()}>
+              {loading ? <Loader2 className="size-4 animate-spin" /> : "Send Invite"}
+            </Button>
+          </DialogFooter>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -951,6 +1017,7 @@ export default function EventDetailClient() {
               subtitle: `${format(new Date(event.event_date), "MMM d, yyyy")} · ${event.is_virtual ? "Virtual" : (event.venue_name ?? event.location ?? "In Person")}`,
             }}
           />
+          <InviteFriendButton eventId={event.id} />
           {isAdmin && <EmailRsvpsButton eventId={event.id} isPaid={isPaid} />}
         </div>
 
