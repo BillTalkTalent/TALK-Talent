@@ -248,7 +248,19 @@ noticed the displayed counts had stopped moving. Same class of bug as the
   to see what was actually active without clicking into each category.
 - **Topics & replies**: plain text (not HTML/Markdown — a submitted `<tag>` renders
   literally, it isn't interpreted), pin/lock (admin/board), view counts, notification
-  fan-out to all approved members on new topics (`notify_on_forum_topic` trigger).
+  fan-out to all approved members on new topics.
+- **New-topic notification fan-out is async, not synchronous** (migration 090) — a
+  bulk insert of ~12,700 notification rows (one per approved member) was directly
+  confirmed to blow Postgres's `statement_timeout` on its own, with no trigger
+  involved, which meant topic creation itself could fail with a generic "Failed to
+  create topic" purely as a function of current member volume (an earlier
+  exception-handling-only fix, migration 089, turned out not to be enough — a
+  statement-timeout cancel re-fires on every subsequent check within that same
+  top-level statement, so catching it once doesn't reliably let the rest of the
+  transaction finish). The `notify_on_forum_topic` trigger now does one cheap
+  single-row insert into `pending_topic_notifications`; `/api/cron/process-topic-
+  notifications` (every 5 min) does the actual fan-out afterward, paginated in
+  batches of 300 to stay well clear of the failure point.
 - **`/forum/new`**: category-picker version of the composer, for starting a topic
   without drilling into a category first.
 
@@ -709,6 +721,7 @@ they're safe to re-run against partially-applied state).
 **Identity**: `profiles`, `legacy_member_staging`
 
 **Forum & Chat**: `forum_categories`, `forum_topics`, `forum_replies`,
+`pending_topic_notifications` (async notification fan-out queue, §3),
 `chat_channels`, `chat_messages`, `dm_conversations`, `dm_messages`,
 `conversation_participants`
 
@@ -761,6 +774,7 @@ policies — service-role only, same pattern as `linkedin_connections`)
 | `/api/cron/forum-digest` | Daily, 9am UTC | Email digest of the last 24h's forum activity |
 | `/api/cron/event-reminders` | Daily, 10am UTC | Reminder emails for events in the next 24–25h — members and guest RSVPs alike |
 | `/api/cron/guest-nurture` | Daily, 2pm UTC | "Apply to join TALK" nudge for guest RSVPs whose event ended 1–3 days ago (§4) |
+| `/api/cron/process-topic-notifications` | Every 5 min | Async fan-out of new-forum-topic notifications, batched to avoid the statement-timeout failure mode (§3) |
 | `/api/cron/send-newsletter` | Every request checks for due sends | Fires newsletters scheduled for "now" |
 | `/api/cron/activity-snapshot` | Daily, 11:55pm UTC | Writes the day's north-star numbers to `activity_snapshots` for the `/admin/activity` trend chart |
 
