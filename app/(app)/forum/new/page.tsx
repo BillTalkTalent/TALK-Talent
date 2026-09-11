@@ -70,7 +70,8 @@ export default function NewTopicPage() {
       .single();
 
     if (error) {
-      toast.error("Failed to create topic.");
+      console.error("[forum/new] topic insert failed:", error);
+      toast.error(error.message ? `Failed to create topic: ${error.message}` : "Failed to create topic.");
       setSubmitting(false);
       return;
     }
