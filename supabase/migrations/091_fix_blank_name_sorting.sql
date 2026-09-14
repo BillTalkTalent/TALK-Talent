@@ -14,8 +14,23 @@
 --    only remaining source of a blank name — coalesce now falls through
 --    to NULL instead.
 
-update public.profiles set full_name = null where full_name = '';
-update public.profiles set avatar_url = null where avatar_url = '';
+-- The profiles_require_linkedin_for_approval trigger (migration 054) fires
+-- on ANY update to a row, not just an approval attempt — it re-validates
+-- the whole row's status/linkedin_url every time. There are 740+ approved
+-- members with no LinkedIn URL on file, mostly older legacy-migrated
+-- accounts that were approved before that trigger existed and have simply
+-- never been updated since (so it never got a chance to complain). A
+-- blanket UPDATE here would touch some of those rows too and get blocked
+-- by the trigger — confirmed live (lmelton@genesco.com). Excluding
+-- anything in that state from these two updates avoids the conflict;
+-- fixing the underlying 740-row LinkedIn gap is a separate, much bigger
+-- question, not something to bundle into this fix.
+update public.profiles set full_name = null
+  where full_name = ''
+    and not (status = 'approved' and (linkedin_url is null or trim(linkedin_url) = ''));
+update public.profiles set avatar_url = null
+  where avatar_url = ''
+    and not (status = 'approved' and (linkedin_url is null or trim(linkedin_url) = ''));
 
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer as $$
