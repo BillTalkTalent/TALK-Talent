@@ -40,7 +40,10 @@ export default async function MembersPage({
     .select("*", { count: "exact" })
     .eq("status", "approved")
     .eq("is_bot", false)
-    .order("full_name", { ascending: true });
+    // A profile with no name yet (pending onboarding) sorts last instead of
+    // first — the default collation puts '' before any letter, which was
+    // putting blank profiles at the very top of the directory.
+    .order("full_name", { ascending: true, nullsFirst: false });
 
   if (q?.trim()) {
     const safe = q.trim().replace(/[%_]/g, "\\$&");
