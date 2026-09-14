@@ -19,6 +19,14 @@ export async function POST(req: NextRequest) {
   const { email, name, message, inviterId } = await req.json();
   if (!email) return NextResponse.json({ error: "Email is required" }, { status: 400 });
   const cleanEmail = String(email).toLowerCase().trim();
+  // The client form now marks this required too, but a name-less invite is
+  // exactly how a batch of blank, photo-less "member" rows ended up in the
+  // directory — an admin had to unblock approval by adding just a LinkedIn
+  // URL later, since the pending-approval gate only checks for that (see
+  // migration 054), leaving full_name empty forever. Enforce it here too so
+  // a direct API call can't skip the client-side check.
+  const cleanName = typeof name === "string" ? name.trim() : "";
+  if (!cleanName) return NextResponse.json({ error: "Their name is required" }, { status: 400 });
 
   const admin = createAdminClient();
   const origin = process.env.NEXT_PUBLIC_SITE_URL ?? new URL(req.url).origin;
@@ -45,7 +53,7 @@ export async function POST(req: NextRequest) {
     } else {
       // Dormant (imported but never claimed) — send the branded claim link.
       const fullName: string | null =
-        existing?.user_metadata?.full_name ?? name ?? null;
+        existing?.user_metadata?.full_name ?? cleanName;
       const firstName = fullName?.split(" ")[0] ?? "there";
 
       // Link to our page with the one-time token_hash (verified client-side via
@@ -70,7 +78,7 @@ export async function POST(req: NextRequest) {
     const { error: createError } = await admin.auth.admin.createUser({
       email: cleanEmail,
       email_confirm: true,
-      user_metadata: { full_name: name ?? null, invited_by: user.id },
+      user_metadata: { full_name: cleanName, invited_by: user.id },
     });
     if (createError) {
       console.error("invite createUser error:", createError);
@@ -85,7 +93,7 @@ export async function POST(req: NextRequest) {
   await adminDb.from("invitations").insert({
     inviter_id: inviterId,
     email: cleanEmail,
-    name: name ?? null,
+    name: cleanName,
     message: message ?? null,
     status: outcome === "already_active" ? "accepted" : "sent",
   });

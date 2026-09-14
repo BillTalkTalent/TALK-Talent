@@ -43,8 +43,8 @@ export default function InviteForm({ inviterId }: { inviterId: string }) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="name">Their name</Label>
-          <Input id="name" name="name" placeholder="Jane Smith" />
+          <Label htmlFor="name">Their name *</Label>
+          <Input id="name" name="name" required placeholder="Jane Smith" />
         </div>
         <div className="space-y-2">
           <Label htmlFor="email">Email address *</Label>
