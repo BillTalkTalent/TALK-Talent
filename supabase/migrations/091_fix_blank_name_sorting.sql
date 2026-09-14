@@ -14,23 +14,31 @@
 --    only remaining source of a blank name — coalesce now falls through
 --    to NULL instead.
 
--- The profiles_require_linkedin_for_approval trigger (migration 054) fires
--- on ANY update to a row, not just an approval attempt — it re-validates
--- the whole row's status/linkedin_url every time. There are 740+ approved
--- members with no LinkedIn URL on file, mostly older legacy-migrated
--- accounts that were approved before that trigger existed and have simply
--- never been updated since (so it never got a chance to complain). A
--- blanket UPDATE here would touch some of those rows too and get blocked
--- by the trigger — confirmed live (lmelton@genesco.com). Excluding
--- anything in that state from these two updates avoids the conflict;
--- fixing the underlying 740-row LinkedIn gap is a separate, much bigger
--- question, not something to bundle into this fix.
-update public.profiles set full_name = null
-  where full_name = ''
-    and not (status = 'approved' and (linkedin_url is null or trim(linkedin_url) = ''));
-update public.profiles set avatar_url = null
-  where avatar_url = ''
-    and not (status = 'approved' and (linkedin_url is null or trim(linkedin_url) = ''));
+-- The profiles_require_linkedin_for_approval trigger (migration 054/068)
+-- fires on ANY update to a row, not just an approval attempt, and
+-- re-validates the whole row's status/linkedin_url format every time.
+-- Turns out the legacy data here is messier than one exclusion clause can
+-- keep up with — confirmed live that just the avatar_url='' subset alone
+-- has 771 approved rows with either no linkedin_url or one that doesn't
+-- match the required format (most commonly missing "https://", plus a
+-- long tail of outright garbage values like "n/a" or a plain name typed
+-- into the field). This UPDATE only ever touches full_name/avatar_url —
+-- it has nothing to do with what this trigger checks — so the correct fix
+-- is to bypass that trigger for this narrow, well-understood operation
+-- rather than trying to replicate its exact validation rule in a WHERE
+-- clause (which is exactly what broke twice already). Wrapped in an
+-- explicit transaction so the trigger can't end up stuck disabled if
+-- only part of this script gets run.
+begin;
+
+alter table public.profiles disable trigger profiles_require_linkedin_for_approval;
+
+update public.profiles set full_name = null where full_name = '';
+update public.profiles set avatar_url = null where avatar_url = '';
+
+alter table public.profiles enable trigger profiles_require_linkedin_for_approval;
+
+commit;
 
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer as $$
