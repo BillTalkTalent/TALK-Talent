@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { email, name, message, inviterId } = await req.json();
+  const { email, name, message, inviterId, force } = await req.json();
   if (!email) return NextResponse.json({ error: "Email is required" }, { status: 400 });
   const cleanEmail = String(email).toLowerCase().trim();
   // The client form now marks this required too, but a name-less invite is
@@ -74,6 +74,32 @@ export async function POST(req: NextRequest) {
       outcome = "claim_sent";
     }
   } else {
+    // ── Brand new (by email) — but that's not the same as brand new as a
+    // *person*: this tool has no idea whether they're already a member
+    // under a different address. The signup form guards against exactly
+    // this with an "Is this you?" name/LinkedIn match before creating an
+    // account; this admin-only path skipped that check entirely, which is
+    // how a real member (signed up herself under a personal email) got a
+    // second, thinner duplicate account created for her work email an
+    // admin didn't know she already had. Run the same kind of check here,
+    // by name (this form doesn't collect a LinkedIn URL to match on), and
+    // require an explicit `force` to proceed past a plausible match.
+    if (!force) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: nameMatches } = await (admin as any)
+        .from("profiles")
+        .select("id, full_name, avatar_url, company, title, status")
+        .neq("status", "rejected")
+        .ilike("full_name", cleanName)
+        .limit(5);
+      if (nameMatches && nameMatches.length > 0) {
+        return NextResponse.json(
+          { error: "possible_duplicate", candidates: nameMatches },
+          { status: 409 }
+        );
+      }
+    }
+
     // ── Brand new — create a pending account for the approval queue ──
     const { error: createError } = await admin.auth.admin.createUser({
       email: cleanEmail,
