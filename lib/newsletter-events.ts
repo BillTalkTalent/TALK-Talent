@@ -80,22 +80,23 @@ export function buildUpcomingEventsBlock(events: NewsletterEvent[], origin: stri
     })
     const city = e.is_virtual ? 'Virtual' : cityFor(e)
     const venue = e.venue_name || (e.is_virtual ? null : e.location) || null
-    // City · Venue · Time, one line — whichever of city/venue we actually have.
-    const whereParts = [city, venue, time].filter(Boolean)
+    const venueTime = [venue, time].filter(Boolean).join(' · ')
+    const cityPill = city ? `<span style="display:inline-block;background:#fdece8;color:#E8503A;font-size:10px;font-weight:800;letter-spacing:0.02em;padding:2px 8px;border-radius:20px;margin-bottom:4px;">${esc(city)}</span><br>` : ''
     const url = `${origin}/events/${e.id}`
     return `
       <tr>
-        <td style="padding:10px 0;${isLast ? '' : 'border-bottom:1px solid #eef0f2;'}">
+        <td style="padding:12px 0;${isLast ? '' : 'border-bottom:1px solid #eef0f2;'}">
           <table cellpadding="0" cellspacing="0" width="100%"><tr>
-            <td width="46" valign="top" style="padding-right:12px;">
-              <div style="width:42px;background:#f4f0ff;border-radius:8px;text-align:center;padding:6px 0;">
-                <div style="font-size:9px;font-weight:800;color:#7c3aed;letter-spacing:0.05em;">${esc(month)}</div>
-                <div style="font-size:16px;font-weight:900;color:#111827;line-height:1.1;">${esc(day)}</div>
+            <td width="48" valign="top" style="padding-right:14px;">
+              <div style="width:44px;background:linear-gradient(160deg,#0F1F35,#162D4A);border-radius:9px;text-align:center;padding:7px 0;">
+                <div style="font-size:9px;font-weight:800;color:#F07058;letter-spacing:0.05em;">${esc(month)}</div>
+                <div style="font-size:17px;font-weight:900;color:#ffffff;line-height:1.1;">${esc(day)}</div>
               </div>
             </td>
             <td valign="top">
+              ${cityPill}
               <a href="${url}" style="font-size:14px;font-weight:700;color:#111827;text-decoration:none;line-height:1.4;">${esc(e.title)}</a>
-              <p style="margin:3px 0 0;font-size:12px;color:#6b7280;">${esc(whereParts.join(' · '))}</p>
+              <p style="margin:3px 0 0;font-size:12px;color:#6b7280;">${esc(venueTime)}</p>
             </td>
           </tr></table>
         </td>
@@ -104,8 +105,9 @@ export function buildUpcomingEventsBlock(events: NewsletterEvent[], origin: stri
 
   return `
   <tr><td style="background:#ffffff;padding:6px 36px 26px;">
-    <div style="border:1px solid #eef0f2;border-radius:12px;padding:20px 22px;">
-      <p style="margin:0 0 10px;font-size:10px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:#9ca3af;">Upcoming events</p>
+    <div style="border:1px solid #eef0f2;border-radius:14px;padding:20px 22px;border-top:3px solid #E8503A;">
+      <p style="margin:0;font-size:10px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:#9ca3af;">Upcoming events</p>
+      <p style="margin:4px 0 16px;font-size:13px;font-weight:600;color:#0F1F35;">A national community, with local connections.</p>
       <table cellpadding="0" cellspacing="0" width="100%">
         <tbody>${rows}</tbody>
       </table>
