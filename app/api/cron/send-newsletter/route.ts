@@ -110,10 +110,13 @@ function buildEmailHtml(subject: string, rawBodyHtml: string, memberName: string
     <p style="margin:0;color:#6b7280;font-size:14px;">${introLine}</p>
   </td></tr>
   ${statsBlock}
-  ${sponsorTop}
   ${eventsBlock}
   ${jobsBlock}
   ${talentBlock}
+  <!-- Sponsor sits last among the auto-generated widgets, immediately
+       before the written body — below every bit of real editorial content
+       that comes before it (the intro), not in front of any of it. -->
+  ${sponsorTop}
   <tr><td style="background:#fff;padding:8px 36px 32px;">
     <div class="prose">${bodyHtml}</div>
   </td></tr>

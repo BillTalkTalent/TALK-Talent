@@ -109,13 +109,16 @@ function buildEmailHtml(subject: string, sections: Record<string, string>, membe
 
   ${statsBlock}
 
-  ${sponsorTop}
-
   ${eventsBlock}
 
   ${jobsBlock}
 
   ${talentBlock}
+
+  <!-- Sponsor sits last among the auto-generated widgets, immediately
+       before the written sections — below every bit of real editorial
+       content that comes before it (the intro), not in front of any of it. -->
+  ${sponsorTop}
 
   <!-- Sections -->
   <tr><td style="background:#fff;padding:8px 36px 32px;">
