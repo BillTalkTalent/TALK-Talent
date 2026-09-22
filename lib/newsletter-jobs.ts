@@ -75,6 +75,9 @@ export function buildJobsBlock(jobs: NewsletterJob[], origin: string): string {
         <tbody>${rows}</tbody>
       </table>
       <a href="${origin}/jobs" style="display:inline-block;margin-top:14px;font-size:12px;font-weight:700;color:#4f46e5;text-decoration:none;">See all open roles &rarr;</a>
+      <p style="margin:12px 0 0;padding-top:12px;border-top:1px solid #f3f4f6;">
+        <a href="${origin}/jobs/new" style="font-size:12.5px;font-weight:700;color:#E8503A;text-decoration:none;">Have a job for the community? Click here &rarr;</a>
+      </p>
     </div>
   </td></tr>`
 }

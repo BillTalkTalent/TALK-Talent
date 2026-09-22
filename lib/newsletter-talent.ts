@@ -56,6 +56,9 @@ export function buildTalentBlock(entries: NewsletterTalent[], origin: string): s
         <tbody>${rows}</tbody>
       </table>
       <a href="${origin}/careers" style="display:inline-block;margin-top:14px;font-size:12px;font-weight:700;color:#2563EB;text-decoration:none;">See the full talent pool &rarr;</a>
+      <p style="margin:12px 0 0;padding-top:12px;border-top:1px solid #f3f4f6;">
+        <a href="${origin}/profile" style="font-size:12.5px;font-weight:700;color:#E8503A;text-decoration:none;">Looking for a new role? Click here &rarr;</a>
+      </p>
     </div>
   </td></tr>`
 }
