@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
 
   const { data: pending } = await db
     .from('pending_topic_notifications')
-    .select('id, topic_id, category_slug, category_name, title, author_id')
+    .select('id, topic_id, category_slug, category_name, chapter_id, title, author_id')
     .is('processed_at', null)
     .order('created_at', { ascending: true })
     .limit(MAX_TOPICS_PER_RUN)
@@ -40,33 +40,66 @@ export async function GET(request: NextRequest) {
 
   for (const item of pending) {
     try {
-      // Approved members, excluding the topic's own author, paginated so
-      // each fan-out INSERT stays well under the row count that times out.
-      let offset = 0
+      const authorId = item.author_id ?? '00000000-0000-0000-0000-000000000000'
       let sent = 0
-      for (;;) {
-        const { data: page } = await db
-          .from('profiles')
-          .select('id')
-          .eq('status', 'approved')
-          .neq('id', item.author_id ?? '00000000-0000-0000-0000-000000000000')
-          .range(offset, offset + BATCH_SIZE - 1)
 
-        if (!page || page.length === 0) break
+      if (item.chapter_id) {
+        // Chapter-scoped category (the 9 topic-based chapters) — only that
+        // chapter's members, not the whole platform. Membership lists here
+        // are small (dozens, not thousands), so no pagination needed.
+        const { data: memberships } = await db
+          .from('chapter_memberships')
+          .select('user_id')
+          .eq('chapter_id', item.chapter_id)
 
-        const rows = page.map((p: { id: string }) => ({
+        const memberIds = [...new Set((memberships ?? []).map((m: { user_id: string }) => m.user_id))]
+          .filter((id) => id !== authorId)
+
+        const { data: approvedMembers } = memberIds.length > 0
+          ? await db.from('profiles').select('id').eq('status', 'approved').in('id', memberIds)
+          : { data: [] }
+
+        const rows = (approvedMembers ?? []).map((p: { id: string }) => ({
           user_id: p.id,
           type: 'forum_topic',
           title: item.title,
           body: item.category_name,
           link: `/forum/${item.category_slug}/${item.topic_id}`,
         }))
-        const { error: insertError } = await db.from('notifications').insert(rows)
-        if (insertError) throw insertError
+        if (rows.length > 0) {
+          const { error: insertError } = await db.from('notifications').insert(rows)
+          if (insertError) throw insertError
+        }
+        sent = rows.length
+      } else {
+        // Platform-wide category — every approved member, excluding the
+        // topic's own author, paginated so each fan-out INSERT stays well
+        // under the row count that times out.
+        let offset = 0
+        for (;;) {
+          const { data: page } = await db
+            .from('profiles')
+            .select('id')
+            .eq('status', 'approved')
+            .neq('id', authorId)
+            .range(offset, offset + BATCH_SIZE - 1)
 
-        sent += rows.length
-        if (page.length < BATCH_SIZE) break
-        offset += BATCH_SIZE
+          if (!page || page.length === 0) break
+
+          const rows = page.map((p: { id: string }) => ({
+            user_id: p.id,
+            type: 'forum_topic',
+            title: item.title,
+            body: item.category_name,
+            link: `/forum/${item.category_slug}/${item.topic_id}`,
+          }))
+          const { error: insertError } = await db.from('notifications').insert(rows)
+          if (insertError) throw insertError
+
+          sent += rows.length
+          if (page.length < BATCH_SIZE) break
+          offset += BATCH_SIZE
+        }
       }
 
       await db
