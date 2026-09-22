@@ -68,11 +68,13 @@ function compileSectionsToHtml(sections: Record<string, string>): string {
 function buildEmailHtml(subject: string, sections: Record<string, string>, memberName: string, unsubscribeUrl: string, intro = '', sponsorTop = '', sponsorBottom = '', eventsBlock = '', statsBlock = '', jobsBlock = '', talentBlock = '', sponsorMidHtml = ''): string {
   const introLine = (intro || '').trim() || "Here's your weekly roundup from the TALK community."
   const sectionsHtml = compileSectionsToHtml(sections).replace(MID_AD_MARKER, sponsorMidHtml)
+  const issueDate = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
   return `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@900&display=swap" rel="stylesheet">
 <style>
   body{margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
   p{margin:0 0 12px;line-height:1.7;}
@@ -91,13 +93,17 @@ function buildEmailHtml(subject: string, sections: Record<string, string>, membe
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:580px;">
 
   <!-- Header — matches the real site nav (components/app-topnav.tsx): navy
-       gradient background, coral "TA" + white "LK" wordmark. This used to be
-       a generic near-black gradient with plain white "TALK" text, which
-       looked like a different, unbranded product next to the actual site. -->
-  <tr><td style="background:linear-gradient(90deg,#0F1F35 0%,#162D4A 100%);border-radius:16px 16px 0 0;padding:28px 36px;">
-    <span style="font-size:22px;font-weight:900;letter-spacing:-0.02em;"><span style="color:#E8503A;">TA</span><span style="color:#ffffff;">LK</span></span>
-    <p style="margin:10px 0 0;color:rgba(255,255,255,0.5);font-size:13px;line-height:1.4;">${subject}</p>
+       gradient background, coral "TA" + white "LK" wordmark, sized and set in
+       Poppins to match the actual site masthead rather than the smaller,
+       system-font version this used to be. Eyebrow line gives it a dated,
+       "this is today's issue" masthead feel; the coral accent bar under the
+       header separates it from the body more distinctly than a plain edge. -->
+  <tr><td style="background:linear-gradient(90deg,#0F1F35 0%,#162D4A 100%);border-radius:16px 16px 0 0;padding:30px 36px 26px;">
+    <p style="margin:0 0 10px;font-size:11px;font-weight:800;color:#F07058;text-transform:uppercase;letter-spacing:0.16em;">TALK Weekly &middot; ${issueDate}</p>
+    <span style="font-family:'Poppins',-apple-system,BlinkMacSystemFont,sans-serif;font-size:32px;font-weight:900;letter-spacing:-0.03em;line-height:1;"><span style="color:#E8503A;">TA</span><span style="color:#ffffff;">LK</span></span>
+    <p style="margin:12px 0 0;color:rgba(255,255,255,0.55);font-size:13.5px;line-height:1.5;">${subject}</p>
   </td></tr>
+  <tr><td style="height:3px;line-height:3px;font-size:0;background:linear-gradient(90deg,#E8503A,#F07058);">&nbsp;</td></tr>
 
   <!-- Greeting — leads with the personal voice, ahead of the stats widget
        and sponsor banner below, so the newsletter opens like it's from a

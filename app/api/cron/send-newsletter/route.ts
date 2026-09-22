@@ -80,9 +80,11 @@ const MID_AD_MARKER = '<!--MID_AD_SLOT-->'
 function buildEmailHtml(subject: string, rawBodyHtml: string, memberName: string, unsubscribeUrl: string, intro = '', sponsorTop = '', sponsorBottom = '', eventsBlock = '', statsBlock = '', jobsBlock = '', talentBlock = '', sponsorMidHtml = '') {
   const introLine = (intro || '').trim() || "Here's your weekly roundup from the TALK community."
   const bodyHtml = rawBodyHtml.replace(MID_AD_MARKER, sponsorMidHtml)
+  const issueDate = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
   return `<!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@900&display=swap" rel="stylesheet">
 <style>
   body{margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
   .prose h2,.prose h3{color:#111827;margin-top:1.5em;margin-bottom:0.5em;}
@@ -98,10 +100,12 @@ function buildEmailHtml(subject: string, rawBodyHtml: string, memberName: string
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:32px 16px;">
 <tr><td align="center">
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:580px;">
-  <tr><td style="background:linear-gradient(90deg,#0F1F35 0%,#162D4A 100%);border-radius:16px 16px 0 0;padding:24px 36px;">
-    <span style="font-size:20px;font-weight:900;"><span style="color:#E8503A;">TA</span><span style="color:#ffffff;">LK</span></span>
-    <p style="margin:8px 0 0;color:rgba(255,255,255,0.5);font-size:13px;">${subject}</p>
+  <tr><td style="background:linear-gradient(90deg,#0F1F35 0%,#162D4A 100%);border-radius:16px 16px 0 0;padding:30px 36px 26px;">
+    <p style="margin:0 0 10px;font-size:11px;font-weight:800;color:#F07058;text-transform:uppercase;letter-spacing:0.16em;">TALK Weekly &middot; ${issueDate}</p>
+    <span style="font-family:'Poppins',-apple-system,BlinkMacSystemFont,sans-serif;font-size:32px;font-weight:900;letter-spacing:-0.03em;line-height:1;"><span style="color:#E8503A;">TA</span><span style="color:#ffffff;">LK</span></span>
+    <p style="margin:12px 0 0;color:rgba(255,255,255,0.55);font-size:13.5px;line-height:1.5;">${subject}</p>
   </td></tr>
+  <tr><td style="height:3px;line-height:3px;font-size:0;background:linear-gradient(90deg,#E8503A,#F07058);">&nbsp;</td></tr>
   <!-- Greeting — leads with the personal voice, ahead of the stats widget
        and sponsor banner below, so the newsletter opens like it's from a
        person, not a dashboard. -->
