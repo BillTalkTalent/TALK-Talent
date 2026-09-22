@@ -7,6 +7,7 @@ import { getUpcomingEventsForNewsletter, buildUpcomingEventsBlock } from '@/lib/
 import { getNewsletterStats, buildStatsBlock } from '@/lib/newsletter-stats'
 import { getRecentJobsForNewsletter, buildJobsBlock } from '@/lib/newsletter-jobs'
 import { getOpenToWorkForNewsletter, buildTalentBlock } from '@/lib/newsletter-talent'
+import { getForumTeaserForNewsletter, buildForumTeaserBlock } from '@/lib/newsletter-forum'
 import { unsubUrl } from '@/lib/unsubscribe'
 import { Resend } from 'resend'
 
@@ -65,7 +66,7 @@ function compileSectionsToHtml(sections: Record<string, string>): string {
     }).join('\n')
 }
 
-function buildEmailHtml(subject: string, sections: Record<string, string>, memberName: string, unsubscribeUrl: string, intro = '', sponsorTop = '', sponsorBottom = '', eventsBlock = '', statsBlock = '', jobsBlock = '', talentBlock = '', sponsorMidHtml = ''): string {
+function buildEmailHtml(subject: string, sections: Record<string, string>, memberName: string, unsubscribeUrl: string, intro = '', sponsorTop = '', sponsorBottom = '', eventsBlock = '', statsBlock = '', jobsBlock = '', talentBlock = '', sponsorMidHtml = '', forumBlock = ''): string {
   const introLine = (intro || '').trim() || "Here's your weekly roundup from the TALK community."
   const sectionsHtml = compileSectionsToHtml(sections).replace(MID_AD_MARKER, sponsorMidHtml)
   const issueDate = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
@@ -119,6 +120,8 @@ function buildEmailHtml(subject: string, sections: Record<string, string>, membe
   ${jobsBlock}
 
   ${talentBlock}
+
+  ${forumBlock}
 
   <!-- Sponsor sits last among the auto-generated widgets, immediately
        before the written sections — below every bit of real editorial
@@ -191,7 +194,9 @@ export async function POST(req: NextRequest) {
     const jobsBlock = buildJobsBlock(recentJobs, origin)
     const openToWork = await getOpenToWorkForNewsletter(adminDb)
     const talentBlock = buildTalentBlock(openToWork, origin)
-    const html = buildEmailHtml(subject || 'TALK newsletter', sections ?? {}, 'there', unsubUrl(origin, to), intro, sponsorTop, sponsorBottom, eventsBlock, statsBlock, jobsBlock, talentBlock, sponsorMid)
+    const forumTeaser = await getForumTeaserForNewsletter(adminDb)
+    const forumBlock = buildForumTeaserBlock(forumTeaser, origin)
+    const html = buildEmailHtml(subject || 'TALK newsletter', sections ?? {}, 'there', unsubUrl(origin, to), intro, sponsorTop, sponsorBottom, eventsBlock, statsBlock, jobsBlock, talentBlock, sponsorMid, forumBlock)
     const resend = new Resend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({
       from: process.env.FROM_EMAIL ?? 'TALK Community <onboarding@resend.dev>',
@@ -250,13 +255,15 @@ export async function POST(req: NextRequest) {
   const jobsBlock = buildJobsBlock(recentJobs, sendOrigin)
   const openToWork = await getOpenToWorkForNewsletter(adminDb)
   const talentBlock = buildTalentBlock(openToWork, sendOrigin)
+  const forumTeaser = await getForumTeaserForNewsletter(adminDb)
+  const forumBlock = buildForumTeaserBlock(forumTeaser, sendOrigin)
 
   // Reaches all approved members (paginated), skips unsubscribes, throttled,
   // with a working unsubscribe link in every email.
   const { sent, skipped, total } = await sendNewsletter(
     adminDb,
     subject,
-    (firstName, unsubscribeUrl) => buildEmailHtml(subject, sections ?? {}, firstName, unsubscribeUrl, intro, sponsorTop, sponsorBottom, eventsBlock, statsBlock, jobsBlock, talentBlock, sponsorMid),
+    (firstName, unsubscribeUrl) => buildEmailHtml(subject, sections ?? {}, firstName, unsubscribeUrl, intro, sponsorTop, sponsorBottom, eventsBlock, statsBlock, jobsBlock, talentBlock, sponsorMid, forumBlock),
     newsletterId,
   )
 
