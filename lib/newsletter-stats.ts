@@ -35,26 +35,28 @@ const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 
 // Renders nothing when every number is zero — a wall of zeroes reads worse
 // than no block at all (e.g. a brand-new or very quiet community).
+//
+// Single compact line, not a boxed tile grid — this sits directly under the
+// header's accent bar now, and needs to read as part of that masthead
+// rather than a separate card with its own vertical weight.
 export function buildStatsBlock(stats: NewsletterStats): string {
-  const tiles = [
-    { n: stats.newMembers, label: 'New members' },
-    { n: stats.forumPosts, label: 'Forum posts' },
-    { n: stats.eventRsvps, label: 'Event RSVPs' },
-    { n: stats.newJobs, label: 'New jobs' },
-  ]
-  if (tiles.every(t => t.n === 0)) return ''
+  const items = [
+    { n: stats.newMembers, singular: 'new member', plural: 'new members' },
+    { n: stats.forumPosts, singular: 'forum post', plural: 'forum posts' },
+    { n: stats.eventRsvps, singular: 'event RSVP', plural: 'event RSVPs' },
+    { n: stats.newJobs, singular: 'new job', plural: 'new jobs' },
+  ].filter(t => t.n > 0)
+  if (items.length === 0) return ''
 
-  const cells = tiles.map(t => `
-    <td width="25%" align="center" style="padding:14px 4px;">
-      <div style="font-size:22px;font-weight:900;color:#111827;line-height:1;">${t.n.toLocaleString()}</div>
-      <div style="font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.04em;margin-top:5px;">${esc(t.label)}</div>
-    </td>`).join('')
+  const parts = items
+    .map(t => `<strong style="color:#111827;">${t.n.toLocaleString()}</strong> ${esc(t.n === 1 ? t.singular : t.plural)}`)
+    .join(' &nbsp;&middot;&nbsp; ')
 
   return `
-  <tr><td style="background:#ffffff;padding:6px 36px 26px;">
-    <div style="background:#f9fafb;border:1px solid #eef0f2;border-radius:12px;">
-      <p style="margin:0;padding:14px 20px 0;font-size:10px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:#9ca3af;">This week in TALK</p>
-      <table cellpadding="0" cellspacing="0" width="100%"><tr>${cells}</tr></table>
-    </div>
+  <tr><td style="background:#f9fafb;padding:11px 36px;text-align:center;">
+    <p style="margin:0;font-size:12.5px;color:#6b7280;line-height:1.5;">
+      <span style="font-weight:800;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;font-size:10px;">This week in TALK</span>
+      &nbsp;&middot;&nbsp; ${parts}
+    </p>
   </td></tr>`
 }
