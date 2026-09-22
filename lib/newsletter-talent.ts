@@ -50,8 +50,9 @@ export function buildTalentBlock(entries: NewsletterTalent[], origin: string): s
 
   return `
   <tr><td style="background:#ffffff;padding:6px 36px 26px;">
-    <div style="border:1px solid #eef0f2;border-radius:12px;padding:20px 22px;">
-      <p style="margin:0 0 10px;font-size:10px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:#9ca3af;">Members open to work</p>
+    <div style="border:1px solid #eef0f2;border-radius:14px;padding:20px 22px;border-top:3px solid #E8503A;">
+      <p style="margin:0;font-size:10px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:#9ca3af;">Members open to work</p>
+      <p style="margin:4px 0 16px;font-size:13px;font-weight:600;color:#0F1F35;">Vetted professionals from our community, ready for what's next.</p>
       <table cellpadding="0" cellspacing="0" width="100%">
         <tbody>${rows}</tbody>
       </table>
