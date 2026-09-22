@@ -1,10 +1,14 @@
 import { revalidatePath } from "next/cache";
+import Link from "next/link";
+import { formatDistanceToNow } from "date-fns";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Plus, Pencil, Trash2, GripVertical } from "lucide-react";
+import { MessageSquare, Plus, Pencil, Trash2, GripVertical, MessageCircleQuestion } from "lucide-react";
 import ForumCategoryForm from "./forum-category-form";
+
+const LEGACY_CATEGORY_SLUG = "legacy-national";
+const UNANSWERED_WINDOW_DAYS = 30;
 
 type ForumCategory = {
   id: string;
@@ -54,6 +58,30 @@ export default async function AdminForumPage() {
     supabase.from("forum_topics").select("category_id"),
   ]);
 
+  // "Unanswered" queue — recent, real (non-legacy, non-bot) topics with zero
+  // replies, oldest first. Meant to make "reply to every new topic" a quick
+  // daily pass instead of something an admin has to go hunt for: right now
+  // most organic topics never get a single reply, and the fastest fix for
+  // that is just making sure someone from TALK shows up first.
+  const sinceDate = new Date();
+  sinceDate.setUTCDate(sinceDate.getUTCDate() - UNANSWERED_WINDOW_DAYS);
+  const since = sinceDate.toISOString();
+  const { data: recentTopics } = await supabase
+    .from("forum_topics")
+    .select("id, title, created_at, profiles(full_name, is_bot), forum_categories(name, slug)")
+    .gte("created_at", since)
+    .order("created_at", { ascending: true });
+
+  const realRecent = (recentTopics ?? []).filter(
+    (t: { profiles: { is_bot?: boolean } | null; forum_categories: { slug: string } | null }) =>
+      !t.profiles?.is_bot && t.forum_categories?.slug !== LEGACY_CATEGORY_SLUG
+  );
+  const { data: replyRows } = realRecent.length > 0
+    ? await supabase.from("forum_replies").select("topic_id").in("topic_id", realRecent.map((t: { id: string }) => t.id))
+    : { data: [] };
+  const repliedTopicIds = new Set((replyRows ?? []).map((r: { topic_id: string }) => r.topic_id));
+  const unanswered = realRecent.filter((t: { id: string }) => !repliedTopicIds.has(t.id));
+
   // Build topic count map
   const countMap: Record<string, number> = {};
   for (const t of topicCounts ?? []) {
@@ -75,6 +103,48 @@ export default async function AdminForumPage() {
           </p>
         </div>
       </div>
+
+      {/* Unanswered topics — the daily "make sure someone replies" queue */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <MessageCircleQuestion className="size-4 text-[#E8503A]" />
+            Unanswered Topics
+            <Badge variant="secondary" className="ml-1">{unanswered.length}</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {unanswered.length === 0 ? (
+            <p className="text-sm text-zinc-400 italic px-6 py-4">
+              Nothing waiting — every real topic from the last {UNANSWERED_WINDOW_DAYS} days has at least one reply.
+            </p>
+          ) : (
+            <ul className="divide-y divide-zinc-100">
+              {unanswered.map((t: {
+                id: string; title: string; created_at: string;
+                profiles: { full_name: string | null } | null;
+                forum_categories: { name: string; slug: string } | null;
+              }) => (
+                <li key={t.id} className="flex items-center justify-between gap-3 px-6 py-3">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-sm text-zinc-900 truncate">{t.title}</p>
+                    <p className="text-xs text-zinc-400">
+                      {t.profiles?.full_name ?? "A member"} &middot; {t.forum_categories?.name ?? "General"} &middot;{" "}
+                      {formatDistanceToNow(new Date(t.created_at), { addSuffix: true })}
+                    </p>
+                  </div>
+                  <Link
+                    href={`/forum/${t.forum_categories?.slug ?? "general"}/${t.id}`}
+                    className="shrink-0 text-xs font-semibold text-[#E8503A] hover:underline"
+                  >
+                    View &amp; reply &rarr;
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Add new category form */}
       <Card>

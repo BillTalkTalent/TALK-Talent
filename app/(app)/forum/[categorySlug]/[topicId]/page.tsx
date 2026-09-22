@@ -8,6 +8,7 @@ import { Pin, Lock } from "lucide-react";
 import type { Profile } from "@/lib/supabase/types";
 import ReplyForm from "./reply-form";
 import TopicView from "./topic-view";
+import type { Emoji } from "./reaction-bar";
 
 export default async function TopicPage({
   params,
@@ -48,6 +49,22 @@ export default async function TopicPage({
   const replies = repliesResult.data ?? [];
   const category = categoryResult.data;
   const topicAuthor = topic.profiles as Profile | null;
+
+  // Reactions on the topic + every reply, in one query — grouped client-side
+  // into per-target counts and "did the current viewer already react" below.
+  const reactionTargetIds = [topicId, ...replies.map(r => r.id)];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: reactionRows } = await (supabase as any)
+    .from("forum_reactions")
+    .select("target_id, emoji, user_id")
+    .in("target_id", reactionTargetIds);
+
+  const reactionsByTarget: Record<string, { counts: Partial<Record<Emoji, number>>; mine: Emoji | null }> = {};
+  for (const row of (reactionRows ?? []) as { target_id: string; emoji: Emoji; user_id: string }[]) {
+    const entry = (reactionsByTarget[row.target_id] ??= { counts: {}, mine: null });
+    entry.counts[row.emoji] = (entry.counts[row.emoji] ?? 0) + 1;
+    if (user && row.user_id === user.id) entry.mine = row.emoji;
+  }
 
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-6">
@@ -106,6 +123,7 @@ export default async function TopicPage({
           } : null,
         }))}
         currentUserId={user?.id ?? ""}
+        reactions={reactionsByTarget}
       />
 
       {/* Reply form */}

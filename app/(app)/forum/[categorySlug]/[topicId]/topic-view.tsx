@@ -11,6 +11,7 @@ import EditReply from "./edit-reply";
 import ModeratorRemove from "./moderator-remove";
 import { ShareOnLinkedInButton } from "@/components/share-on-linkedin-button";
 import { buildLinkedInShareText } from "@/lib/linkedin-share-text";
+import ReactionBar, { type ReactionCounts, type Emoji } from "./reaction-bar";
 
 function getInitials(name: string | null): string {
   if (!name) return "?";
@@ -43,6 +44,7 @@ interface TopicViewProps {
   replies: Reply[];
   currentUserId: string;
   isModerator: boolean;
+  reactions: Record<string, { counts: ReactionCounts; mine: Emoji | null }>;
 }
 
 export default function TopicView({
@@ -56,6 +58,7 @@ export default function TopicView({
   replies: initialReplies,
   currentUserId,
   isModerator,
+  reactions,
 }: TopicViewProps) {
   const [title, setTitle] = useState(initialTitle);
   const [body, setBody] = useState(initialBody);
@@ -125,6 +128,14 @@ export default function TopicView({
           <div className="mt-2 prose prose-sm max-w-none text-foreground whitespace-pre-wrap">
             {body}
           </div>
+
+          <ReactionBar
+            targetType="topic"
+            targetId={topicId}
+            currentUserId={currentUserId}
+            initialCounts={reactions[topicId]?.counts ?? {}}
+            initialMine={reactions[topicId]?.mine ?? null}
+          />
 
           <div className="mt-3">
             <ShareOnLinkedInButton
@@ -201,6 +212,13 @@ export default function TopicView({
                   <p className="text-sm whitespace-pre-wrap">
                     {replies.find(r => r.id === reply.id)?.body ?? reply.body}
                   </p>
+                  <ReactionBar
+                    targetType="reply"
+                    targetId={reply.id}
+                    currentUserId={currentUserId}
+                    initialCounts={reactions[reply.id]?.counts ?? {}}
+                    initialMine={reactions[reply.id]?.mine ?? null}
+                  />
                 </div>
               </div>
             );
