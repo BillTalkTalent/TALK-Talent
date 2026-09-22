@@ -105,12 +105,15 @@ export function buildUpcomingEventsBlock(events: NewsletterEvent[], origin: stri
 
   return `
   <tr><td style="background:#ffffff;padding:6px 36px 26px;">
-    <div style="border:1px solid #eef0f2;border-radius:14px;padding:20px 22px;border-top:3px solid #E8503A;">
-      <p style="margin:0;font-size:10px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:#9ca3af;">Upcoming events</p>
-      <p style="margin:4px 0 16px;font-size:13px;font-weight:600;color:#0F1F35;">A national community, with local connections.</p>
-      <table cellpadding="0" cellspacing="0" width="100%">
-        <tbody>${rows}</tbody>
-      </table>
-    </div>
+    <table cellpadding="0" cellspacing="0" width="100%" style="border:1px solid #eef0f2;border-radius:14px;overflow:hidden;">
+      <tr><td style="background:linear-gradient(90deg,#E8503A,#F07058);height:4px;line-height:4px;font-size:0;">&nbsp;</td></tr>
+      <tr><td style="padding:20px 22px;">
+        <p style="margin:0;font-size:10px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:#9ca3af;">Upcoming events</p>
+        <p style="margin:4px 0 16px;font-size:13px;font-weight:600;color:#0F1F35;">A national community, with local connections.</p>
+        <table cellpadding="0" cellspacing="0" width="100%">
+          <tbody>${rows}</tbody>
+        </table>
+      </td></tr>
+    </table>
   </td></tr>`
 }

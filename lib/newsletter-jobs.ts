@@ -68,16 +68,19 @@ export function buildJobsBlock(jobs: NewsletterJob[], origin: string): string {
 
   return `
   <tr><td style="background:#ffffff;padding:6px 36px 26px;">
-    <div style="border:1px solid #eef0f2;border-radius:14px;padding:20px 22px;border-top:3px solid #0F1F35;">
-      <p style="margin:0;font-size:10px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:#9ca3af;">New jobs this week</p>
-      <p style="margin:4px 0 16px;font-size:13px;font-weight:600;color:#0F1F35;">Posted directly by TALK members and their companies — not pulled from a public job board.</p>
-      <table cellpadding="0" cellspacing="0" width="100%">
-        <tbody>${rows}</tbody>
-      </table>
-      <a href="${origin}/jobs" style="display:inline-block;margin-top:14px;font-size:12px;font-weight:700;color:#4f46e5;text-decoration:none;">See all open roles &rarr;</a>
-      <p style="margin:12px 0 0;padding-top:12px;border-top:1px solid #f3f4f6;">
-        <a href="${origin}/jobs/new" style="font-size:12.5px;font-weight:700;color:#E8503A;text-decoration:none;">Have a job for the community? Click here &rarr;</a>
-      </p>
-    </div>
+    <table cellpadding="0" cellspacing="0" width="100%" style="border:1px solid #eef0f2;border-radius:14px;overflow:hidden;">
+      <tr><td style="background:linear-gradient(90deg,#E8503A,#F07058);height:4px;line-height:4px;font-size:0;">&nbsp;</td></tr>
+      <tr><td style="padding:20px 22px;">
+        <p style="margin:0;font-size:10px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:#9ca3af;">New jobs this week</p>
+        <p style="margin:4px 0 16px;font-size:13px;font-weight:600;color:#0F1F35;">Posted directly by TALK members and their companies — not pulled from a public job board.</p>
+        <table cellpadding="0" cellspacing="0" width="100%">
+          <tbody>${rows}</tbody>
+        </table>
+        <a href="${origin}/jobs" style="display:inline-block;margin-top:14px;font-size:12px;font-weight:700;color:#4f46e5;text-decoration:none;">See all open roles &rarr;</a>
+        <p style="margin:12px 0 0;padding-top:12px;border-top:1px solid #f3f4f6;">
+          <a href="${origin}/jobs/new" style="font-size:12.5px;font-weight:700;color:#E8503A;text-decoration:none;">Have a job for the community? Click here &rarr;</a>
+        </p>
+      </td></tr>
+    </table>
   </td></tr>`
 }

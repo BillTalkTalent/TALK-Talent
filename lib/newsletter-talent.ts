@@ -50,16 +50,19 @@ export function buildTalentBlock(entries: NewsletterTalent[], origin: string): s
 
   return `
   <tr><td style="background:#ffffff;padding:6px 36px 26px;">
-    <div style="border:1px solid #eef0f2;border-radius:14px;padding:20px 22px;border-top:3px solid #E8503A;">
-      <p style="margin:0;font-size:10px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:#9ca3af;">Members open to work</p>
-      <p style="margin:4px 0 16px;font-size:13px;font-weight:600;color:#0F1F35;">Vetted professionals from our community, ready for what's next.</p>
-      <table cellpadding="0" cellspacing="0" width="100%">
-        <tbody>${rows}</tbody>
-      </table>
-      <a href="${origin}/careers" style="display:inline-block;margin-top:14px;font-size:12px;font-weight:700;color:#2563EB;text-decoration:none;">See the full talent pool &rarr;</a>
-      <p style="margin:12px 0 0;padding-top:12px;border-top:1px solid #f3f4f6;">
-        <a href="${origin}/profile" style="font-size:12.5px;font-weight:700;color:#E8503A;text-decoration:none;">Looking for a new role? Click here &rarr;</a>
-      </p>
-    </div>
+    <table cellpadding="0" cellspacing="0" width="100%" style="border:1px solid #eef0f2;border-radius:14px;overflow:hidden;">
+      <tr><td style="background:linear-gradient(90deg,#E8503A,#F07058);height:4px;line-height:4px;font-size:0;">&nbsp;</td></tr>
+      <tr><td style="padding:20px 22px;">
+        <p style="margin:0;font-size:10px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:#9ca3af;">Members open to work</p>
+        <p style="margin:4px 0 16px;font-size:13px;font-weight:600;color:#0F1F35;">Vetted professionals from our community, ready for what's next.</p>
+        <table cellpadding="0" cellspacing="0" width="100%">
+          <tbody>${rows}</tbody>
+        </table>
+        <a href="${origin}/careers" style="display:inline-block;margin-top:14px;font-size:12px;font-weight:700;color:#2563EB;text-decoration:none;">See the full talent pool &rarr;</a>
+        <p style="margin:12px 0 0;padding-top:12px;border-top:1px solid #f3f4f6;">
+          <a href="${origin}/profile" style="font-size:12.5px;font-weight:700;color:#E8503A;text-decoration:none;">Looking for a new role? Click here &rarr;</a>
+        </p>
+      </td></tr>
+    </table>
   </td></tr>`
 }
