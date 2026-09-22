@@ -105,15 +105,14 @@ function buildEmailHtml(subject: string, sections: Record<string, string>, membe
   </td></tr>
   <tr><td style="height:3px;line-height:3px;font-size:0;background:linear-gradient(90deg,#E8503A,#F07058);">&nbsp;</td></tr>
 
-  <!-- Greeting — leads with the personal voice, ahead of the stats widget
-       and sponsor banner below, so the newsletter opens like it's from a
-       person, not a dashboard. -->
+  ${statsBlock}
+
+  <!-- Greeting — personal voice, ahead of the sponsor banner below, so the
+       newsletter still reads like it's from a person, not just a dashboard. -->
   <tr><td style="background:#fff;padding:32px 36px 8px;">
     <p style="color:#374151;font-size:15px;line-height:1.6;">Hi ${memberName},</p>
     <p style="color:#6b7280;font-size:14px;line-height:1.6;margin-bottom:0;">${introLine}</p>
   </td></tr>
-
-  ${statsBlock}
 
   ${eventsBlock}
 
