@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: admins } = await (adminDb as any)
       .from("profiles")
-      .select("id, email, full_name")
+      .select("id, email, full_name, receive_new_member_alerts")
       .eq("role", "admin")
       .eq("status", "approved");
 
@@ -55,15 +55,17 @@ export async function POST(request: Request) {
     const from = process.env.FROM_EMAIL ?? "TALK Community <onboarding@resend.dev>";
 
     await Promise.allSettled(
-      admins.map((admin: { email: string }) =>
-        resend.emails.send({
-          from,
-          replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
-          to: admin.email,
-          subject: `New TALK application: ${newMember.full_name ?? newMember.email}`,
-          html: buildAdminEmail(newMember, origin),
-        })
-      )
+      admins
+        .filter((admin: { receive_new_member_alerts: boolean }) => admin.receive_new_member_alerts)
+        .map((admin: { email: string }) =>
+          resend.emails.send({
+            from,
+            replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
+            to: admin.email,
+            subject: `New TALK application: ${newMember.full_name ?? newMember.email}`,
+            html: buildAdminEmail(newMember, origin),
+          })
+        )
     );
 
     // Also insert in-app notification for each admin
