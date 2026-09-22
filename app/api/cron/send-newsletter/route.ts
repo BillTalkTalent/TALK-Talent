@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
   if (!process.env.RESEND_API_KEY) return NextResponse.json({ error: 'RESEND_API_KEY not set' }, { status: 500 })
 
   const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
-  const upcomingEvents = await getUpcomingEventsForNewsletter(adminDb)
+  const upcomingEvents = await getUpcomingEventsForNewsletter(adminDb, { windowDays: 7 })
   const eventsBlock = buildUpcomingEventsBlock(upcomingEvents, origin)
   const stats = await getNewsletterStats(adminDb)
   const statsBlock = buildStatsBlock(stats)
@@ -102,20 +102,27 @@ function buildEmailHtml(subject: string, rawBodyHtml: string, memberName: string
     <span style="font-size:20px;font-weight:900;"><span style="color:#E8503A;">TA</span><span style="color:#ffffff;">LK</span></span>
     <p style="margin:8px 0 0;color:rgba(255,255,255,0.5);font-size:13px;">${subject}</p>
   </td></tr>
+  <!-- Greeting — leads with the personal voice, ahead of the stats widget
+       and sponsor banner below, so the newsletter opens like it's from a
+       person, not a dashboard. -->
+  <tr><td style="background:#fff;padding:32px 36px 0;">
+    <p style="margin:0 0 6px;color:#374151;font-size:15px;">Hi ${memberName},</p>
+    <p style="margin:0;color:#6b7280;font-size:14px;">${introLine}</p>
+  </td></tr>
   ${statsBlock}
   ${sponsorTop}
   ${eventsBlock}
   ${jobsBlock}
   ${talentBlock}
-  <tr><td style="background:#fff;padding:32px 36px 0;">
-    <p style="margin:0 0 6px;color:#374151;font-size:15px;">Hi ${memberName},</p>
-    <p style="margin:0 0 20px;color:#6b7280;font-size:14px;">${introLine}</p>
-  </td></tr>
-  <tr><td style="background:#fff;padding:0 36px 32px;">
+  <tr><td style="background:#fff;padding:8px 36px 32px;">
     <div class="prose">${bodyHtml}</div>
   </td></tr>
   ${sponsorBottom}
   <tr><td style="background:#f9fafb;border-top:1px solid #f3f4f6;border-radius:0 0 16px 16px;padding:20px 36px;text-align:center;">
+    <p style="margin:0 0 14px;color:#6b7280;font-size:12px;line-height:1.6;">
+      TALK is a community for Talent Acquisition leaders to connect, share what's working, and grow together —
+      through local chapters, events, and conversations like this one. <a href="https://www.talktalent.com" style="color:#6b7280;text-decoration:underline;">talktalent.com</a>
+    </p>
     <p style="margin:0;color:#9ca3af;font-size:12px;">You're receiving this as a TALK community member.</p>
     <p style="margin:6px 0 0;color:#9ca3af;font-size:12px;">© ${new Date().getFullYear()} TALK Community</p>
     <p style="margin:10px 0 0;color:#9ca3af;font-size:12px;"><a href="${unsubscribeUrl}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a></p>

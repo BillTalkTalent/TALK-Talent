@@ -62,7 +62,7 @@ export default async function PublicNewsletterPage({ params }: { params: Promise
   if (!newsletter || (newsletter.status !== 'sent' && newsletter.status !== 'scheduled')) notFound()
 
   const [upcomingEvents, stats, recentJobs] = await Promise.all([
-    getUpcomingEventsForNewsletter(adminDb, 3),
+    getUpcomingEventsForNewsletter(adminDb, { windowDays: 7 }),
     getNewsletterStats(adminDb),
     getRecentJobsForNewsletter(adminDb, 3),
   ])

@@ -99,6 +99,14 @@ function buildEmailHtml(subject: string, sections: Record<string, string>, membe
     <p style="margin:10px 0 0;color:rgba(255,255,255,0.5);font-size:13px;line-height:1.4;">${subject}</p>
   </td></tr>
 
+  <!-- Greeting — leads with the personal voice, ahead of the stats widget
+       and sponsor banner below, so the newsletter opens like it's from a
+       person, not a dashboard. -->
+  <tr><td style="background:#fff;padding:32px 36px 8px;">
+    <p style="color:#374151;font-size:15px;line-height:1.6;">Hi ${memberName},</p>
+    <p style="color:#6b7280;font-size:14px;line-height:1.6;margin-bottom:0;">${introLine}</p>
+  </td></tr>
+
   ${statsBlock}
 
   ${sponsorTop}
@@ -109,15 +117,9 @@ function buildEmailHtml(subject: string, sections: Record<string, string>, membe
 
   ${talentBlock}
 
-  <!-- Greeting -->
-  <tr><td style="background:#fff;padding:32px 36px 8px;">
-    <p style="color:#374151;font-size:15px;line-height:1.6;">Hi ${memberName},</p>
-    <p style="color:#6b7280;font-size:14px;line-height:1.6;margin-bottom:24px;">${introLine}</p>
-    <hr style="border:none;border-top:1px solid #f3f4f6;margin-bottom:28px;">
-  </td></tr>
-
   <!-- Sections -->
-  <tr><td style="background:#fff;padding:0 36px 32px;">
+  <tr><td style="background:#fff;padding:8px 36px 32px;">
+    <hr style="border:none;border-top:1px solid #f3f4f6;margin-bottom:28px;">
     ${sectionsHtml}
   </td></tr>
 
@@ -125,6 +127,10 @@ function buildEmailHtml(subject: string, sections: Record<string, string>, membe
 
   <!-- Footer -->
   <tr><td style="background:#f9fafb;border-top:1px solid #f3f4f6;border-radius:0 0 16px 16px;padding:24px 36px;text-align:center;">
+    <p style="margin:0 0 14px;color:#6b7280;font-size:12px;line-height:1.6;">
+      TALK is a community for Talent Acquisition leaders to connect, share what's working, and grow together —
+      through local chapters, events, and conversations like this one. <a href="https://www.talktalent.com" style="color:#6b7280;text-decoration:underline;">talktalent.com</a>
+    </p>
     <p style="margin:0;color:#9ca3af;font-size:12px;line-height:1.6;">You're receiving this as a TALK community member.</p>
     <p style="margin:6px 0 0;color:#9ca3af;font-size:12px;">© ${new Date().getFullYear()} TALK Community · For TA Leaders</p>
     <p style="margin:10px 0 0;color:#9ca3af;font-size:12px;"><a href="${unsubscribeUrl}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a></p>
@@ -169,7 +175,7 @@ export async function POST(req: NextRequest) {
     const sponsorBottom = sponsor ? buildSponsorBottom(sponsor) : ''
     const sponsorMid = midSponsor ? buildSponsorMid(midSponsor) : ''
     const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
-    const upcomingEvents = await getUpcomingEventsForNewsletter(adminDb)
+    const upcomingEvents = await getUpcomingEventsForNewsletter(adminDb, { windowDays: 7 })
     const eventsBlock = buildUpcomingEventsBlock(upcomingEvents, origin)
     const stats = await getNewsletterStats(adminDb)
     const statsBlock = buildStatsBlock(stats)
@@ -228,7 +234,7 @@ export async function POST(req: NextRequest) {
   const sponsorMid = midSponsor ? buildSponsorMid(midSponsor) : ''
 
   const sendOrigin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
-  const upcomingEvents = await getUpcomingEventsForNewsletter(adminDb)
+  const upcomingEvents = await getUpcomingEventsForNewsletter(adminDb, { windowDays: 7 })
   const eventsBlock = buildUpcomingEventsBlock(upcomingEvents, sendOrigin)
   const stats = await getNewsletterStats(adminDb)
   const statsBlock = buildStatsBlock(stats)

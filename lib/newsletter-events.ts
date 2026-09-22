@@ -1,9 +1,11 @@
 import { formatInZone } from '@/lib/timezone'
 
-// Auto-generated "Upcoming events" block for the newsletter — pulls real,
-// published, non-test events rather than relying on an admin to paste them
-// into a text section by hand. Placed right under the sponsor block, same
-// as the sponsor callouts this mirrors visually.
+// Shared "next real, published, non-test event(s)" query — used both by the
+// newsletter's own "Upcoming events" block (scoped to the next 7 days, to
+// match its "This week in TALK" framing) and by the separate weekly
+// event-digest email / admin preview, which wants every upcoming event
+// capped at a row count instead. Callers pick whichever scoping they need;
+// neither is a sensible default for the other, so there isn't one.
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
@@ -15,20 +17,48 @@ export type NewsletterEvent = {
   venue_name: string | null
   location: string | null
   is_virtual: boolean
+  chapters: { name: string } | null
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function getUpcomingEventsForNewsletter(adminDb: any, limit = 3): Promise<NewsletterEvent[]> {
-  const { data } = await adminDb
+export async function getUpcomingEventsForNewsletter(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  adminDb: any,
+  opts: { limit?: number; windowDays?: number } = {},
+): Promise<NewsletterEvent[]> {
+  let query = adminDb
     .from('events')
-    .select('id, title, event_date, timezone, venue_name, location, is_virtual')
+    .select('id, title, event_date, timezone, venue_name, location, is_virtual, chapters(name)')
     .eq('status', 'published')
     .eq('is_test', false)
     .eq('visibility', 'all')
     .gte('event_date', new Date().toISOString())
     .order('event_date', { ascending: true })
-    .limit(limit)
+
+  if (opts.windowDays) {
+    query = query.lte('event_date', new Date(Date.now() + opts.windowDays * 24 * 60 * 60 * 1000).toISOString())
+  }
+  if (opts.limit) {
+    query = query.limit(opts.limit)
+  }
+
+  const { data } = await query
   return data ?? []
+}
+
+// Chapter names are stored "ST · City" (e.g. "FL · Tampa Bay") — the city
+// half is what reads naturally inline next to a venue. Falls back to
+// pulling a city out of a freeform street address when there's no chapter
+// link (e.g. a one-off event), and finally to nothing rather than guessing.
+function cityFor(e: NewsletterEvent): string | null {
+  if (e.chapters?.name) {
+    const parts = e.chapters.name.split('·').map(p => p.trim())
+    return parts[parts.length - 1] || e.chapters.name
+  }
+  if (e.location) {
+    const segments = e.location.split(',').map(s => s.trim())
+    if (segments.length >= 2) return segments[1]
+  }
+  return null
 }
 
 // Returns '' (renders nothing) when there are no upcoming events, same
@@ -48,7 +78,10 @@ export function buildUpcomingEventsBlock(events: NewsletterEvent[], origin: stri
     const time = formatInZone(e.event_date, tz, {
       hour: 'numeric', minute: '2-digit', weekday: undefined, month: undefined, day: undefined, year: undefined,
     })
-    const where = e.is_virtual ? 'Virtual' : (e.venue_name || e.location || 'In person')
+    const city = e.is_virtual ? 'Virtual' : cityFor(e)
+    const venue = e.venue_name || (e.is_virtual ? null : e.location) || null
+    // City · Venue · Time, one line — whichever of city/venue we actually have.
+    const whereParts = [city, venue, time].filter(Boolean)
     const url = `${origin}/events/${e.id}`
     return `
       <tr>
@@ -62,7 +95,7 @@ export function buildUpcomingEventsBlock(events: NewsletterEvent[], origin: stri
             </td>
             <td valign="top">
               <a href="${url}" style="font-size:14px;font-weight:700;color:#111827;text-decoration:none;line-height:1.4;">${esc(e.title)}</a>
-              <p style="margin:3px 0 0;font-size:12px;color:#6b7280;">${esc(time)} &middot; ${esc(where)}</p>
+              <p style="margin:3px 0 0;font-size:12px;color:#6b7280;">${esc(whereParts.join(' · '))}</p>
             </td>
           </tr></table>
         </td>

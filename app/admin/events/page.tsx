@@ -34,7 +34,7 @@ async function sendEventDigestTest(): Promise<{ ok: boolean; to?: string; error?
   const admin = createAdminClient()
   const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const events = await getUpcomingEventsForNewsletter(admin as any, 25)
+  const events = await getUpcomingEventsForNewsletter(admin as any, { limit: 25 })
   if (events.length === 0) return { ok: false, error: 'No upcoming events to preview right now.' }
 
   const resend = new Resend(process.env.RESEND_API_KEY)
@@ -132,7 +132,7 @@ export default async function AdminEventsPage() {
   // means the actual soonest one, not something an admin has to look up.
   const admin = createAdminClient()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [thisWeeksEvent] = await getUpcomingEventsForNewsletter(admin as any, 1)
+  const [thisWeeksEvent] = await getUpcomingEventsForNewsletter(admin as any, { limit: 1 })
   const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
 
   return (
