@@ -39,7 +39,19 @@ async function confirmMatch(formData: FormData) {
   const origin = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.talktalent.com";
   // Confirming doesn't log them straight in — it emails a login link to the
   // matched account's own inbox, which is the actual security control here.
-  await sendRecoveryLink(candidate.email, "duplicate", origin);
+  // If the send itself throws (provider outage, etc.), fail without
+  // touching the duplicate account — better a confusing retry than a
+  // deleted account with no email actually sent.
+  let sendResult: { ok: boolean; error?: string };
+  try {
+    sendResult = await sendRecoveryLink(candidate.email, "duplicate", origin);
+  } catch (err) {
+    console.error("[duplicate-check] sendRecoveryLink threw:", err);
+    redirect(`/auth/duplicate-check?next=${encodeURIComponent(next)}&error=1`);
+  }
+  if (!sendResult.ok) {
+    redirect(`/auth/duplicate-check?next=${encodeURIComponent(next)}&error=1`);
+  }
 
   // Clean up the duplicate shell this LinkedIn sign-in just created.
   await supabase.auth.signOut();
@@ -58,7 +70,7 @@ async function dismissMatch(formData: FormData) {
 export default async function DuplicateCheckPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; sent?: string }>;
+  searchParams: Promise<{ next?: string; sent?: string; error?: string }>;
 }) {
   const sp = await searchParams;
   const next = sp.next ?? "/dashboard";
@@ -97,6 +109,12 @@ export default async function DuplicateCheckPage({
             just created a new one instead of finding it.
           </p>
         </div>
+
+        {sp.error === "1" && (
+          <div className="rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
+            Something went wrong sending the login link. Nothing was changed — please try again.
+          </div>
+        )}
 
         <div className="space-y-2">
           {matches.map((m) => (
