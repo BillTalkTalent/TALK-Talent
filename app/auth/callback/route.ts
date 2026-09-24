@@ -24,6 +24,19 @@ export async function GET(request: NextRequest) {
         await saveLinkedInConnection(data.user.id, data.session.provider_token)
         redirect(`${next}${next.includes('?') ? '&' : '?'}linkedin=connected`)
       }
+
+      // OAuth sign-in has no duplicate-account check the way the signup
+      // form and invite tool do — a member whose LinkedIn account uses a
+      // different email than their TALK account (common: personal vs.
+      // work email) silently gets a brand-new pending shell instead of
+      // being recognized. Only worth checking right after account
+      // creation, not on every login, so this is scoped to accounts
+      // created in the last minute (i.e. by this very request).
+      const justCreated = Date.now() - new Date(data.user.created_at).getTime() < 60_000
+      if (justCreated) {
+        redirect(`/auth/duplicate-check?next=${encodeURIComponent(next)}`)
+      }
+
       redirect(next)
     }
   }

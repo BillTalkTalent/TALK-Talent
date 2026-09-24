@@ -303,6 +303,40 @@ This link is valid for 24 hours. If you didn't request this, you can safely igno
 — TALK Talent Community`
 }
 
+// Sent when someone signs in with LinkedIn using an email that doesn't
+// match their existing TALK account (e.g. LinkedIn tied to a personal
+// address, TALK account under a work one) and confirms it's really them —
+// see app/auth/duplicate-check. Links into the real account via magic
+// link, not by trusting the confirmation click itself.
+export function buildFoundExistingAccountEmail(opts: {
+  toFirstName: string
+  loginUrl: string
+}): string {
+  return emailShell(`
+    <p style="margin:0 0 6px;font-size:22px;font-weight:800;color:#0F1F35;">Here's your TALK account</p>
+    <p style="margin:0 0 20px;font-size:15px;color:#5A7090;line-height:1.6;">
+      Hi ${opts.toFirstName}, you confirmed this is your existing TALK account. Click below to log
+      straight in — no password needed.
+    </p>
+    ${ctaButton('Log in to TALK', opts.loginUrl)}
+    <p style="margin:18px 0 0;font-size:13px;color:#A0AEC0;line-height:1.6;">
+      This link is valid for 24 hours. If you didn't request this, you can safely ignore this email.
+    </p>
+  `)
+}
+
+export function buildFoundExistingAccountText(o: { toFirstName: string; loginUrl: string }): string {
+  return `Here's your TALK account
+
+Hi ${o.toFirstName}, you confirmed this is your existing TALK account. Open the link below to log straight in, no password needed.
+
+${o.loginUrl}
+
+This link is valid for 24 hours. If you didn't request this, you can safely ignore this email.
+
+— TALK Talent Community`
+}
+
 export function buildTestInviteText(o: { toFirstName: string; claimUrl: string }): string {
   return `We're back — sorry for the hiccup
 
