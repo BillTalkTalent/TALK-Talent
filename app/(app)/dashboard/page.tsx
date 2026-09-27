@@ -487,6 +487,11 @@ export default async function DashboardPage() {
                           {event.title}
                         </p>
                       </div>
+                      {(event as unknown as { tagline: string | null }).tagline && (
+                        <p className="text-xs text-muted-foreground truncate">
+                          {(event as unknown as { tagline: string | null }).tagline}
+                        </p>
+                      )}
                       <p className="text-xs text-muted-foreground flex items-center gap-1">
                         {event.is_virtual ? (
                           <><Monitor className="size-3" /> Virtual</>
