@@ -396,6 +396,7 @@ function PublicEventTeaser({ event, eventId }: { event: PaidEvent; eventId: stri
 
         <p className="text-xs font-bold uppercase tracking-widest mt-6" style={{ color: "#E8503A" }}>Hosted by TALK</p>
         <h1 className="text-3xl font-black tracking-tight mt-1.5" style={{ color: "#0F1F35" }}>{event.title}</h1>
+        {event.tagline && <p className="text-base mt-1" style={{ color: "#5A7090" }}>{event.tagline}</p>}
 
         <div className="flex flex-wrap items-center gap-2 mt-3">
           <EventTypeBadge isVirtual={event.is_virtual} />
@@ -871,6 +872,9 @@ export default function EventDetailClient() {
           <h1 className="text-2xl sm:text-3xl font-bold text-white leading-tight" style={{ fontFamily: "var(--font-poppins), system-ui" }}>
             {event.title}
           </h1>
+          {event.tagline && (
+            <p className="text-sm sm:text-base text-white/80 mt-1">{event.tagline}</p>
+          )}
         </div>
       </div>
 

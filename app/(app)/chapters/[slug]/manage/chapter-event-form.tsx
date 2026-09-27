@@ -16,6 +16,7 @@ const DEFAULT_TZ = (() => {
 export type ChapterManageEvent = {
   id: string
   title: string
+  tagline: string | null
   description: string | null
   venue_name: string | null
   location: string | null
@@ -97,6 +98,7 @@ export default function ChapterEventForm({ chapterId, organizerId, event, onSave
 
       const payload = {
         title: fd.get('title') as string,
+        tagline: (fd.get('tagline') as string) || null,
         description: (fd.get('description') as string) || null,
         venue_name: (fd.get('venue_name') as string) || null,
         location: (fd.get('location') as string) || null,
@@ -140,6 +142,11 @@ export default function ChapterEventForm({ chapterId, organizerId, event, onSave
       <div className="space-y-2 sm:col-span-2">
         <Label htmlFor="title">Title *</Label>
         <Input id="title" name="title" defaultValue={event?.title} required />
+      </div>
+
+      <div className="space-y-2 sm:col-span-2">
+        <Label htmlFor="tagline">Tagline</Label>
+        <Input id="tagline" name="tagline" maxLength={120} defaultValue={event?.tagline ?? ''} placeholder="A short line to add context to the title" />
       </div>
 
       <div className="space-y-2 sm:col-span-2">

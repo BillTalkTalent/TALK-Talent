@@ -29,6 +29,7 @@ async function updateEvent(id: string, formData: FormData) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await (supabase as any).from('events').update({
     title: formData.get('title') as string,
+    tagline: (formData.get('tagline') as string) || null,
     additional_chapter_ids: additionalChapterIds,
     description: (formData.get('description') as string) || null,
     venue_name: (formData.get('venue_name') as string) || null,
@@ -104,6 +105,11 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="title">Title *</Label>
               <Input id="title" name="title" defaultValue={event.title} required />
+            </div>
+
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="tagline">Tagline</Label>
+              <Input id="tagline" name="tagline" maxLength={120} defaultValue={event.tagline ?? ''} placeholder="A short line to add context to the title" />
             </div>
 
             <div className="space-y-2 sm:col-span-2">

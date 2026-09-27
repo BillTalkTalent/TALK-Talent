@@ -246,6 +246,9 @@ export default async function AdminEventsPage() {
                           </Badge>
                         )}
                       </div>
+                      {event.tagline && (
+                        <p className="text-sm text-zinc-500">{event.tagline}</p>
+                      )}
                       <p className="text-sm text-zinc-500">
                         {formatInZone(event.event_date, event.timezone || 'America/New_York', {
                           weekday: undefined, month: 'short', day: 'numeric', year: 'numeric',

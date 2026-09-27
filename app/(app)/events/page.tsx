@@ -106,6 +106,9 @@ function EventCard({ event, attendeeCount }: { event: PaidEvent; attendeeCount: 
           <h3 className="font-bold text-foreground group-hover:text-[#f97316] transition-colors leading-snug text-base">
             {event.title}
           </h3>
+          {event.tagline && (
+            <p className="text-sm text-muted-foreground mt-0.5">{event.tagline}</p>
+          )}
 
           {event.description && (
             <p className="text-sm text-muted-foreground mt-2 line-clamp-2 flex-1">{event.description}</p>

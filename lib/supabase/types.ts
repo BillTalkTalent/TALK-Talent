@@ -132,6 +132,7 @@ export type Database = {
         Row: {
           id: string;
           title: string;
+          tagline: string | null;
           description: string | null;
           venue_name: string | null;
           location: string | null;
@@ -151,6 +152,7 @@ export type Database = {
         Insert: {
           id?: string;
           title: string;
+          tagline?: string | null;
           description?: string | null;
           venue_name?: string | null;
           location?: string | null;

@@ -101,6 +101,7 @@ export default function CreateEventForm({ chapters }: { chapters: ChapterOption[
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: insertError } = await (supabase as any).from("events").insert({
         title: fd.get("title") as string,
+        tagline: (fd.get("tagline") as string) || null,
         additional_chapter_ids: additionalChapterIds,
         description: (fd.get("description") as string) || null,
         venue_name: (fd.get("venue_name") as string) || null,
@@ -141,6 +142,14 @@ export default function CreateEventForm({ chapters }: { chapters: ChapterOption[
       <div className="space-y-2 sm:col-span-2">
         <Label htmlFor="title">Title *</Label>
         <Input id="title" name="title" required />
+      </div>
+
+      {/* Tagline — a short line of extra context the title alone can't
+          carry, shown just under it everywhere the event appears. Kept
+          separate from the full description so it stays scannable. */}
+      <div className="space-y-2 sm:col-span-2">
+        <Label htmlFor="tagline">Tagline</Label>
+        <Input id="tagline" name="tagline" maxLength={120} placeholder="A short line to add context to the title" />
       </div>
 
       {/* Description */}
