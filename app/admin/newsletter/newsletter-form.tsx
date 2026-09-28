@@ -444,13 +444,10 @@ export default function NewsletterForm({
               <div className="max-w-[580px] mx-auto rounded-2xl overflow-hidden shadow-sm">
                 {/* Email header */}
                 <div style={{ background: 'linear-gradient(90deg, #0F1F35 0%, #162D4A 100%)' }} className="px-8 py-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="font-black text-xl">
-                      <span style={{ color: '#E8503A' }}>TA</span>
-                      <span className="text-white">LK</span>
-                    </span>
-                  </div>
-                  <p className="text-white/60 text-sm">{subject || 'Your newsletter subject'}</p>
+                  <span className="font-black text-xl">
+                    <span style={{ color: '#E8503A' }}>TA</span>
+                    <span className="text-white">LK</span>
+                  </span>
                 </div>
                 {/* Community pulse stats */}
                 {pulseStats && Object.values(pulseStats).some(n => n > 0) && (
