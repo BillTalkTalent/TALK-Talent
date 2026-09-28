@@ -35,37 +35,37 @@ export async function getActiveSponsor(adminDb: any, placement: SponsorPlacement
   return (data && data[0]) || null
 }
 
-// Top "Presented by" masthead. Used to just tease "special offer below" and
-// leave the actual offer to a separate callout at the very bottom of the
-// newsletter — after every section, an easy scroll for the teaser and its
-// payoff to end up screens apart. The offer (and its CTA) now live in this
-// same card, right under the blurb, so there's one ask in one place.
+// Top "Presented by" masthead — a compact single card, not a big vertically
+// stacked block. Used to be ~46px logo + 22px/24px padding + a separate
+// bordered offer block with its own button underneath, which added up to a
+// lot of vertical real estate for what's meant to be a supporting element,
+// not a section in its own right. Tightened throughout, and the offer's CTA
+// is now an inline link next to the offer text instead of its own button row.
 export function buildSponsorTop(s: Sponsor): string {
   const logo = s.logo_url
-    ? `<img src="${s.logo_url}" alt="${esc(s.name)}" style="max-height:46px;max-width:200px;height:auto;display:block;margin:0 auto 10px;">`
+    ? `<img src="${s.logo_url}" alt="${esc(s.name)}" style="max-height:28px;max-width:140px;height:auto;display:block;margin:0 auto 6px;">`
     : ''
-  const nameLine = `<p style="margin:0;font-size:${logo ? '13' : '17'}px;font-weight:800;color:#111827;">${esc(s.name)}</p>`
+  const nameLine = `<p style="margin:0;font-size:${logo ? '12' : '15'}px;font-weight:800;color:#111827;">${esc(s.name)}</p>`
   const blurb = s.blurb
-    ? `<p style="margin:6px 0 0;font-size:13px;color:#6b7280;line-height:1.5;">${esc(s.blurb)}</p>`
+    ? `<p style="margin:3px 0 0;font-size:12px;color:#6b7280;line-height:1.4;">${esc(s.blurb)}</p>`
     : ''
   const offerHref = s.offer_url || s.url
-  const offerBlock = s.offer
-    ? `
-      <div style="margin-top:16px;padding-top:16px;border-top:1px solid #e5e7eb;">
-        <p style="margin:0 0 10px;font-size:14px;font-weight:700;color:#0F1F35;">${esc(s.offer)}</p>
-        ${offerHref ? `<a href="${offerHref}" style="display:inline-block;background:#E8503A;color:#ffffff;font-size:13px;font-weight:700;text-decoration:none;padding:9px 20px;border-radius:9px;">${esc((s.offer_cta && s.offer_cta.trim()) || 'Claim offer')} &rarr;</a>` : ''}
-      </div>`
+  const offerCta = offerHref
+    ? ` &nbsp;&middot;&nbsp; <a href="${offerHref}" style="color:#E8503A;font-weight:800;text-decoration:none;">${esc((s.offer_cta && s.offer_cta.trim()) || 'Claim offer')} &rarr;</a>`
+    : ''
+  const offerLine = s.offer
+    ? `<p style="margin:8px 0 0;font-size:12.5px;font-weight:700;color:#0F1F35;line-height:1.4;">${esc(s.offer)}${offerCta}</p>`
     : (s.url
-        ? `<p style="margin:12px 0 0;"><a href="${s.url}" style="display:inline-block;font-size:12px;font-weight:700;color:#0F1F35;text-decoration:none;border-bottom:2px solid #E8503A;padding-bottom:1px;">Learn more &rarr;</a></p>`
+        ? `<p style="margin:8px 0 0;"><a href="${s.url}" style="display:inline-block;font-size:12px;font-weight:700;color:#0F1F35;text-decoration:none;border-bottom:2px solid #E8503A;padding-bottom:1px;">Learn more &rarr;</a></p>`
         : '')
   return `
-  <tr><td style="background:#ffffff;padding:6px 36px 22px;">
-    <div style="background:#f9fafb;border:1px solid #eef0f2;border-radius:12px;padding:22px 24px;text-align:center;">
-      <p style="margin:0 0 12px;font-size:10px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:#9ca3af;">Presented by</p>
+  <tr><td style="background:#ffffff;padding:6px 36px 16px;">
+    <div style="background:#f9fafb;border:1px solid #eef0f2;border-radius:12px;padding:14px 20px;text-align:center;">
+      <p style="margin:0 0 6px;font-size:9px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:#9ca3af;">Presented by</p>
       ${logo}
       ${nameLine}
       ${blurb}
-      ${offerBlock}
+      ${offerLine}
     </div>
   </td></tr>`
 }
