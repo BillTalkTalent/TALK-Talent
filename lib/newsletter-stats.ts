@@ -55,7 +55,7 @@ export function buildStatsBlock(stats: NewsletterStats): string {
   return `
   <tr><td style="background:#f9fafb;padding:11px 36px;text-align:center;">
     <p style="margin:0;font-size:12.5px;color:#6b7280;line-height:1.5;">
-      <span style="font-weight:800;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;font-size:10px;">This week in TALK</span>
+      <span style="font-weight:800;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;font-size:10px;">Community Pulse</span>
       &nbsp;&middot;&nbsp; ${parts}
     </p>
   </td></tr>`

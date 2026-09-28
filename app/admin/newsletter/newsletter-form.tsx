@@ -456,7 +456,7 @@ export default function NewsletterForm({
                 {pulseStats && Object.values(pulseStats).some(n => n > 0) && (
                   <div className="bg-white px-8 pt-4 pb-1">
                     <div className="rounded-xl border border-zinc-100 bg-zinc-50/60">
-                      <p className="px-5 pt-3.5 text-[10px] font-black uppercase tracking-[0.14em] text-zinc-400">This week in TALK</p>
+                      <p className="px-5 pt-3.5 text-[10px] font-black uppercase tracking-[0.14em] text-zinc-400">Community Pulse</p>
                       <div className="grid grid-cols-4">
                         {[
                           { n: pulseStats.newMembers, label: 'New members' },

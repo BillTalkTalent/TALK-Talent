@@ -104,7 +104,7 @@ function buildEmailHtml(subject: string, sections: Record<string, string>, membe
        "this is today's issue" masthead feel; the coral accent bar under the
        header separates it from the body more distinctly than a plain edge. -->
   <tr><td style="background:linear-gradient(90deg,#0F1F35 0%,#162D4A 100%);border-radius:16px 16px 0 0;padding:30px 36px 26px;">
-    <p style="margin:0 0 10px;font-size:11px;font-weight:800;color:#F07058;text-transform:uppercase;letter-spacing:0.16em;">TALK Weekly &middot; ${issueDate}</p>
+    <p style="margin:0 0 10px;font-size:11px;font-weight:800;color:#F07058;text-transform:uppercase;letter-spacing:0.16em;">Weekly Digest &middot; ${issueDate}</p>
     <span style="font-family:'Poppins',-apple-system,BlinkMacSystemFont,sans-serif;font-size:32px;font-weight:900;letter-spacing:-0.03em;line-height:1;"><span style="color:#E8503A;">TA</span><span style="color:#ffffff;">LK</span></span>
     <p style="margin:12px 0 0;color:rgba(255,255,255,0.55);font-size:13.5px;line-height:1.5;">${subject}</p>
   </td></tr>

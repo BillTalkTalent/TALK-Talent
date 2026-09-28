@@ -128,7 +128,7 @@ export default async function PublicNewsletterPage({ params }: { params: Promise
 
         {hasStats && (
           <div className="rounded-2xl border mb-8" style={{ borderColor: N.border, background: N.cardBg }}>
-            <p className="px-6 pt-5 text-xs font-bold uppercase tracking-widest" style={{ color: N.muted }}>This week in TALK</p>
+            <p className="px-6 pt-5 text-xs font-bold uppercase tracking-widest" style={{ color: N.muted }}>Community Pulse</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-6 pt-4">
               {statTiles.map(t => (
                 <div key={t.label} className="text-center">
