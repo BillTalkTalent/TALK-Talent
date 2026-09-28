@@ -103,9 +103,9 @@ function buildEmailHtml(subject: string, sections: Record<string, string>, membe
        system-font version this used to be. Eyebrow line gives it a dated,
        "this is today's issue" masthead feel; the coral accent bar under the
        header separates it from the body more distinctly than a plain edge. -->
-  <tr><td style="background:linear-gradient(90deg,#0F1F35 0%,#162D4A 100%);border-radius:16px 16px 0 0;padding:30px 36px 26px;">
+  <tr><td style="background:linear-gradient(90deg,#0F1F35 0%,#162D4A 100%);border-radius:16px 16px 0 0;padding:30px 36px 26px;text-align:center;">
     <p style="margin:0 0 10px;font-size:11px;font-weight:800;color:#F07058;text-transform:uppercase;letter-spacing:0.16em;">Weekly Digest &middot; ${issueDate}</p>
-    <span style="font-family:'Poppins',-apple-system,BlinkMacSystemFont,sans-serif;font-size:32px;font-weight:900;letter-spacing:-0.03em;line-height:1;"><span style="color:#E8503A;">TA</span><span style="color:#ffffff;">LK</span></span>
+    <span style="font-family:'Poppins',-apple-system,BlinkMacSystemFont,sans-serif;font-size:36px;font-weight:900;letter-spacing:-0.03em;line-height:1;"><span style="color:#E8503A;">TA</span><span style="color:#ffffff;">LK</span></span>
   </td></tr>
   <tr><td style="height:3px;line-height:3px;font-size:0;background:linear-gradient(90deg,#E8503A,#F07058);">&nbsp;</td></tr>
 

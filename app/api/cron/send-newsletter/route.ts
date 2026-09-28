@@ -102,9 +102,9 @@ function buildEmailHtml(subject: string, rawBodyHtml: string, memberName: string
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:32px 16px;">
 <tr><td align="center">
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:580px;">
-  <tr><td style="background:linear-gradient(90deg,#0F1F35 0%,#162D4A 100%);border-radius:16px 16px 0 0;padding:30px 36px 26px;">
+  <tr><td style="background:linear-gradient(90deg,#0F1F35 0%,#162D4A 100%);border-radius:16px 16px 0 0;padding:30px 36px 26px;text-align:center;">
     <p style="margin:0 0 10px;font-size:11px;font-weight:800;color:#F07058;text-transform:uppercase;letter-spacing:0.16em;">Weekly Digest &middot; ${issueDate}</p>
-    <span style="font-family:'Poppins',-apple-system,BlinkMacSystemFont,sans-serif;font-size:32px;font-weight:900;letter-spacing:-0.03em;line-height:1;"><span style="color:#E8503A;">TA</span><span style="color:#ffffff;">LK</span></span>
+    <span style="font-family:'Poppins',-apple-system,BlinkMacSystemFont,sans-serif;font-size:36px;font-weight:900;letter-spacing:-0.03em;line-height:1;"><span style="color:#E8503A;">TA</span><span style="color:#ffffff;">LK</span></span>
   </td></tr>
   <tr><td style="height:3px;line-height:3px;font-size:0;background:linear-gradient(90deg,#E8503A,#F07058);">&nbsp;</td></tr>
   ${statsBlock}

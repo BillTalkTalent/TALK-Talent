@@ -443,8 +443,8 @@ export default function NewsletterForm({
             <div className="border-t border-zinc-100 p-6 bg-[#f4f4f5]">
               <div className="max-w-[580px] mx-auto rounded-2xl overflow-hidden shadow-sm">
                 {/* Email header */}
-                <div style={{ background: 'linear-gradient(90deg, #0F1F35 0%, #162D4A 100%)' }} className="px-8 py-6">
-                  <span className="font-black text-xl">
+                <div style={{ background: 'linear-gradient(90deg, #0F1F35 0%, #162D4A 100%)' }} className="px-8 py-6 text-center">
+                  <span className="font-black text-2xl">
                     <span style={{ color: '#E8503A' }}>TA</span>
                     <span className="text-white">LK</span>
                   </span>
