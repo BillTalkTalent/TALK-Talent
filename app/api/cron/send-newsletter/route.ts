@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendNewsletter } from '@/lib/newsletter-send'
-import { getActiveSponsor, buildSponsorTop, buildSponsorBottom, buildSponsorMid } from '@/lib/newsletter-sponsor'
+import { getActiveSponsor, buildSponsorTop, buildSponsorMid } from '@/lib/newsletter-sponsor'
 import { getUpcomingEventsForNewsletter, buildUpcomingEventsBlock } from '@/lib/newsletter-events'
 import { getNewsletterStats, buildStatsBlock } from '@/lib/newsletter-stats'
 import { getRecentJobsForNewsletter, buildJobsBlock } from '@/lib/newsletter-jobs'
@@ -54,7 +54,6 @@ export async function GET(req: NextRequest) {
     const sponsor = newsletter.skip_sponsor ? null : await getActiveSponsor(adminDb, 'masthead')
     const midSponsor = newsletter.skip_sponsor ? null : await getActiveSponsor(adminDb, 'mid')
     const sponsorTop = sponsor ? buildSponsorTop(sponsor) : ''
-    const sponsorBottom = sponsor ? buildSponsorBottom(sponsor) : ''
     const sponsorMid = midSponsor ? buildSponsorMid(midSponsor) : ''
 
     // Reaches all approved members (paginated), skips unsubscribes, throttled,
@@ -62,7 +61,7 @@ export async function GET(req: NextRequest) {
     const { sent } = await sendNewsletter(
       adminDb,
       newsletter.subject,
-      (firstName, unsubscribeUrl) => buildEmailHtml(newsletter.subject, newsletter.body_html, firstName, unsubscribeUrl, newsletter.intro, sponsorTop, sponsorBottom, eventsBlock, statsBlock, jobsBlock, talentBlock, sponsorMid, forumBlock),
+      (firstName, unsubscribeUrl) => buildEmailHtml(newsletter.subject, newsletter.body_html, firstName, unsubscribeUrl, newsletter.intro, sponsorTop, eventsBlock, statsBlock, jobsBlock, talentBlock, sponsorMid, forumBlock),
       newsletter.id,
     )
     await adminDb.from('newsletters').update({
@@ -80,7 +79,7 @@ export async function GET(req: NextRequest) {
 // compileSectionsToHtml in app/api/admin/newsletter/route.ts.
 const MID_AD_MARKER = '<!--MID_AD_SLOT-->'
 
-function buildEmailHtml(subject: string, rawBodyHtml: string, memberName: string, unsubscribeUrl: string, intro = '', sponsorTop = '', sponsorBottom = '', eventsBlock = '', statsBlock = '', jobsBlock = '', talentBlock = '', sponsorMidHtml = '', forumBlock = '') {
+function buildEmailHtml(subject: string, rawBodyHtml: string, memberName: string, unsubscribeUrl: string, intro = '', sponsorTop = '', eventsBlock = '', statsBlock = '', jobsBlock = '', talentBlock = '', sponsorMidHtml = '', forumBlock = '') {
   const introLine = (intro || '').trim() || "Here's your weekly roundup from the TALK community."
   const bodyHtml = rawBodyHtml.replace(MID_AD_MARKER, sponsorMidHtml)
   const issueDate = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
@@ -116,18 +115,16 @@ function buildEmailHtml(subject: string, rawBodyHtml: string, memberName: string
     <p style="margin:0 0 6px;color:#374151;font-size:15px;">Hi ${memberName},</p>
     <p style="margin:0;color:#6b7280;font-size:14px;">${introLine}</p>
   </td></tr>
+  <!-- Masthead sponsor sits right after the intro — the first thing after
+       the personal voice, not buried after every auto-generated widget. -->
+  ${sponsorTop}
   ${eventsBlock}
   ${jobsBlock}
   ${talentBlock}
   ${forumBlock}
-  <!-- Sponsor sits last among the auto-generated widgets, immediately
-       before the written body — below every bit of real editorial content
-       that comes before it (the intro), not in front of any of it. -->
-  ${sponsorTop}
   <tr><td style="background:#fff;padding:8px 36px 32px;">
     <div class="prose">${bodyHtml}</div>
   </td></tr>
-  ${sponsorBottom}
   <tr><td style="background:#f9fafb;border-top:1px solid #f3f4f6;border-radius:0 0 16px 16px;padding:20px 36px;text-align:center;">
     <p style="margin:0 0 14px;color:#6b7280;font-size:12px;line-height:1.6;">
       TALK is a community for Talent Acquisition leaders to connect, share what's working, and grow together —

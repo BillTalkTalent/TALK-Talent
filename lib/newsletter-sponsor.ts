@@ -35,8 +35,11 @@ export async function getActiveSponsor(adminDb: any, placement: SponsorPlacement
   return (data && data[0]) || null
 }
 
-// Top "Presented by" masthead. If the sponsor has an offer, adds a teaser line
-// pointing readers to the offer at the bottom.
+// Top "Presented by" masthead. Used to just tease "special offer below" and
+// leave the actual offer to a separate callout at the very bottom of the
+// newsletter — after every section, an easy scroll for the teaser and its
+// payoff to end up screens apart. The offer (and its CTA) now live in this
+// same card, right under the blurb, so there's one ask in one place.
 export function buildSponsorTop(s: Sponsor): string {
   const logo = s.logo_url
     ? `<img src="${s.logo_url}" alt="${esc(s.name)}" style="max-height:46px;max-width:200px;height:auto;display:block;margin:0 auto 10px;">`
@@ -45,8 +48,13 @@ export function buildSponsorTop(s: Sponsor): string {
   const blurb = s.blurb
     ? `<p style="margin:6px 0 0;font-size:13px;color:#6b7280;line-height:1.5;">${esc(s.blurb)}</p>`
     : ''
-  const teaser = s.offer
-    ? `<p style="margin:12px 0 0;font-size:12px;font-weight:700;color:#E8503A;">&#127873; Special offer for TALK members below &darr;</p>`
+  const offerHref = s.offer_url || s.url
+  const offerBlock = s.offer
+    ? `
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid #e5e7eb;">
+        <p style="margin:0 0 10px;font-size:14px;font-weight:700;color:#0F1F35;">${esc(s.offer)}</p>
+        ${offerHref ? `<a href="${offerHref}" style="display:inline-block;background:#E8503A;color:#ffffff;font-size:13px;font-weight:700;text-decoration:none;padding:9px 20px;border-radius:9px;">${esc((s.offer_cta && s.offer_cta.trim()) || 'Claim offer')} &rarr;</a>` : ''}
+      </div>`
     : (s.url
         ? `<p style="margin:12px 0 0;"><a href="${s.url}" style="display:inline-block;font-size:12px;font-weight:700;color:#0F1F35;text-decoration:none;border-bottom:2px solid #E8503A;padding-bottom:1px;">Learn more &rarr;</a></p>`
         : '')
@@ -57,16 +65,16 @@ export function buildSponsorTop(s: Sponsor): string {
       ${logo}
       ${nameLine}
       ${blurb}
-      ${teaser}
+      ${offerBlock}
     </div>
   </td></tr>`
 }
 
-// Compact single-row banner for mid-newsletter, between sections — the "Presented
-// by" masthead and the special-offer block are both full-width cards; this is
-// meant to feel like a slim aside, not another section.
+// Compact single-row banner for mid-newsletter, between Industry News and
+// Career Opportunities — the "Presented by" masthead is a full-width card;
+// this is meant to feel like a slim aside, not another section.
 //
-// Unlike buildSponsorTop/buildSponsorBottom, this does NOT return a <tr><td>
+// Unlike buildSponsorTop, this does NOT return a <tr><td>
 // wrapper — it's spliced into compileSectionsToHtml's output (via MID_AD_MARKER
 // in app/api/admin/newsletter/route.ts), which lands inside a <td> that's
 // already inside a <tr>. A <tr> there would be invalid HTML — nested inside a
@@ -113,22 +121,4 @@ export function buildSponsorMid(s: Sponsor): string {
         </tr>
       </table>
     </a>`
-}
-
-// Bottom special-offer callout — only rendered when the sponsor has an offer.
-export function buildSponsorBottom(s: Sponsor): string {
-  if (!s.offer) return ''
-  const href = s.offer_url || s.url || ''
-  const cta = (s.offer_cta && s.offer_cta.trim()) || 'Claim offer'
-  const button = href
-    ? `<tr><td align="center" style="padding-top:16px;"><a href="${href}" style="display:inline-block;background:#E8503A;color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;padding:11px 26px;border-radius:10px;">${esc(cta)} &rarr;</a></td></tr>`
-    : ''
-  return `
-  <tr><td style="background:#ffffff;padding:8px 36px 26px;">
-    <div style="background:#0F1F35;border-radius:14px;padding:26px 26px 22px;text-align:center;">
-      <p style="margin:0 0 10px;font-size:10px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:#F07058;">Special offer &middot; ${esc(s.name)}</p>
-      <p style="margin:0;font-size:16px;font-weight:700;color:#ffffff;line-height:1.5;">${esc(s.offer)}</p>
-      <table cellpadding="0" cellspacing="0" style="margin:0 auto;"><tbody>${button}</tbody></table>
-    </div>
-  </td></tr>`
 }

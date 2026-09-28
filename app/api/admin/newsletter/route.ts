@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendNewsletter } from '@/lib/newsletter-send'
-import { getActiveSponsor, buildSponsorTop, buildSponsorBottom, buildSponsorMid } from '@/lib/newsletter-sponsor'
+import { getActiveSponsor, buildSponsorTop, buildSponsorMid } from '@/lib/newsletter-sponsor'
 import { getUpcomingEventsForNewsletter, buildUpcomingEventsBlock } from '@/lib/newsletter-events'
 import { getNewsletterStats, buildStatsBlock } from '@/lib/newsletter-stats'
 import { getRecentJobsForNewsletter, buildJobsBlock } from '@/lib/newsletter-jobs'
@@ -37,36 +37,40 @@ function styleImages(html: string): string {
 // the standard way to lay things out reliably across email clients) plus a
 // real rule above every section after the first, so each break reads as an
 // actual section change, not just a slightly different line of text.
-// MID_AD_MARKER sits right after the first section, regardless of how many
-// sections end up filled — a fixed, predictable "middle-ish" slot instead of
-// something that shifts around depending on section count. It's baked into
-// body_html at save/schedule time (so it's stable even for a scheduled send),
-// then swapped for the actual sponsor banner at send time — same freshness
-// as the top/bottom sponsor blocks, which are also only resolved right
-// before sending, not at compose time.
+// MID_AD_MARKER sits between Industry News and Career Opportunities — later
+// in the newsletter than the masthead sponsor (which now sits right after
+// the intro), so the two don't crowd each other right next to each other.
+// Falls back to the very end if Career Opportunities isn't filled in that
+// issue, rather than disappearing. It's baked into body_html at save/schedule
+// time (so it's stable even for a scheduled send), then swapped for the
+// actual sponsor banner at send time — same freshness as the masthead
+// sponsor, which is also only resolved right before sending, not at compose
+// time.
 const MID_AD_MARKER = '<!--MID_AD_SLOT-->'
 
 function compileSectionsToHtml(sections: Record<string, string>): string {
   const activeKeys = SECTION_ORDER.filter(key => sections[key] && sections[key] !== '<p></p>' && sections[key].trim())
-  return activeKeys
-    .map((key, i) => {
-      const meta = SECTION_META[key]
-      const topRule = i > 0 ? 'border-top:1px solid #e5e7eb;padding-top:30px;' : ''
-      const midAdSlot = i === 0 ? MID_AD_MARKER : ''
-      return `
-        <div style="margin-bottom:36px;${topRule}">
-          <table cellpadding="0" cellspacing="0" style="margin-bottom:16px;"><tr>
-            <td style="background:${meta.color};border-radius:6px;padding:6px 14px;">
-              <span style="font-size:11px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:#ffffff;">${meta.label}</span>
-            </td>
-          </tr></table>
-          <div style="color:#374151;font-size:15px;line-height:1.7;">${styleImages(sections[key])}</div>
-        </div>
-        ${midAdSlot}`
-    }).join('\n')
+  const blocks = activeKeys.map((key, i) => {
+    const meta = SECTION_META[key]
+    const topRule = i > 0 ? 'border-top:1px solid #e5e7eb;padding-top:30px;' : ''
+    return `
+      <div style="margin-bottom:36px;${topRule}">
+        <table cellpadding="0" cellspacing="0" style="margin-bottom:16px;"><tr>
+          <td style="background:${meta.color};border-radius:6px;padding:6px 14px;">
+            <span style="font-size:11px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:#ffffff;">${meta.label}</span>
+          </td>
+        </tr></table>
+        <div style="color:#374151;font-size:15px;line-height:1.7;">${styleImages(sections[key])}</div>
+      </div>`
+  })
+
+  const beforeCareerIdx = activeKeys.indexOf('career_opportunities')
+  blocks.splice(beforeCareerIdx === -1 ? blocks.length : beforeCareerIdx, 0, MID_AD_MARKER)
+
+  return blocks.join('\n')
 }
 
-function buildEmailHtml(subject: string, sections: Record<string, string>, memberName: string, unsubscribeUrl: string, intro = '', sponsorTop = '', sponsorBottom = '', eventsBlock = '', statsBlock = '', jobsBlock = '', talentBlock = '', sponsorMidHtml = '', forumBlock = ''): string {
+function buildEmailHtml(subject: string, sections: Record<string, string>, memberName: string, unsubscribeUrl: string, intro = '', sponsorTop = '', eventsBlock = '', statsBlock = '', jobsBlock = '', talentBlock = '', sponsorMidHtml = '', forumBlock = ''): string {
   const introLine = (intro || '').trim() || "Here's your weekly roundup from the TALK community."
   const sectionsHtml = compileSectionsToHtml(sections).replace(MID_AD_MARKER, sponsorMidHtml)
   const issueDate = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
@@ -115,6 +119,10 @@ function buildEmailHtml(subject: string, sections: Record<string, string>, membe
     <p style="color:#6b7280;font-size:14px;line-height:1.6;margin-bottom:0;">${introLine}</p>
   </td></tr>
 
+  <!-- Masthead sponsor sits right after the intro — the first thing after
+       the personal voice, not buried after every auto-generated widget. -->
+  ${sponsorTop}
+
   ${eventsBlock}
 
   ${jobsBlock}
@@ -123,18 +131,11 @@ function buildEmailHtml(subject: string, sections: Record<string, string>, membe
 
   ${forumBlock}
 
-  <!-- Sponsor sits last among the auto-generated widgets, immediately
-       before the written sections — below every bit of real editorial
-       content that comes before it (the intro), not in front of any of it. -->
-  ${sponsorTop}
-
   <!-- Sections -->
   <tr><td style="background:#fff;padding:8px 36px 32px;">
     <hr style="border:none;border-top:1px solid #f3f4f6;margin-bottom:28px;">
     ${sectionsHtml}
   </td></tr>
-
-  ${sponsorBottom}
 
   <!-- Footer -->
   <tr><td style="background:#f9fafb;border-top:1px solid #f3f4f6;border-radius:0 0 16px 16px;padding:24px 36px;text-align:center;">
@@ -183,7 +184,6 @@ export async function POST(req: NextRequest) {
     const sponsor = skipSponsor ? null : await getActiveSponsor(adminDb, 'masthead')
     const midSponsor = skipSponsor ? null : await getActiveSponsor(adminDb, 'mid')
     const sponsorTop = sponsor ? buildSponsorTop(sponsor) : ''
-    const sponsorBottom = sponsor ? buildSponsorBottom(sponsor) : ''
     const sponsorMid = midSponsor ? buildSponsorMid(midSponsor) : ''
     const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
     const upcomingEvents = await getUpcomingEventsForNewsletter(adminDb, { windowDays: 7 })
@@ -196,7 +196,7 @@ export async function POST(req: NextRequest) {
     const talentBlock = buildTalentBlock(openToWork, origin)
     const forumTeaser = await getForumTeaserForNewsletter(adminDb)
     const forumBlock = buildForumTeaserBlock(forumTeaser, origin)
-    const html = buildEmailHtml(subject || 'TALK newsletter', sections ?? {}, 'there', unsubUrl(origin, to), intro, sponsorTop, sponsorBottom, eventsBlock, statsBlock, jobsBlock, talentBlock, sponsorMid, forumBlock)
+    const html = buildEmailHtml(subject || 'TALK newsletter', sections ?? {}, 'there', unsubUrl(origin, to), intro, sponsorTop, eventsBlock, statsBlock, jobsBlock, talentBlock, sponsorMid, forumBlock)
     const resend = new Resend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({
       from: process.env.FROM_EMAIL ?? 'TALK Community <onboarding@resend.dev>',
@@ -238,12 +238,13 @@ export async function POST(req: NextRequest) {
   // === SEND ===
   if (!process.env.RESEND_API_KEY) return NextResponse.json({ error: 'RESEND_API_KEY not configured' }, { status: 500 })
 
-  // Auto-include the active sponsor (unless this edition opts out): "Presented
-  // by" masthead at top, plus a "Special offer" callout at bottom if it has one.
+  // Auto-include the active sponsor (unless this edition opts out): one
+  // "Presented by" masthead card carrying the logo/blurb and, if the sponsor
+  // has one, the offer + CTA together — not split across a top teaser and a
+  // separate bottom callout.
   const sponsor = skipSponsor ? null : await getActiveSponsor(adminDb, 'masthead')
   const midSponsor = skipSponsor ? null : await getActiveSponsor(adminDb, 'mid')
   const sponsorTop = sponsor ? buildSponsorTop(sponsor) : ''
-  const sponsorBottom = sponsor ? buildSponsorBottom(sponsor) : ''
   const sponsorMid = midSponsor ? buildSponsorMid(midSponsor) : ''
 
   const sendOrigin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
@@ -263,7 +264,7 @@ export async function POST(req: NextRequest) {
   const { sent, skipped, total } = await sendNewsletter(
     adminDb,
     subject,
-    (firstName, unsubscribeUrl) => buildEmailHtml(subject, sections ?? {}, firstName, unsubscribeUrl, intro, sponsorTop, sponsorBottom, eventsBlock, statsBlock, jobsBlock, talentBlock, sponsorMid, forumBlock),
+    (firstName, unsubscribeUrl) => buildEmailHtml(subject, sections ?? {}, firstName, unsubscribeUrl, intro, sponsorTop, eventsBlock, statsBlock, jobsBlock, talentBlock, sponsorMid, forumBlock),
     newsletterId,
   )
 
