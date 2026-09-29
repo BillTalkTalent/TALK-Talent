@@ -36,3 +36,40 @@ export function splitBodyForRender(body: string): BodySegment[] {
   if (lastIndex < body.length) segments.push({ type: 'text', value: body.slice(lastIndex) })
   return segments
 }
+
+export type DisplayMention = { id: string; name: string; start: number; end: number }
+
+// Converts a raw stored body (with `@[Name](id)` tokens) into what the
+// mention-textarea shows while composing — plain "@Name" text — plus the
+// position of each mention within that display string, so edits can be
+// tracked and the raw form reconstructed on change. Inverse of rawFromDisplay.
+export function displayFromRaw(body: string): { display: string; mentions: DisplayMention[] } {
+  let display = ''
+  const mentions: DisplayMention[] = []
+  for (const seg of splitBodyForRender(body)) {
+    if (seg.type === 'text') {
+      display += seg.value
+    } else {
+      const start = display.length
+      const token = `@${seg.name}`
+      display += token
+      mentions.push({ id: seg.userId, name: seg.name, start, end: start + token.length })
+    }
+  }
+  return { display, mentions }
+}
+
+// Inverse of displayFromRaw — rebuilds the raw `@[Name](id)` form from the
+// display text plus its tracked mention ranges.
+export function rawFromDisplay(display: string, mentions: DisplayMention[]): string {
+  const sorted = [...mentions].sort((a, b) => a.start - b.start)
+  let raw = ''
+  let cursor = 0
+  for (const m of sorted) {
+    raw += display.slice(cursor, m.start)
+    raw += `@[${m.name}](${m.id})`
+    cursor = m.end
+  }
+  raw += display.slice(cursor)
+  return raw
+}

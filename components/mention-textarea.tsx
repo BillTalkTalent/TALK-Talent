@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { displayFromRaw, rawFromDisplay, type DisplayMention } from "@/lib/mentions";
 
 type MemberResult = {
   id: string;
@@ -17,6 +18,43 @@ function getInitials(name: string | null): string {
   return name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase();
 }
 
+// Finds the contiguous region that changed between two strings (common
+// prefix/suffix trick) — used to shift or invalidate tracked mention ranges
+// after an edit, without assuming edits are single keystrokes (paste,
+// selection-delete, etc. all work).
+function diffRegion(oldStr: string, newStr: string): { start: number; oldEnd: number; newEnd: number } {
+  let start = 0;
+  const maxStart = Math.min(oldStr.length, newStr.length);
+  while (start < maxStart && oldStr[start] === newStr[start]) start++;
+  let oldEnd = oldStr.length;
+  let newEnd = newStr.length;
+  while (oldEnd > start && newEnd > start && oldStr[oldEnd - 1] === newStr[newEnd - 1]) {
+    oldEnd--;
+    newEnd--;
+  }
+  return { start, oldEnd, newEnd };
+}
+
+// Adjusts tracked mention ranges after an edit: mentions entirely before or
+// after the edited region shift/stay put; a mention the edit touches is
+// dropped (the user changed the tagged text, so it's no longer a valid tag).
+function reconcileMentions(
+  mentions: DisplayMention[],
+  region: { start: number; oldEnd: number; newEnd: number }
+): DisplayMention[] {
+  const delta = (region.newEnd - region.start) - (region.oldEnd - region.start);
+  const next: DisplayMention[] = [];
+  for (const m of mentions) {
+    if (m.end <= region.start) {
+      next.push(m);
+    } else if (m.start >= region.oldEnd) {
+      next.push({ ...m, start: m.start + delta, end: m.end + delta });
+    }
+    // else: edit overlaps this mention's range — drop it.
+  }
+  return next;
+}
+
 interface MentionTextareaProps {
   id?: string;
   value: string;
@@ -29,10 +67,11 @@ interface MentionTextareaProps {
 }
 
 // Textarea with an "@" typeahead — type @ followed by a name, pick someone
-// from the dropdown, and it inserts `@[Full Name](userId)` at the cursor.
-// That token (see lib/mentions.ts) is what the reply/topic mention-notify
-// routes parse back out to know who to notify, and what topic-view.tsx
-// renders as a real link instead of raw text.
+// from the dropdown, and it inserts a tag. While composing, the box shows
+// plain "@Full Name" text (not the raw `@[Full Name](userId)` token) so it
+// doesn't read as confusing markup; `value`/`onChange` still carry the raw
+// token form, since that's what the reply/topic mention-notify routes parse
+// and what topic-view.tsx renders as a link.
 export default function MentionTextarea({
   id,
   value,
@@ -47,28 +86,64 @@ export default function MentionTextarea({
   const [results, setResults] = useState<MemberResult[]>([]);
   const [open, setOpen] = useState(false);
   const [highlighted, setHighlighted] = useState(0);
-  // The @-triggered query's start/end offsets in `value`, so a pick can
-  // replace exactly that span.
+
+  const initial = displayFromRaw(value);
+  const [displayValue, setDisplayValue] = useState(initial.display);
+  const [mentions, setMentions] = useState<DisplayMention[]>(initial.mentions);
+  // The raw value we last emitted via onChange, so we can tell an external
+  // reset (parent clearing the field, loading different initial content)
+  // apart from the echo of our own change.
+  const lastEmittedRaw = useRef(value);
+
+  // The @-triggered query's start/end offsets in `displayValue`, so a pick
+  // can replace exactly that span.
   const triggerRef = useRef<{ start: number; end: number } | null>(null);
 
+  // If `value` changed to something we didn't just emit ourselves, it's an
+  // external change (form reset after submit, different initial content) —
+  // re-derive the display text and mention ranges from it.
+  useEffect(() => {
+    if (value === lastEmittedRaw.current) return;
+    const { display, mentions: nextMentions } = displayFromRaw(value);
+    setDisplayValue(display);
+    setMentions(nextMentions);
+    lastEmittedRaw.current = value;
+     
+  }, [value]);
+
+  function emit(nextDisplay: string, nextMentions: DisplayMention[]) {
+    setDisplayValue(nextDisplay);
+    setMentions(nextMentions);
+    const raw = rawFromDisplay(nextDisplay, nextMentions);
+    lastEmittedRaw.current = raw;
+    onChange(raw);
+  }
+
   // Find the "@query" token immediately before the cursor, if any — must
-  // start at the beginning of the text or right after whitespace, and have
-  // no whitespace between the @ and the cursor.
+  // start at the beginning of the text or right after whitespace. Full names
+  // have spaces ("Kimberly Foley"), so a single space doesn't end the query —
+  // only a line break, a double space, or the token growing implausibly long
+  // mean the user has moved on to typing something else.
   function findTrigger(text: string, cursor: number): { start: number; end: number } | null {
     const upToCursor = text.slice(0, cursor);
     const at = upToCursor.lastIndexOf("@");
     if (at === -1) return null;
     if (at > 0 && !/\s/.test(upToCursor[at - 1])) return null;
     const query = upToCursor.slice(at + 1);
-    if (/\s/.test(query)) return null;
+    if (/\n/.test(query)) return null;
+    if (/ {2,}/.test(query)) return null;
+    if (query.length > 40) return null;
     return { start: at, end: cursor };
   }
 
   function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
-    const text = e.target.value;
-    onChange(text);
-    const cursor = e.target.selectionStart ?? text.length;
-    const trigger = findTrigger(text, cursor);
+    const nextDisplay = e.target.value;
+    const region = diffRegion(displayValue, nextDisplay);
+    const nextMentions = reconcileMentions(mentions, region);
+    emit(nextDisplay, nextMentions);
+
+    const cursor = e.target.selectionStart ?? nextDisplay.length;
+    const trigger = findTrigger(nextDisplay, cursor);
     if (trigger) {
       triggerRef.current = trigger;
       setOpen(true);
@@ -83,7 +158,7 @@ export default function MentionTextarea({
   useEffect(() => {
     if (!open || !triggerRef.current) return;
     const trigger = triggerRef.current;
-    const query = value.slice(trigger.start + 1, trigger.end);
+    const query = displayValue.slice(trigger.start + 1, trigger.end);
     if (query.length < 2) {
       setResults([]);
       return;
@@ -95,17 +170,26 @@ export default function MentionTextarea({
         .catch(() => setResults([]));
     }, 200);
     return () => clearTimeout(handle);
-  }, [value, open]);
+     
+  }, [displayValue, open]);
 
   function pick(member: MemberResult) {
     const trigger = triggerRef.current;
     if (!trigger || !member.full_name) return;
-    const token = `@[${member.full_name}](${member.id}) `;
-    const next = value.slice(0, trigger.start) + token + value.slice(trigger.end);
-    onChange(next);
+    const token = `@${member.full_name}`;
+    const nextDisplay = displayValue.slice(0, trigger.start) + token + " " + displayValue.slice(trigger.end);
+    const inserted = token.length + 1;
+    const removed = trigger.end - trigger.start;
+    const delta = inserted - removed;
+    const shifted = mentions.map((m) =>
+      m.start >= trigger.end ? { ...m, start: m.start + delta, end: m.end + delta } : m
+    );
+    const newMention: DisplayMention = { id: member.id, name: member.full_name, start: trigger.start, end: trigger.start + token.length };
+    const nextMentions = [...shifted, newMention].sort((a, b) => a.start - b.start);
+    emit(nextDisplay, nextMentions);
     setOpen(false);
     setResults([]);
-    const cursor = trigger.start + token.length;
+    const cursor = trigger.start + token.length + 1;
     triggerRef.current = null;
     // Restore focus + cursor right after the inserted token.
     requestAnimationFrame(() => {
@@ -137,7 +221,7 @@ export default function MentionTextarea({
       <Textarea
         ref={textareaRef}
         id={id}
-        value={value}
+        value={displayValue}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
