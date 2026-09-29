@@ -6,7 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import MentionTextarea from "@/components/mention-textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -72,6 +72,14 @@ export default function NewTopicPage() {
     }
 
     toast.success("Topic created!");
+
+    // Fire-and-forget: notify anyone explicitly @mentioned in the body.
+    fetch("/api/forum/notify-topic-mentions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ topicId: topic.id, body: body.trim(), title: title.trim(), categorySlug: params.categorySlug }),
+    }).catch(() => {/* silently ignore notification failures */});
+
     router.push(`/forum/${params.categorySlug}/${topic.id}`);
   };
 
@@ -107,11 +115,11 @@ export default function NewTopicPage() {
 
             <div className="space-y-1.5">
               <Label htmlFor="body">Body</Label>
-              <Textarea
+              <MentionTextarea
                 id="body"
-                placeholder="Share your thoughts, questions, or ideas..."
+                placeholder="Share your thoughts, questions, or ideas... (type @ to mention someone)"
                 value={body}
-                onChange={(e) => setBody(e.target.value)}
+                onChange={setBody}
                 rows={10}
                 required
                 disabled={submitting}

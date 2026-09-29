@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import MentionTextarea from "@/components/mention-textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Send } from "lucide-react";
@@ -66,11 +66,11 @@ export default function ReplyForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
       <Label htmlFor="reply">Your Reply</Label>
-      <Textarea
+      <MentionTextarea
         id="reply"
-        placeholder="Share your thoughts..."
+        placeholder="Share your thoughts... (type @ to mention someone)"
         value={body}
-        onChange={(e) => setBody(e.target.value)}
+        onChange={setBody}
         rows={4}
         disabled={submitting}
       />

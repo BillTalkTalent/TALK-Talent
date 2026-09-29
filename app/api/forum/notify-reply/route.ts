@@ -4,6 +4,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { Resend } from "resend";
 import { emailShell, ctaButton, quoteBlock } from "@/lib/email";
 import { loadPrefs, wants } from "@/lib/notification-prefs";
+import { extractMentionedUserIds, mentionsToPlainText } from "@/lib/mentions";
+import { notifyMentions } from "@/lib/forum-mention-notify";
 
 export async function POST(req: NextRequest) {
   try {
@@ -49,16 +51,6 @@ export async function POST(req: NextRequest) {
       ...prevReplierIds,
     ])];
 
-    if (notifyIds.length === 0) {
-      return NextResponse.json({ ok: true, skipped: "no-recipients" });
-    }
-
-    // Fetch profiles of people to notify
-    const { data: recipientProfiles } = await supabase
-      .from("profiles")
-      .select("id, full_name, email")
-      .in("id", notifyIds);
-
     // Get replier's name
     const { data: replierProfile } = await supabase
       .from("profiles")
@@ -70,56 +62,87 @@ export async function POST(req: NextRequest) {
     const origin = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.talktalent.com";
     const topicUrl = `${origin}/forum/${categorySlug ?? ""}/${topicId}`;
     const relativeLink = `/forum/${categorySlug ?? ""}/${topicId}`;
-    const truncatedPreview = replyBody.length > 100 ? replyBody.slice(0, 97) + "…" : replyBody;
+    // Plain-text version for previews/notifications — raw @[Name](id) tokens
+    // would otherwise leak their markup into a notification body or email.
+    const plainReplyBody = mentionsToPlainText(replyBody);
+    const truncatedPreview = plainReplyBody.length > 100 ? plainReplyBody.slice(0, 97) + "…" : plainReplyBody;
     const notifTitle = `${replierName} replied to "${topic.title.length > 60 ? topic.title.slice(0, 57) + "…" : topic.title}"`;
 
-    const resend = new Resend(process.env.RESEND_API_KEY);
-    const from = process.env.FROM_EMAIL ?? "TALK Community <onboarding@resend.dev>";
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const adminDb = createAdminClient() as any;
-    const prefs = await loadPrefs(adminDb, notifyIds);
 
-    // Insert in-app notifications + send emails (respecting each recipient's prefs)
-    await Promise.allSettled(
-      (recipientProfiles ?? []).map(async (recipient) => {
-        const firstName = recipient.full_name?.split(" ")[0] ?? "there";
+    if (notifyIds.length > 0) {
+      // Fetch profiles of people to notify
+      const { data: recipientProfiles } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .in("id", notifyIds);
 
-        // In-app notification — use admin client (service role) since RLS
-        // restricts who can insert into notifications
-        if (wants(prefs, recipient.id, "push_forum_replies")) {
-          await adminDb.from("notifications").insert({
-            user_id: recipient.id,
-            type: "forum_reply",
-            title: notifTitle,
-            body: truncatedPreview,
-            link: relativeLink,
-            is_read: false,
-          });
-        }
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      const from = process.env.FROM_EMAIL ?? "TALK Community <onboarding@resend.dev>";
+      const prefs = await loadPrefs(adminDb, notifyIds);
 
-        // Email (only if they have an email and haven't opted out)
-        if (recipient.email && wants(prefs, recipient.id, "email_forum_replies")) {
-          const preview = replyBody.length > 300 ? replyBody.slice(0, 297) + "…" : replyBody;
-          await resend.emails.send({
-            from,
-            replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
-            to: recipient.email,
-            subject: `${replierName} replied to a discussion on TALK`,
-            html: emailShell(`
-              <p style="margin:0 0 6px;font-size:22px;font-weight:800;color:#0F1F35;">New reply on your post</p>
-              <p style="margin:0 0 20px;font-size:15px;color:#5A7090;line-height:1.6;">
-                Hi ${firstName}, <strong style="color:#0F1F35;">${replierName}</strong> replied to
-                &ldquo;<em>${topic.title}</em>&rdquo;.
-              </p>
-              ${quoteBlock(preview)}
-              ${ctaButton('View the conversation', topicUrl)}
-            `),
-          });
-        }
-      })
+      // Insert in-app notifications + send emails (respecting each recipient's prefs)
+      await Promise.allSettled(
+        (recipientProfiles ?? []).map(async (recipient) => {
+          const firstName = recipient.full_name?.split(" ")[0] ?? "there";
+
+          // In-app notification — use admin client (service role) since RLS
+          // restricts who can insert into notifications
+          if (wants(prefs, recipient.id, "push_forum_replies")) {
+            await adminDb.from("notifications").insert({
+              user_id: recipient.id,
+              type: "forum_reply",
+              title: notifTitle,
+              body: truncatedPreview,
+              link: relativeLink,
+              is_read: false,
+            });
+          }
+
+          // Email (only if they have an email and haven't opted out)
+          if (recipient.email && wants(prefs, recipient.id, "email_forum_replies")) {
+            const preview = plainReplyBody.length > 300 ? plainReplyBody.slice(0, 297) + "…" : plainReplyBody;
+            await resend.emails.send({
+              from,
+              replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
+              to: recipient.email,
+              subject: `${replierName} replied to a discussion on TALK`,
+              html: emailShell(`
+                <p style="margin:0 0 6px;font-size:22px;font-weight:800;color:#0F1F35;">New reply on your post</p>
+                <p style="margin:0 0 20px;font-size:15px;color:#5A7090;line-height:1.6;">
+                  Hi ${firstName}, <strong style="color:#0F1F35;">${replierName}</strong> replied to
+                  &ldquo;<em>${topic.title}</em>&rdquo;.
+                </p>
+                ${quoteBlock(preview)}
+                ${ctaButton('View the conversation', topicUrl)}
+              `),
+            });
+          }
+        })
+      );
+    }
+
+    // @mentions get their own notification, separate from the "someone
+    // replied" one above — but only for people not already covered by it,
+    // so a mentioned prior-participant doesn't get double-emailed for one
+    // reply.
+    const mentionedIds = extractMentionedUserIds(replyBody).filter(
+      (id) => id !== user.id && !notifyIds.includes(id)
     );
+    if (mentionedIds.length > 0) {
+      await notifyMentions({
+        adminDb,
+        mentionedUserIds: mentionedIds,
+        excludeUserId: user.id,
+        actorName: replierName,
+        contextTitle: topic.title,
+        relativeLink,
+        contentPreview: truncatedPreview,
+      });
+    }
 
-    return NextResponse.json({ ok: true, notified: notifyIds.length });
+    return NextResponse.json({ ok: true, notified: notifyIds.length, mentioned: mentionedIds.length });
   } catch (err) {
     console.error("[notify-reply]", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });

@@ -12,10 +12,34 @@ import ModeratorRemove from "./moderator-remove";
 import { ShareOnLinkedInButton } from "@/components/share-on-linkedin-button";
 import { buildLinkedInShareText } from "@/lib/linkedin-share-text";
 import ReactionBar, { type ReactionCounts, type Emoji } from "./reaction-bar";
+import { splitBodyForRender } from "@/lib/mentions";
 
 function getInitials(name: string | null): string {
   if (!name) return "?";
   return name.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase();
+}
+
+// Renders a post body with any @[Name](userId) tokens turned into real
+// links to the mentioned member's profile, instead of showing the raw
+// markup as plain text.
+function BodyWithMentions({ text }: { text: string }) {
+  return (
+    <>
+      {splitBodyForRender(text).map((seg, i) =>
+        seg.type === "mention" ? (
+          <Link
+            key={i}
+            href={`/members/${seg.userId}`}
+            className="font-medium text-[#8b5cf6] hover:underline"
+          >
+            @{seg.name}
+          </Link>
+        ) : (
+          <span key={i}>{seg.value}</span>
+        )
+      )}
+    </>
+  );
 }
 
 type Author = {
@@ -126,7 +150,7 @@ export default function TopicView({
           <h1 className="text-xl font-semibold mt-1">{title}</h1>
 
           <div className="mt-2 prose prose-sm max-w-none text-foreground whitespace-pre-wrap">
-            {body}
+            <BodyWithMentions text={body} />
           </div>
 
           <ReactionBar
@@ -210,7 +234,7 @@ export default function TopicView({
                     )}
                   </div>
                   <p className="text-sm whitespace-pre-wrap">
-                    {replies.find(r => r.id === reply.id)?.body ?? reply.body}
+                    <BodyWithMentions text={replies.find(r => r.id === reply.id)?.body ?? reply.body} />
                   </p>
                   <ReactionBar
                     targetType="reply"
