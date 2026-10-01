@@ -137,6 +137,46 @@ export function buildBulkTextFromHtml(bodyHtml: string, unsubscribeUrl: string):
 Unsubscribe: ${unsubscribeUrl}`
 }
 
+/** Plain-text counterpart for the weekly newsletter's assembled HTML.
+ *  Unlike buildBulkTextFromHtml, this keeps link URLs next to their link
+ *  text — the newsletter is mostly links (events, jobs, sponsor CTAs,
+ *  forum), so a plain strip would leave a text version with no way to
+ *  actually click through to anything. */
+export function buildNewsletterTextFromHtml(html: string): string {
+  const text = html
+    .replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/gi, '')
+    .replace(/<a\s+[^>]*href=["']([^"']*)["'][^>]*>([\s\S]*?)<\/a>/gi, (_m, href, label) => {
+      const cleanLabel = label.replace(/<[^>]+>/g, '').trim()
+      return href && !href.startsWith('#') && cleanLabel ? `${cleanLabel} (${href})` : cleanLabel
+    })
+    .replace(/<\/(p|div|tr|li|h[1-6])>/gi, '\n\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#0?39;/gi, "'")
+    .replace(/&mdash;/gi, '—')
+    .replace(/&ndash;/gi, '–')
+    .replace(/&middot;/gi, '·')
+    .replace(/&ldquo;/gi, '“')
+    .replace(/&rdquo;/gi, '”')
+    .replace(/&lsquo;/gi, '‘')
+    .replace(/&rsquo;/gi, '’')
+    .replace(/&rarr;/gi, '→')
+    .replace(/&copy;/gi, '©')
+    .replace(/&#(\d+);/g, (_m, code) => String.fromCodePoint(Number(code)))
+    .split('\n')
+    .map((line) => line.replace(/[ \t]+/g, ' ').trim())
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+
+  return text
+}
+
 // ─── Pre-built email payloads ──────────────────────────────────────────────
 
 export function buildTestInviteEmail(opts: {

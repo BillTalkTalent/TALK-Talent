@@ -9,6 +9,7 @@ import { getRecentJobsForNewsletter, buildJobsBlock } from '@/lib/newsletter-job
 import { getOpenToWorkForNewsletter, buildTalentBlock } from '@/lib/newsletter-talent'
 import { getForumTeaserForNewsletter, buildForumTeaserBlock } from '@/lib/newsletter-forum'
 import { unsubUrl } from '@/lib/unsubscribe'
+import { buildNewsletterTextFromHtml } from '@/lib/email'
 import { Resend } from 'resend'
 
 // Sending to the full ~13k list runs in throttled batches — give it room.
@@ -203,6 +204,7 @@ export async function POST(req: NextRequest) {
       to,
       subject: `[TEST] ${subject || 'TALK newsletter'}`,
       html,
+      text: buildNewsletterTextFromHtml(html),
     })
     if (error) return NextResponse.json({ error: 'Failed to send test' }, { status: 500 })
     return NextResponse.json({ success: true, test: true, to })
