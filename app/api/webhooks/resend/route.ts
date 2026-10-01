@@ -89,24 +89,57 @@ export async function POST(req: NextRequest) {
   const isComplaint = type === 'email.complained'
   const suppress = isComplaint || bounce.type !== 'Transient'
 
+  // A mailbox that "temporarily" fails on every send for weeks running is
+  // dead in practice, whatever SES calls it — keeping it on the list past
+  // this point does nothing but repeatedly ping a receiving server that's
+  // already ignoring us, which is exactly the kind of behavior that keeps a
+  // sending reputation from recovering. Suppress it like a real hard bounce
+  // once it's racked up enough transient bounces in a row.
+  const CHRONIC_TRANSIENT_THRESHOLD = 3
+  const CHRONIC_LOOKBACK_DAYS = 60
+
+  const suppressedEmails: string[] = []
+
   for (const raw of to) {
     const email = String(raw).toLowerCase().trim()
     if (!email) continue
+
+    let finalSuppress = suppress
+
+    // Decide chronic status from PRIOR rows before inserting this one, so the
+    // row that actually crosses the threshold is itself correctly marked
+    // suppressed — not a later, separate row — which keeps the audit trail
+    // readable (no suppression with no row explaining why).
+    if (!finalSuppress && !isComplaint && bounce.type === 'Transient') {
+      const since = new Date(Date.now() - CHRONIC_LOOKBACK_DAYS * 86_400_000).toISOString()
+      const { count } = await admin
+        .from('email_bounces')
+        .select('id', { count: 'exact', head: true })
+        .eq('email', email)
+        .eq('event_type', 'bounced')
+        .eq('bounce_type', 'Transient')
+        .gte('created_at', since)
+      // +1 counts the one we're about to insert.
+      if ((count ?? 0) + 1 >= CHRONIC_TRANSIENT_THRESHOLD) finalSuppress = true
+    }
+
     await admin.from('email_bounces').insert({
       email,
       event_type: isComplaint ? 'complained' : 'bounced',
       bounce_type: bounce.type ?? (isComplaint ? null : 'Permanent'),
       bounce_subtype: bounce.subType ?? null,
       reason: bounce.message ?? null,
-      suppressed: suppress,
+      suppressed: finalSuppress,
       raw: event as unknown as Record<string, unknown>,
     })
-    if (suppress) {
+
+    if (finalSuppress) {
       await admin
         .from('email_unsubscribes')
         .upsert({ email }, { onConflict: 'email', ignoreDuplicates: true })
+      suppressedEmails.push(email)
     }
   }
 
-  return NextResponse.json({ ok: true, suppressed: suppress, recipients: to.length })
+  return NextResponse.json({ ok: true, suppressed: suppressedEmails.length > 0, recipients: to.length })
 }
