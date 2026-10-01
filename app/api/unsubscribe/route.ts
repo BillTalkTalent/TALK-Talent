@@ -2,12 +2,28 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { unsubToken } from '@/lib/unsubscribe'
 
-// POST { e, t } — verifies the signed token, then adds the address to the
-// suppression list. POST-only on purpose: corporate email scanners prefetch
-// links with GET, and we don't want them silently unsubscribing members.
+// Verifies the signed token, then adds the address to the suppression list.
+// POST-only on purpose: corporate email scanners prefetch links with GET,
+// and we don't want them silently unsubscribing members.
+//
+// Two callers hit this: our own confirm page, which POSTs {e, t} as JSON,
+// and mail clients doing RFC 8058 one-click unsubscribe (Gmail/Yahoo "unsub"
+// button) — those POST a fixed `List-Unsubscribe=One-Click` body with no
+// knowledge of our JSON shape, so e/t have to come from the URL's query
+// string instead, which is where the List-Unsubscribe header points them.
 export async function POST(req: NextRequest) {
   try {
-    const { e, t } = (await req.json()) as { e?: string; t?: string }
+    let e: string | undefined
+    let t: string | undefined
+    try {
+      const body = (await req.json()) as { e?: string; t?: string }
+      e = body.e
+      t = body.t
+    } catch {
+      /* not JSON — a one-click client's form-encoded body, fall through to query params */
+    }
+    e ??= req.nextUrl.searchParams.get('e') ?? undefined
+    t ??= req.nextUrl.searchParams.get('t') ?? undefined
     const email = (e || '').toLowerCase().trim()
     if (!email || !t) {
       return NextResponse.json({ error: 'Invalid request' }, { status: 400 })

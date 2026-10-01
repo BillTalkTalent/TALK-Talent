@@ -5,7 +5,7 @@
 // drift between them.
 import { Resend } from 'resend'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { unsubUrl } from '@/lib/unsubscribe'
+import { unsubUrl, oneClickUnsubscribeHeaders } from '@/lib/unsubscribe'
 import { resolveAudience, type AudienceRole } from '@/lib/email-audience'
 
 export async function sendBulkEmail(
@@ -34,7 +34,7 @@ export async function sendBulkEmail(
     const batch = chunk.map((to) => {
       const u = unsubUrl(origin, to)
       const { html, text } = opts.renderEmail(u)
-      return { from, replyTo, to, subject: opts.subject, html, text }
+      return { from, replyTo, to, subject: opts.subject, html, text, headers: oneClickUnsubscribeHeaders(origin, to) }
     })
     try {
       const { error } = await resend.batch.send(batch)

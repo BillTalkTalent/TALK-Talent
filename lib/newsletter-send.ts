@@ -1,5 +1,5 @@
 import { Resend } from 'resend'
-import { unsubUrl } from '@/lib/unsubscribe'
+import { unsubUrl, oneClickUnsubscribeHeaders } from '@/lib/unsubscribe'
 
 // Hardened newsletter/bulk sender shared by the admin send + the scheduled cron.
 // Reaches ALL approved members (paginates past Supabase's 1k row cap), skips
@@ -74,7 +74,11 @@ export async function sendNewsletter(
     const batch = recipients.slice(i, i + 50)
     try {
       const { data, error } = await resend.batch.send(
-        batch.map((r) => ({ from, replyTo, to: r.email, subject, html: buildHtml(r.first, unsubUrl(origin, r.email)) })),
+        batch.map((r) => ({
+          from, replyTo, to: r.email, subject,
+          html: buildHtml(r.first, unsubUrl(origin, r.email)),
+          headers: oneClickUnsubscribeHeaders(origin, r.email),
+        })),
       )
       if (!error) {
         sent += batch.length
