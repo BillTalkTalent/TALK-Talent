@@ -4,7 +4,7 @@ import { Resend } from 'resend'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { buildBulkEmail, buildBulkText } from '@/lib/email'
-import { unsubUrl } from '@/lib/unsubscribe'
+import { unsubUrl, oneClickUnsubscribeHeaders } from '@/lib/unsubscribe'
 
 async function requireAdmin() {
   const supabase = await createClient()
@@ -102,6 +102,7 @@ export async function emailRsvps(
         subject: subj,
         html: buildBulkEmail({ bodyText, unsubscribeUrl: u }),
         text: buildBulkText({ bodyText, unsubscribeUrl: u }),
+        headers: oneClickUnsubscribeHeaders(origin, to),
       }
     })
     try {

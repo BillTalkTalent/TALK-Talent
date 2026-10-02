@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { Resend } from 'resend'
+import { unsubUrl, oneClickUnsubscribeHeaders } from '@/lib/unsubscribe'
 
 // Nothing currently follows up with a guest (the no-account LinkedIn/email
 // RSVP flow) after they actually attend — they get one confirmation email
@@ -52,27 +53,39 @@ export async function GET(request: NextRequest) {
     if (!guests || guests.length === 0) continue
 
     // Skip anyone whose guest-RSVP email already belongs to an existing
-    // member — no reason to pitch "join TALK" to someone already in.
+    // member — no reason to pitch "join TALK" to someone already in. Also
+    // skip anyone on the suppression list — this is an unprompted marketing
+    // pitch ("join TALK?"), not a transactional confirmation, so it has to
+    // honor the same unsubscribe list the newsletter and digest do.
     const emails: string[] = guests.map((g: { email: string }) => g.email.toLowerCase())
-    const { data: existingProfiles } = await db
-      .from('profiles')
-      .select('email')
-      .in('email', emails)
+    const [{ data: existingProfiles }, { data: unsubRows }] = await Promise.all([
+      db.from('profiles').select('email').in('email', emails),
+      db.from('email_unsubscribes').select('email').in('email', emails),
+    ])
     const memberEmails = new Set(
       (existingProfiles ?? []).map((p: { email: string }) => p.email.toLowerCase())
     )
-    const toSend = guests.filter((g: { email: string }) => !memberEmails.has(g.email.toLowerCase()))
+    const unsubscribed = new Set(
+      (unsubRows ?? []).map((r: { email: string }) => r.email.toLowerCase())
+    )
+    const toSend = guests.filter((g: { email: string }) =>
+      !memberEmails.has(g.email.toLowerCase()) && !unsubscribed.has(g.email.toLowerCase())
+    )
     if (toSend.length === 0) continue
 
     const signupUrl = `${origin}/signup?event=${event.id}&title=${encodeURIComponent(event.title)}`
 
-    const batch = toSend.map((g: { email: string; full_name: string | null }) => ({
-      from,
-      replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
-      to: g.email,
-      subject: `Thanks for coming to ${event.title} — join TALK?`,
-      html: buildNurtureEmail(g.full_name?.split(' ')[0] ?? 'there', event.title, signupUrl, origin),
-    }))
+    const batch = toSend.map((g: { email: string; full_name: string | null }) => {
+      const u = unsubUrl(origin, g.email)
+      return {
+        from,
+        replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
+        to: g.email,
+        subject: `Thanks for coming to ${event.title} — join TALK?`,
+        html: buildNurtureEmail(g.full_name?.split(' ')[0] ?? 'there', event.title, signupUrl, origin, u),
+        headers: oneClickUnsubscribeHeaders(origin, g.email),
+      }
+    })
 
     try {
       const { error } = await resend.batch.send(batch)
@@ -92,7 +105,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ sent: totalSent, events: events.length })
 }
 
-function buildNurtureEmail(firstName: string, eventTitle: string, signupUrl: string, origin: string): string {
+function buildNurtureEmail(firstName: string, eventTitle: string, signupUrl: string, origin: string, unsubscribeUrl: string): string {
   return `<!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
@@ -125,6 +138,7 @@ function buildNurtureEmail(firstName: string, eventTitle: string, signupUrl: str
           <p style="margin:0;font-size:11px;color:#9ca3af;">
             You&apos;re receiving this because you RSVPed to a TALK event.
             TALK Talent Community &bull; <a href="${origin}" style="color:#9ca3af;">${origin.replace('https://', '')}</a>
+            &bull; <a href="${unsubscribeUrl}" style="color:#9ca3af;">Unsubscribe</a>
           </p>
         </td></tr>
       </table>

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { Resend } from 'resend'
+import { unsubUrl, oneClickUnsubscribeHeaders } from '@/lib/unsubscribe'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -42,10 +43,21 @@ export async function GET(req: Request) {
     return NextResponse.json({ sent: 0, message: 'No members to notify' })
   }
 
+  // This used to mail every approved member regardless of the suppression
+  // list — someone who unsubscribed from the newsletter kept getting this
+  // one daily anyway. Same list everywhere else already checks.
+  const { data: unsubRows } = await supabase.from('email_unsubscribes').select('email')
+  const unsubscribed = new Set((unsubRows ?? []).map((r: { email: string }) => r.email.toLowerCase().trim()))
+  const recipients = members.filter(m => m.email && !unsubscribed.has(m.email.toLowerCase().trim()))
+
+  if (recipients.length === 0) {
+    return NextResponse.json({ sent: 0, message: 'No members to notify (all suppressed)' })
+  }
+
   type TopicRow = (typeof topics)[number]
 
   // Build the digest email HTML
-  function buildDigestEmail(firstName: string, topicList: TopicRow[]): string {
+  function buildDigestEmail(firstName: string, topicList: TopicRow[], unsubscribeUrl: string): string {
     const topicRows = topicList.map(t => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const category = (t as any).forum_categories as { name: string; slug: string } | null
@@ -107,7 +119,7 @@ export async function GET(req: Request) {
           <div style="padding:20px 32px;background:#f8f9fa;border-top:1px solid #f0f0f0;text-align:center;">
             <p style="margin:0;font-size:11px;color:#aaa;">
               You're receiving this because you're a TALK community member.<br>
-              <a href="${origin}/profile" style="color:#aaa;">Manage preferences</a>
+              <a href="${origin}/profile" style="color:#aaa;">Manage preferences</a>&nbsp;&nbsp;·&nbsp;&nbsp;<a href="${unsubscribeUrl}" style="color:#aaa;">Unsubscribe</a>
             </p>
           </div>
         </div>
@@ -121,19 +133,21 @@ export async function GET(req: Request) {
   let totalSent = 0
   const errors: string[] = []
 
-  for (let i = 0; i < members.length; i += BATCH_SIZE) {
-    const batch = members.slice(i, i + BATCH_SIZE)
+  for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
+    const batch = recipients.slice(i, i + BATCH_SIZE)
 
     const emails = batch
       .filter(m => m.email)
       .map(m => {
         const firstName = m.full_name?.split(' ')[0] ?? 'there'
+        const u = unsubUrl(origin, m.email!)
         return {
           from,
           replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
           to: m.email!,
           subject: `💬 ${topics!.length} new discussion${topics!.length > 1 ? 's' : ''} in TALK today`,
-          html: buildDigestEmail(firstName, topics!),
+          html: buildDigestEmail(firstName, topics!, u),
+          headers: oneClickUnsubscribeHeaders(origin, m.email!),
         }
       })
 
