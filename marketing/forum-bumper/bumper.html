@@ -118,7 +118,6 @@
 </div>
 
 <script>
-const DURATION = 30;
 const $ = (id) => document.getElementById(id);
 
 // ---------- easing / timing helpers ----------
@@ -199,16 +198,19 @@ function placeLogo(w, cx, cy, clipP) {
   logo.style.clipPath = `inset(${(1 - clipP) * 100}% 0 0 0)`;
 }
 
-// ---------- scene timings (seconds) ----------
-const T = {
-  s1: [0, 4.4],
-  s2: [4.4, 9.8],
-  s3: [9.8, 15.4],
-  s4: [15.4, 21.2],
-  s5: [21.2, 25.6],
-  s6: [25.6, 30],
+// ---------- cuts (seconds) ----------
+// ?cut=15 selects the short version; scenes set to null are skipped in that cut.
+const CUTS = {
+  30: { duration: 30, dockAt: 3.9, pace: 1,
+        T: { s1: [0, 4.4], s2: [4.4, 9.8], s3: [9.8, 15.4], s4: [15.4, 21.2], s5: [21.2, 25.6], s6: [25.6, 30] } },
+  15: { duration: 15, dockAt: 2.5, pace: 0.7,
+        T: { s1: [0, 3.0], s2: [3.0, 6.8], s3: null, s4: [6.8, 11.0], s5: null, s6: [11.0, 15] } },
 };
-const active = (t, [a, b]) => t >= a - 0.01 && t < b + 0.6;
+const CUT = CUTS[new URLSearchParams(location.search).get("cut")] || CUTS[30];
+const T = CUT.T;
+const DURATION = CUT.duration;
+const OFF = [-99, -99]; // timing for a skipped scene: never on screen
+const active = (t, r) => { if (!r) return false; const [a, b] = r; return t >= a - 0.01 && t < b + 0.6; };
 
 function render(t) {
   // background motif: circles bloom in, then drift gently
@@ -219,13 +221,13 @@ function render(t) {
   $("c3").style.transform = `translate(${drift * 10}px, ${-drift * 10}px) scale(${cIn3})`;
 
   // logo choreography
-  const dock = prog(t, 3.9, 0.9, easeInOut);   // centre -> top-left bug
-  const undock = prog(t, 25.6, 1.0, easeInOut); // bug -> centre for end card
+  const dock = prog(t, CUT.dockAt, 0.9, easeInOut);   // centre -> top-left bug
+  const undock = prog(t, T.s6[0], 1.0, easeInOut); // bug -> centre for end card
   const big = { w: 1000, cx: 960, cy: 470 };
   const bug = { w: 230, cx: 144 + 115, cy: 140 };
   const end = { w: 820, cx: 960, cy: 420 };
   let w, cx, cy;
-  if (t < 25.6) { w = lerp(big.w, bug.w, dock); cx = lerp(big.cx, bug.cx, dock); cy = lerp(big.cy, bug.cy, dock); }
+  if (t < T.s6[0]) { w = lerp(big.w, bug.w, dock); cx = lerp(big.cx, bug.cx, dock); cy = lerp(big.cy, bug.cy, dock); }
   else { w = lerp(bug.w, end.w, undock); cx = lerp(bug.cx, end.cx, undock); cy = lerp(bug.cy, end.cy, undock); }
   placeLogo(w, cx, cy, prog(t, 0.6, 1.0, easeOut));
   $("logo").style.opacity = 1;
@@ -234,11 +236,11 @@ function render(t) {
   ["s1", "s2", "s3", "s4", "s5", "s6"].forEach((k) => ($(k).style.display = active(t, T[k]) ? "block" : "none"));
 
   // S1 — open
-  reveal($("s1eyebrow"), t, 1.5, 3.6, { dy: 30 });
-  $("s1eyebrow").style.letterSpacing = `${lerp(0.5, 0.3, prog(t, 1.5, 2.2))}em`;
+  reveal($("s1eyebrow"), t, 1.5 * CUT.pace, CUT.dockAt - 0.3, { dy: 30 });
+  $("s1eyebrow").style.letterSpacing = `${lerp(0.5, 0.3, prog(t, 1.5 * CUT.pace, 2.2))}em`;
 
   // S2 — "The private community for TA leaders."
-  const [a2, b2] = T.s2;
+  const [a2, b2] = T.s2 || OFF;
   reveal($("s2eyebrow"), t, a2 + 0.3, b2 - 0.5, { dy: 24 });
   s2words.forEach((w, i) => {
     const p = prog(t, a2 + 0.5 + i * 0.12, 0.7);
@@ -248,7 +250,7 @@ function render(t) {
   });
 
   // S3 — Curated. Invite-only. Away from the noise.
-  const [a3, b3] = T.s3;
+  const [a3, b3] = T.s3 || OFF;
   reveal($("s3eyebrow"), t, a3 + 0.2, b3 - 0.5, { dy: 24 });
   s3items.forEach((row, i) => {
     const p = prog(t, a3 + 0.4 + i * 0.75, 0.7);
@@ -260,22 +262,22 @@ function render(t) {
   reveal($("s3body"), t, a3 + 2.9, b3 - 0.5, { dy: 30 });
 
   // S4 — 13,000+ counter + proof cards
-  const [a4, b4] = T.s4;
+  const [a4, b4] = T.s4 || OFF;
   reveal($("s4eyebrow"), t, a4 + 0.2, b4 - 0.5, { dy: 24 });
   reveal($("s4num"), t, a4 + 0.3, b4 - 0.5, { dy: 50 });
-  const n = Math.round(13000 * prog(t, a4 + 0.3, 2.0, (p) => 1 - Math.pow(1 - p, 3)) / 50) * 50;
+  const n = Math.round(13000 * prog(t, a4 + 0.3, 2.0 * CUT.pace, (p) => 1 - Math.pow(1 - p, 3)) / 50) * 50;
   $("s4num").textContent = n.toLocaleString("en-US") + (n >= 13000 ? "+" : "");
-  reveal($("s4label"), t, a4 + 1.2, b4 - 0.5, { dy: 30 });
-  reveal($("s4sub"), t, a4 + 1.6, b4 - 0.5, { dy: 30 });
+  reveal($("s4label"), t, a4 + 1.2 * CUT.pace, b4 - 0.5, { dy: 30 });
+  reveal($("s4sub"), t, a4 + 1.6 * CUT.pace, b4 - 0.5, { dy: 30 });
   [$("s4c1"), $("s4c2")].forEach((c, i) => {
-    const p = prog(t, a4 + 2.2 + i * 0.5, 0.8);
+    const p = prog(t, a4 + (2.2 + i * 0.5) * CUT.pace, 0.8);
     const o = prog(t, b4 - 0.5, 0.4, easeIn);
     c.style.opacity = p * (1 - o);
     c.style.transform = `translateX(${(1 - p) * 120}px)`;
   });
 
   // S5 — Built for people who do the work + Connect/Learn/Hire/Grow
-  const [a5, b5] = T.s5;
+  const [a5, b5] = T.s5 || OFF;
   s5words.forEach((w, i) => {
     const p = prog(t, a5 + 0.2 + i * 0.1, 0.7);
     const o = prog(t, b5 - 0.5, 0.4, easeIn);
@@ -296,10 +298,10 @@ function render(t) {
   $("s6url").style.letterSpacing = `${lerp(0.4, 0.22, prog(t, a6 + 1.4, 1.6))}em`;
 
   // footer appears once the logo docks; hides on the end card (URL shown large there)
-  $("footer").style.opacity = prog(t, 4.6, 0.6) * (1 - prog(t, 25.4, 0.4));
+  $("footer").style.opacity = prog(t, CUT.dockAt + 0.7, 0.6) * (1 - prog(t, T.s6[0] - 0.2, 0.4));
 
   // fade from / to navy
-  $("fade").style.opacity = 1 - prog(t, 0, 0.35) + prog(t, 29.3, 0.7, easeIn);
+  $("fade").style.opacity = 1 - prog(t, 0, 0.35) + prog(t, DURATION - 0.7, 0.7, easeIn);
 }
 
 // fit the 1920x1080 stage into the window for previews
