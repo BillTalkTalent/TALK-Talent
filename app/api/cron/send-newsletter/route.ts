@@ -7,6 +7,7 @@ import { getNewsletterStats, buildStatsBlock } from '@/lib/newsletter-stats'
 import { getRecentJobsForNewsletter, buildJobsBlock } from '@/lib/newsletter-jobs'
 import { getOpenToWorkForNewsletter, buildTalentBlock } from '@/lib/newsletter-talent'
 import { getForumTeaserForNewsletter, buildForumTeaserBlock } from '@/lib/newsletter-forum'
+import { getLastWeekRecordingForNewsletter, buildRecordingBlock } from '@/lib/newsletter-recording'
 
 export const maxDuration = 300
 
@@ -48,6 +49,8 @@ export async function GET(req: NextRequest) {
   const talentBlock = buildTalentBlock(openToWork, origin)
   const forumTeaser = await getForumTeaserForNewsletter(adminDb)
   const forumBlock = buildForumTeaserBlock(forumTeaser, origin)
+  const recording = await getLastWeekRecordingForNewsletter(adminDb)
+  const recordingBlock = buildRecordingBlock(recording, origin)
 
   const results = []
   for (const newsletter of newsletters) {
@@ -61,7 +64,7 @@ export async function GET(req: NextRequest) {
     const { sent } = await sendNewsletter(
       adminDb,
       newsletter.subject,
-      (firstName, unsubscribeUrl) => buildEmailHtml(newsletter.subject, newsletter.body_html, firstName, unsubscribeUrl, newsletter.intro, sponsorTop, eventsBlock, statsBlock, jobsBlock, talentBlock, sponsorMid, forumBlock),
+      (firstName, unsubscribeUrl) => buildEmailHtml(newsletter.subject, newsletter.body_html, firstName, unsubscribeUrl, newsletter.intro, sponsorTop, eventsBlock, statsBlock, jobsBlock, talentBlock, sponsorMid, forumBlock, recordingBlock),
       newsletter.id,
     )
     await adminDb.from('newsletters').update({
@@ -79,7 +82,7 @@ export async function GET(req: NextRequest) {
 // compileSectionsToHtml in app/api/admin/newsletter/route.ts.
 const MID_AD_MARKER = '<!--MID_AD_SLOT-->'
 
-function buildEmailHtml(subject: string, rawBodyHtml: string, memberName: string, unsubscribeUrl: string, intro = '', sponsorTop = '', eventsBlock = '', statsBlock = '', jobsBlock = '', talentBlock = '', sponsorMidHtml = '', forumBlock = '') {
+function buildEmailHtml(subject: string, rawBodyHtml: string, memberName: string, unsubscribeUrl: string, intro = '', sponsorTop = '', eventsBlock = '', statsBlock = '', jobsBlock = '', talentBlock = '', sponsorMidHtml = '', forumBlock = '', recordingBlock = '') {
   const introLine = (intro || '').trim() || "Here's your weekly roundup from the TALK community."
   const bodyHtml = rawBodyHtml.replace(MID_AD_MARKER, sponsorMidHtml)
   const issueDate = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
@@ -117,6 +120,7 @@ function buildEmailHtml(subject: string, rawBodyHtml: string, memberName: string
   <!-- Masthead sponsor sits right after the intro — the first thing after
        the personal voice, not buried after every auto-generated widget. -->
   ${sponsorTop}
+  ${recordingBlock}
   ${eventsBlock}
   ${jobsBlock}
   ${talentBlock}
