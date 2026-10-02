@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TALK Forum Bumper</title>
+<!--
+  TALK Community Discussion Forum — 30s intro bumper.
+  Brand system lifted from the TALK roundtable deck (navy #0F1F35 field,
+  layered navy circles top-right, coral #E8503A, ice blue #CADCFC, Calibri).
+  Every frame is a pure function of time: render(t) in seconds.
+  Open in a browser to preview (plays in real time); render.mjs captures frames.
+-->
+<style>
+  @font-face { font-family: "Brand"; font-weight: 400; src: url(assets/carlito-400.woff2) format("woff2"); }
+  @font-face { font-family: "Brand"; font-weight: 700; src: url(assets/carlito-700.woff2) format("woff2"); }
+
+  :root {
+    --navy-deep: #0F1F35;
+    --navy: #1A3A5C;
+    --navy-mid: #2C5480;
+    --coral: #E8503A;
+    --ice: #CADCFC;
+    --periwinkle: #8FA6E8;
+    --white: #FFFFFF;
+  }
+  html, body { margin: 0; background: #000; }
+  #stage {
+    position: relative; width: 1920px; height: 1080px; overflow: hidden;
+    background: var(--navy-deep); color: var(--white);
+    font-family: "Brand", Calibri, Carlito, sans-serif;
+    transform-origin: 0 0;
+  }
+  .abs { position: absolute; }
+  .circle { border-radius: 50%; }
+  .eyebrow {
+    font-weight: 700; font-size: 28px; letter-spacing: 0.22em;
+    color: var(--ice); text-transform: uppercase;
+  }
+  .scene { position: absolute; inset: 0; }
+  .word { display: inline-block; will-change: transform, opacity; }
+  .coral { color: var(--coral); }
+  .h1 { font-weight: 700; font-size: 128px; line-height: 1.02; letter-spacing: -0.01em; }
+  .h2 { font-weight: 700; font-size: 104px; line-height: 1.05; }
+  .body { font-size: 40px; color: var(--ice); line-height: 1.35; }
+  .dot { width: 26px; height: 26px; border-radius: 50%; background: var(--coral); display: inline-block; }
+  .card {
+    background: #16304F; border: 2px solid rgba(143, 166, 232, 0.35);
+    border-radius: 28px; padding: 40px 48px;
+  }
+  .chip {
+    display: inline-flex; align-items: center; gap: 22px;
+    background: var(--white); color: var(--navy-deep);
+    border-radius: 999px; padding: 26px 48px 26px 30px;
+    font-weight: 700; font-size: 52px;
+  }
+  .chip i { width: 58px; height: 58px; border-radius: 50%; display: inline-grid; place-items: center; }
+  .chip svg { width: 32px; height: 32px; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <!-- Deck motif: layered circles, top-right (slide 1 geometry at 144px/in) -->
+  <div id="c1" class="abs circle" style="left:1397px; top:-317px; width:864px; height:864px; background:var(--navy)"></div>
+  <div id="c2" class="abs circle" style="left:1526px; top:-144px; width:461px; height:461px; background:var(--navy-mid)"></div>
+  <div id="c3" class="abs circle" style="left:-260px; top:820px; width:520px; height:520px; background:var(--navy)"></div>
+
+  <!-- Persistent logo: big & centred at open, docks top-left, returns for the end card -->
+  <img id="logo" class="abs" src="assets/talk-logo-light.png" alt="TALK" style="width:1000px; left:0; top:0; transform-origin:0 0">
+
+  <!-- Scene 1: open -->
+  <div id="s1" class="scene">
+    <div id="s1eyebrow" class="abs eyebrow" style="left:0; width:1920px; top:700px; text-align:center; font-size:34px">Community Discussion Forum</div>
+  </div>
+
+  <!-- Scene 2: headline -->
+  <div id="s2" class="scene">
+    <div class="abs eyebrow" id="s2eyebrow" style="left:144px; top:370px">Welcome to TALK</div>
+    <div class="abs h1" style="left:144px; top:430px; width:1500px" id="s2h"></div>
+  </div>
+
+  <!-- Scene 3: curated -->
+  <div id="s3" class="scene">
+    <div class="abs eyebrow" id="s3eyebrow" style="left:144px; top:300px">Who's in the room</div>
+    <div class="abs" style="left:144px; top:370px" id="s3list"></div>
+    <div class="abs body" id="s3body" style="left:144px; top:820px; width:1400px">Every member is reviewed and approved — no lurkers, no spam.</div>
+  </div>
+
+  <!-- Scene 4: stats -->
+  <div id="s4" class="scene">
+    <div class="abs eyebrow" id="s4eyebrow" style="left:144px; top:330px">Your peers, in one place</div>
+    <div class="abs" id="s4num" style="left:136px; top:380px; font-weight:700; font-size:260px; line-height:1; letter-spacing:-0.02em">13,000+</div>
+    <div class="abs body" id="s4label" style="left:144px; top:660px; font-size:48px; color:var(--white)">TA leaders across North America</div>
+    <div class="abs body" id="s4sub" style="left:144px; top:730px; font-size:36px; color:var(--periwinkle)">and growing global chapters</div>
+    <div class="abs card" id="s4c1" style="left:1150px; top:380px; width:560px">
+      <div style="font-weight:700; font-size:44px; line-height:1.15">Run by practitioners,<br>for practitioners</div>
+    </div>
+    <div class="abs card" id="s4c2" style="left:1150px; top:600px; width:560px">
+      <div style="font-weight:700; font-size:44px; line-height:1.15"><span class="coral">Zero</span> vendor bias</div>
+    </div>
+  </div>
+
+  <!-- Scene 5: built for -->
+  <div id="s5" class="scene">
+    <div class="abs h2" id="s5h" style="left:144px; top:300px; width:1600px"></div>
+    <div class="abs" id="s5chips" style="left:144px; top:640px; display:flex; gap:32px"></div>
+  </div>
+
+  <!-- Scene 6: end card -->
+  <div id="s6" class="scene">
+    <div class="abs h2" id="s6h" style="left:0; width:1920px; top:640px; text-align:center; font-size:84px">Let's keep the conversation going.</div>
+    <div class="abs eyebrow" id="s6url" style="left:0; width:1920px; top:780px; text-align:center; font-size:34px; color:var(--periwinkle)">talktalent.com</div>
+  </div>
+
+  <!-- Deck-style footer line -->
+  <div id="footer" class="abs" style="left:144px; top:985px; font-size:26px; color:var(--periwinkle)">TALK Community Discussion Forum&nbsp;&nbsp;·&nbsp;&nbsp;talktalent.com</div>
+
+  <div id="fade" class="abs" style="inset:0; background:var(--navy-deep); pointer-events:none"></div>
+</div>
+
+<script>
+const DURATION = 30;
+const $ = (id) => document.getElementById(id);
+
+// ---------- easing / timing helpers ----------
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, p) => a + (b - a) * p;
+const easeOut = (p) => 1 - Math.pow(1 - p, 4);
+const easeInOut = (p) => (p < 0.5 ? 8 * p ** 4 : 1 - Math.pow(-2 * p + 2, 4) / 2);
+const easeIn = (p) => p ** 3;
+const backOut = (p) => { const c = 1.6; return 1 + (c + 1) * (p - 1) ** 3 + c * (p - 1) ** 2; };
+// progress of a tween that starts at `s` and lasts `d` seconds
+const prog = (t, s, d, ease = easeOut) => ease(clamp((t - s) / d));
+
+// rise-and-fade in, fade-and-lift out
+function reveal(el, t, inAt, outAt, { dy = 60, inDur = 0.7, outDur = 0.45 } = {}) {
+  const pi = prog(t, inAt, inDur);
+  const po = outAt == null ? 0 : prog(t, outAt, outDur, easeIn);
+  el.style.opacity = pi * (1 - po);
+  el.style.transform = `translateY(${(1 - pi) * dy - po * 30}px)`;
+}
+
+// ---------- build word-split text ----------
+function words(container, html) {
+  container.innerHTML = html;
+  const out = [];
+  const walk = (node) => {
+    [...node.childNodes].forEach((n) => {
+      if (n.nodeType === 3) {
+        const frag = document.createDocumentFragment();
+        n.textContent.split(/(\s+)/).forEach((w) => {
+          if (!w) return;
+          if (/^\s+$/.test(w)) { frag.appendChild(document.createTextNode(w)); return; }
+          const s = document.createElement("span"); s.className = "word"; s.textContent = w;
+          frag.appendChild(s); out.push(s);
+        });
+        n.replaceWith(frag);
+      } else if (n.tagName !== "BR") walk(n);
+    });
+  };
+  walk(container);
+  return out;
+}
+
+const s2words = words($("s2h"), 'The private community<br>for <span class="coral">TA leaders.</span>');
+const s5words = words($("s5h"), 'Built for people who<br><span class="coral">do the work.</span>');
+
+const s3items = ["Curated.", "Invite-only.", "Away from the noise."].map((txt, i) => {
+  const row = document.createElement("div");
+  row.style.cssText = "display:flex; align-items:center; gap:36px; height:136px";
+  row.innerHTML = `<span class="dot"></span><span class="h2" style="font-size:112px">${txt}</span>`;
+  $("s3list").appendChild(row);
+  return row;
+});
+
+const ICONS = {
+  Connect: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><circle cx="8" cy="9" r="3"/><circle cx="17" cy="9" r="3"/><path d="M2.5 19c.8-3 3-4.5 5.5-4.5s4.7 1.5 5.5 4.5M12.5 15.2c1.2-.5 2.5-.7 4.5-.7 2.5 0 4.2 1.5 5 4.5"/></svg>',
+  Learn: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.5 12 4l10 4.5L12 13 2 8.5Z"/><path d="M6 10.5V16c2 2 10 2 12 0v-5.5"/></svg>',
+  Hire: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"><rect x="3" y="7.5" width="18" height="12" rx="2.5"/><path d="M9 7.5V5.5a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 5.5v2"/></svg>',
+  Grow: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17 9.5 10.5l4 4L21 7"/><path d="M15 7h6v6"/></svg>',
+};
+const chipColors = ["#E8503A", "#EA580C", "#7C3AED", "#3B82F6"]; // deck accent set
+const s5chips = Object.keys(ICONS).map((k, i) => {
+  const c = document.createElement("div");
+  c.className = "chip";
+  c.innerHTML = `<i style="background:${chipColors[i]}">${ICONS[k]}</i>${k}`;
+  $("s5chips").appendChild(c);
+  return c;
+});
+
+// ---------- logo placement ----------
+const LOGO_RATIO = 711 / 2000;
+function placeLogo(w, cx, cy, clipP) {
+  const h = w * LOGO_RATIO;
+  const logo = $("logo");
+  logo.style.width = w + "px";
+  logo.style.left = cx - w / 2 + "px";
+  logo.style.top = cy - h / 2 + "px";
+  // vertical wipe-up reveal of the wordmark
+  logo.style.clipPath = `inset(${(1 - clipP) * 100}% 0 0 0)`;
+}
+
+// ---------- scene timings (seconds) ----------
+const T = {
+  s1: [0, 4.4],
+  s2: [4.4, 9.8],
+  s3: [9.8, 15.4],
+  s4: [15.4, 21.2],
+  s5: [21.2, 25.6],
+  s6: [25.6, 30],
+};
+const active = (t, [a, b]) => t >= a - 0.01 && t < b + 0.6;
+
+function render(t) {
+  // background motif: circles bloom in, then drift gently
+  const cIn1 = prog(t, 0.0, 1.4, backOut), cIn2 = prog(t, 0.25, 1.4, backOut), cIn3 = prog(t, 0.5, 1.6, backOut);
+  const drift = Math.sin(t * 0.35);
+  $("c1").style.transform = `translate(${drift * 14}px, ${drift * 8}px) scale(${cIn1})`;
+  $("c2").style.transform = `translate(${-drift * 22}px, ${drift * 14}px) scale(${cIn2})`;
+  $("c3").style.transform = `translate(${drift * 10}px, ${-drift * 10}px) scale(${cIn3})`;
+
+  // logo choreography
+  const dock = prog(t, 3.9, 0.9, easeInOut);   // centre -> top-left bug
+  const undock = prog(t, 25.6, 1.0, easeInOut); // bug -> centre for end card
+  const big = { w: 1000, cx: 960, cy: 470 };
+  const bug = { w: 230, cx: 144 + 115, cy: 140 };
+  const end = { w: 820, cx: 960, cy: 420 };
+  let w, cx, cy;
+  if (t < 25.6) { w = lerp(big.w, bug.w, dock); cx = lerp(big.cx, bug.cx, dock); cy = lerp(big.cy, bug.cy, dock); }
+  else { w = lerp(bug.w, end.w, undock); cx = lerp(bug.cx, end.cx, undock); cy = lerp(bug.cy, end.cy, undock); }
+  placeLogo(w, cx, cy, prog(t, 0.6, 1.0, easeOut));
+  $("logo").style.opacity = 1;
+
+  // scene visibility
+  ["s1", "s2", "s3", "s4", "s5", "s6"].forEach((k) => ($(k).style.display = active(t, T[k]) ? "block" : "none"));
+
+  // S1 — open
+  reveal($("s1eyebrow"), t, 1.5, 3.6, { dy: 30 });
+  $("s1eyebrow").style.letterSpacing = `${lerp(0.5, 0.3, prog(t, 1.5, 2.2))}em`;
+
+  // S2 — "The private community for TA leaders."
+  const [a2, b2] = T.s2;
+  reveal($("s2eyebrow"), t, a2 + 0.3, b2 - 0.5, { dy: 24 });
+  s2words.forEach((w, i) => {
+    const p = prog(t, a2 + 0.5 + i * 0.12, 0.7);
+    const o = prog(t, b2 - 0.5 + i * 0.03, 0.4, easeIn);
+    w.style.opacity = p * (1 - o);
+    w.style.transform = `translateY(${(1 - p) * 90 - o * 40}px)`;
+  });
+
+  // S3 — Curated. Invite-only. Away from the noise.
+  const [a3, b3] = T.s3;
+  reveal($("s3eyebrow"), t, a3 + 0.2, b3 - 0.5, { dy: 24 });
+  s3items.forEach((row, i) => {
+    const p = prog(t, a3 + 0.4 + i * 0.75, 0.7);
+    const o = prog(t, b3 - 0.5 + i * 0.05, 0.4, easeIn);
+    row.style.opacity = p * (1 - o);
+    row.style.transform = `translateX(${(1 - p) * -80}px) translateY(${-o * 30}px)`;
+    row.querySelector(".dot").style.transform = `scale(${prog(t, a3 + 0.5 + i * 0.75, 0.6, backOut)})`;
+  });
+  reveal($("s3body"), t, a3 + 2.9, b3 - 0.5, { dy: 30 });
+
+  // S4 — 13,000+ counter + proof cards
+  const [a4, b4] = T.s4;
+  reveal($("s4eyebrow"), t, a4 + 0.2, b4 - 0.5, { dy: 24 });
+  reveal($("s4num"), t, a4 + 0.3, b4 - 0.5, { dy: 50 });
+  const n = Math.round(13000 * prog(t, a4 + 0.3, 2.0, (p) => 1 - Math.pow(1 - p, 3)) / 50) * 50;
+  $("s4num").textContent = n.toLocaleString("en-US") + (n >= 13000 ? "+" : "");
+  reveal($("s4label"), t, a4 + 1.2, b4 - 0.5, { dy: 30 });
+  reveal($("s4sub"), t, a4 + 1.6, b4 - 0.5, { dy: 30 });
+  [$("s4c1"), $("s4c2")].forEach((c, i) => {
+    const p = prog(t, a4 + 2.2 + i * 0.5, 0.8);
+    const o = prog(t, b4 - 0.5, 0.4, easeIn);
+    c.style.opacity = p * (1 - o);
+    c.style.transform = `translateX(${(1 - p) * 120}px)`;
+  });
+
+  // S5 — Built for people who do the work + Connect/Learn/Hire/Grow
+  const [a5, b5] = T.s5;
+  s5words.forEach((w, i) => {
+    const p = prog(t, a5 + 0.2 + i * 0.1, 0.7);
+    const o = prog(t, b5 - 0.5, 0.4, easeIn);
+    w.style.opacity = p * (1 - o);
+    w.style.transform = `translateY(${(1 - p) * 90 - o * 40}px)`;
+  });
+  s5chips.forEach((c, i) => {
+    const p = prog(t, a5 + 1.5 + i * 0.28, 0.6, backOut);
+    const o = prog(t, b5 - 0.5 + i * 0.04, 0.4, easeIn);
+    c.style.opacity = clamp(p) * (1 - o);
+    c.style.transform = `scale(${lerp(0.6, 1, p)}) translateY(${-o * 30}px)`;
+  });
+
+  // S6 — end card
+  const [a6] = T.s6;
+  reveal($("s6h"), t, a6 + 0.9, null, { dy: 50 });
+  reveal($("s6url"), t, a6 + 1.4, null, { dy: 30 });
+  $("s6url").style.letterSpacing = `${lerp(0.4, 0.22, prog(t, a6 + 1.4, 1.6))}em`;
+
+  // footer appears once the logo docks; hides on the end card (URL shown large there)
+  $("footer").style.opacity = prog(t, 4.6, 0.6) * (1 - prog(t, 25.4, 0.4));
+
+  // fade from / to navy
+  $("fade").style.opacity = 1 - prog(t, 0, 0.35) + prog(t, 29.3, 0.7, easeIn);
+}
+
+// fit the 1920x1080 stage into the window for previews
+function fit() {
+  const s = Math.min(innerWidth / 1920, innerHeight / 1080);
+  $("stage").style.transform = `scale(${s})`;
+}
+window.render = render;
+window.DURATION = DURATION;
+
+if (!new URLSearchParams(location.search).has("capture")) {
+  addEventListener("resize", fit); fit();
+  let t0 = null;
+  const loop = (now) => { if (t0 == null) t0 = now; render(((now - t0) / 1000) % DURATION); requestAnimationFrame(loop); };
+  document.fonts.ready.then(() => requestAnimationFrame(loop));
+} else {
+  render(0);
+}
+</script>
+</body>
+</html>
