@@ -46,3 +46,12 @@
     }
   ]
 }
+{
+  "redirects": [
+    {
+      "source": "/teengineer",
+      "destination": "https://44905764.hs-sites.com/talent-engineer",
+      "permanent": false
+    }
+  ]
+}
