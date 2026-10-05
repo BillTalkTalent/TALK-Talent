@@ -1,48 +1,22 @@
 {
   "crons": [
+    { "path": "/api/cron/send-newsletter", "schedule": "*/10 * * * *" },
+    { "path": "/api/cron/event-reminders", "schedule": "0 10 * * *" },
+    { "path": "/api/cron/forum-digest", "schedule": "0 9 * * *" },
+    { "path": "/api/cron/ta-news-digest", "schedule": "0 7 * * *" },
+    { "path": "/api/cron/activity-snapshot", "schedule": "55 23 * * *" },
+    { "path": "/api/cron/send-member-emails", "schedule": "*/15 * * * *" },
+    { "path": "/api/cron/event-digest", "schedule": "0 13 * * 4" },
+    { "path": "/api/cron/guest-nurture", "schedule": "0 14 * * *" },
+    { "path": "/api/cron/process-topic-notifications", "schedule": "*/5 * * * *" },
+    { "path": "/api/cron/incomplete-profile-nudge", "schedule": "0 15 * * *" },
+    { "path": "/api/cron/chapter-weekly-prompt", "schedule": "0 8 * * 1" }
+  ],
+  "redirects": [
     {
-      "path": "/api/cron/send-newsletter",
-      "schedule": "*/10 * * * *"
-    },
-    {
-      "path": "/api/cron/event-reminders",
-      "schedule": "0 10 * * *"
-    },
-    {
-      "path": "/api/cron/forum-digest",
-      "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/cron/ta-news-digest",
-      "schedule": "0 7 * * *"
-    },
-    {
-      "path": "/api/cron/activity-snapshot",
-      "schedule": "55 23 * * *"
-    },
-    {
-      "path": "/api/cron/send-member-emails",
-      "schedule": "*/15 * * * *"
-    },
-    {
-      "path": "/api/cron/event-digest",
-      "schedule": "0 13 * * 4"
-    },
-    {
-      "path": "/api/cron/guest-nurture",
-      "schedule": "0 14 * * *"
-    },
-    {
-      "path": "/api/cron/process-topic-notifications",
-      "schedule": "*/5 * * * *"
-    },
-    {
-      "path": "/api/cron/incomplete-profile-nudge",
-      "schedule": "0 15 * * *"
-    },
-    {
-      "path": "/api/cron/chapter-weekly-prompt",
-      "schedule": "0 8 * * 1"
+      "source": "/teengineer",
+      "destination": "https://44905764.hs-sites.com/talent-engineer",
+      "permanent": false
     }
   ]
 }

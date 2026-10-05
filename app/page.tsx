@@ -8,6 +8,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { formatInZone } from '@/lib/timezone'
 import { formatPrice } from '@/lib/format-price'
 import ScrollReveal from '@/components/scroll-reveal'
+import WorkshopBanner from '@/components/workshop-banner'
 
 // Renders per-request rather than being frozen into the static build — the
 // events section needs to reflect whatever's actually published right now,
@@ -121,6 +122,7 @@ export default async function LandingPage() {
 
       {/* ── Nav ── */}
       <header className="fixed top-0 left-0 right-0 z-50" style={{ background: `linear-gradient(90deg, ${N.navA}, ${N.navB})` }}>
+        <WorkshopBanner />
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Wordmark size={26} />
           <div className="flex items-center gap-3">
