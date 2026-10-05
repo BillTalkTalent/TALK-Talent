@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendNewsletter } from '@/lib/newsletter-send'
 import { getActiveSponsor, buildSponsorTop, buildSponsorMid } from '@/lib/newsletter-sponsor'
-import { getUpcomingEventsForNewsletter, buildUpcomingEventsBlock } from '@/lib/newsletter-events'
+import { getUpcomingEventsForNewsletter, buildThisWeeksDiscussionBlock } from '@/lib/newsletter-events'
 import { getNewsletterStats, buildStatsBlock } from '@/lib/newsletter-stats'
 import { getRecentJobsForNewsletter, buildJobsBlock } from '@/lib/newsletter-jobs'
 import { getOpenToWorkForNewsletter, buildTalentBlock } from '@/lib/newsletter-talent'
@@ -189,8 +189,8 @@ export async function POST(req: NextRequest) {
     const sponsorTop = sponsor ? buildSponsorTop(sponsor) : ''
     const sponsorMid = midSponsor ? buildSponsorMid(midSponsor) : ''
     const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
-    const upcomingEvents = await getUpcomingEventsForNewsletter(adminDb, { windowDays: 7 })
-    const eventsBlock = buildUpcomingEventsBlock(upcomingEvents, origin)
+    const [thisWeeksEvent] = await getUpcomingEventsForNewsletter(adminDb, { limit: 1 })
+    const eventsBlock = buildThisWeeksDiscussionBlock(thisWeeksEvent, origin)
     const stats = await getNewsletterStats(adminDb)
     const statsBlock = buildStatsBlock(stats)
     const recentJobs = await getRecentJobsForNewsletter(adminDb)
@@ -254,8 +254,8 @@ export async function POST(req: NextRequest) {
   const sponsorMid = midSponsor ? buildSponsorMid(midSponsor) : ''
 
   const sendOrigin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
-  const upcomingEvents = await getUpcomingEventsForNewsletter(adminDb, { windowDays: 7 })
-  const eventsBlock = buildUpcomingEventsBlock(upcomingEvents, sendOrigin)
+  const [thisWeeksEvent] = await getUpcomingEventsForNewsletter(adminDb, { limit: 1 })
+  const eventsBlock = buildThisWeeksDiscussionBlock(thisWeeksEvent, sendOrigin)
   const stats = await getNewsletterStats(adminDb)
   const statsBlock = buildStatsBlock(stats)
   const recentJobs = await getRecentJobsForNewsletter(adminDb)
