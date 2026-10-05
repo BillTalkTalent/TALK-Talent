@@ -155,11 +155,19 @@ export default async function AdminMembersPage({
     .eq('status', 'approved')
     .eq('is_bot', false)
   if (q) {
-    // Strip characters that would break PostgREST's or() filter grammar.
-    const like = `%${q.replace(/[,()*]/g, ' ').trim()}%`
-    membersQuery = membersQuery.or(
-      `full_name.ilike.${like},email.ilike.${like},company.ilike.${like},title.ilike.${like}`,
-    )
+    // One .or() per word, ANDed together by chaining — a plain single-phrase
+    // substring match missed anyone whose name has a middle initial, suffix,
+    // or anything else between the words searched (e.g. searching "David
+    // Marr" found "David Marr, CIR, CSSR" but silently missed "David M
+    // Marr" — the actual other half of a real duplicate-account case).
+    // Matching each word independently, in any field, finds both.
+    const words = q.replace(/[,()*]/g, ' ').trim().split(/\s+/).filter(Boolean)
+    for (const word of words) {
+      const like = `%${word}%`
+      membersQuery = membersQuery.or(
+        `full_name.ilike.${like},email.ilike.${like},company.ilike.${like},title.ilike.${like}`,
+      )
+    }
   }
 
   const [
