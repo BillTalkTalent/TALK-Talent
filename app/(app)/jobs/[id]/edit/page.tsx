@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import { format } from "date-fns";
+import { JOB_DURATION_OPTIONS, computeExpiresAt } from "@/lib/job-duration";
 
 type JobType = "full-time" | "part-time" | "contract" | "fractional" | "interim";
 
@@ -31,6 +33,13 @@ export default function EditJobPage() {
   const [applyEmail, setApplyEmail] = useState("");
   const [salaryMin, setSalaryMin] = useState("");
   const [salaryMax, setSalaryMax] = useState("");
+  // "unchanged" (the default) leaves expires_at untouched so editing an
+  // unrelated field — fixing a typo, say — can't silently wipe out an
+  // expiration someone deliberately set. Only picking a real option here
+  // changes it.
+  const [duration, setDuration] = useState("unchanged");
+  const [currentExpiresAt, setCurrentExpiresAt] = useState<string | null>(null);
+  const EDIT_DURATION_OPTIONS = [{ value: "unchanged", label: "Leave as-is" }, ...JOB_DURATION_OPTIONS];
 
   useEffect(() => {
     async function load() {
@@ -57,6 +66,7 @@ export default function EditJobPage() {
       setApplyEmail(job.apply_email ?? "");
       setSalaryMin(job.salary_min ? String(job.salary_min) : "");
       setSalaryMax(job.salary_max ? String(job.salary_max) : "");
+      setCurrentExpiresAt(job.expires_at ?? null);
       setLoading(false);
     }
     load();
@@ -69,22 +79,28 @@ export default function EditJobPage() {
     setSubmitting(true);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updates: any = {
+      title: title.trim(),
+      company: company.trim(),
+      company_url: companyUrl.trim() || null,
+      location: location.trim() || null,
+      is_remote: isRemote,
+      job_type: jobType,
+      seniority: seniority.trim() || null,
+      description: description.trim(),
+      apply_url: applyUrl.trim() || null,
+      apply_email: applyEmail.trim() || null,
+      salary_min: salaryMin ? parseInt(salaryMin, 10) : null,
+      salary_max: salaryMax ? parseInt(salaryMax, 10) : null,
+    };
+    if (duration !== "unchanged") {
+      updates.expires_at = computeExpiresAt(duration);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error } = await (supabase as any)
       .from("job_posts")
-      .update({
-        title: title.trim(),
-        company: company.trim(),
-        company_url: companyUrl.trim() || null,
-        location: location.trim() || null,
-        is_remote: isRemote,
-        job_type: jobType,
-        seniority: seniority.trim() || null,
-        description: description.trim(),
-        apply_url: applyUrl.trim() || null,
-        apply_email: applyEmail.trim() || null,
-        salary_min: salaryMin ? parseInt(salaryMin, 10) : null,
-        salary_max: salaryMax ? parseInt(salaryMax, 10) : null,
-      })
+      .update(updates)
       .eq("id", id);
 
     if (error) {
@@ -192,6 +208,26 @@ export default function EditJobPage() {
                 <Input id="salaryMax" type="number" value={salaryMax} onChange={e => setSalaryMax(e.target.value)} min={0} disabled={submitting} />
               </div>
             </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="duration">Listing duration</Label>
+            <p className="text-xs text-muted-foreground">
+              {currentExpiresAt
+                ? `Currently set to close automatically on ${format(new Date(currentExpiresAt), "MMM d, yyyy")}.`
+                : "Currently set to never expire."}
+            </p>
+            <select
+              id="duration"
+              value={duration}
+              onChange={e => setDuration(e.target.value)}
+              disabled={submitting}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+            >
+              {EDIT_DURATION_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
           </div>
 
           <div className="flex gap-2 justify-end pt-2">

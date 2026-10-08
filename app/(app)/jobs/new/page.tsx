@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
+import { JOB_DURATION_OPTIONS, computeExpiresAt } from "@/lib/job-duration";
 
 type JobType = "full-time" | "part-time" | "contract" | "fractional" | "interim";
 
@@ -31,6 +32,7 @@ export default function NewJobPage() {
   const [applyEmail, setApplyEmail] = useState("");
   const [salaryMin, setSalaryMin] = useState("");
   const [salaryMax, setSalaryMax] = useState("");
+  const [duration, setDuration] = useState("");
 
   // Pre-fill company from user profile
   useEffect(() => {
@@ -79,6 +81,7 @@ export default function NewJobPage() {
         salary_min: salaryMin ? parseInt(salaryMin, 10) : null,
         salary_max: salaryMax ? parseInt(salaryMax, 10) : null,
         status: "active",
+        expires_at: computeExpiresAt(duration),
       })
       .select()
       .single();
@@ -274,6 +277,25 @@ export default function NewJobPage() {
                   />
                 </div>
               </div>
+            </div>
+
+            {/* Listing duration */}
+            <div className="space-y-1.5">
+              <Label htmlFor="duration">Listing duration</Label>
+              <select
+                id="duration"
+                value={duration}
+                onChange={(e) => setDuration(e.target.value)}
+                disabled={submitting}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {JOB_DURATION_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground">
+                The listing closes itself automatically after this long. You can also close or reopen it anytime from the listing page.
+              </p>
             </div>
 
             <div className="flex gap-2 justify-end pt-2">

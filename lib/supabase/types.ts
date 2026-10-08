@@ -477,6 +477,7 @@ export type Database = {
           salary_currency: string;
           is_featured: boolean;
           status: 'active' | 'closed' | 'draft';
+          expires_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -497,6 +498,7 @@ export type Database = {
           salary_currency?: string;
           is_featured?: boolean;
           status?: 'active' | 'closed' | 'draft';
+          expires_at?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["job_posts"]["Insert"]>;
         Relationships: [

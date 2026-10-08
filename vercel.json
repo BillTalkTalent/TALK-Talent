@@ -10,7 +10,8 @@
     { "path": "/api/cron/guest-nurture", "schedule": "0 14 * * *" },
     { "path": "/api/cron/process-topic-notifications", "schedule": "*/5 * * * *" },
     { "path": "/api/cron/incomplete-profile-nudge", "schedule": "0 15 * * *" },
-    { "path": "/api/cron/chapter-weekly-prompt", "schedule": "0 8 * * 1" }
+    { "path": "/api/cron/chapter-weekly-prompt", "schedule": "0 8 * * 1" },
+    { "path": "/api/cron/expire-jobs", "schedule": "0 6 * * *" }
   ],
   "redirects": [
     {

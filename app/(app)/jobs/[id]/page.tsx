@@ -5,8 +5,9 @@ import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { ShareOnLinkedInButton } from "@/components/share-on-linkedin-button";
 import { buildLinkedInShareText } from "@/lib/linkedin-share-text";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format } from "date-fns";
 import { ArrowLeft, MapPin, ExternalLink, Mail, Clock, Pencil } from "lucide-react";
+import JobStatusToggle from "./job-status-toggle";
 
 const JOB_TYPE_LABELS: Record<string, string> = {
   "full-time": "Full-time",
@@ -114,6 +115,11 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                 ⭐ Featured
               </span>
             )}
+            {job.status !== "active" && (
+              <span className="inline-flex items-center text-[10px] font-bold uppercase tracking-wide text-zinc-600 bg-zinc-100 border border-zinc-200 px-1.5 py-0.5 rounded-md mb-2 ml-1.5">
+                Closed
+              </span>
+            )}
             <h1 className="text-2xl font-bold text-foreground leading-snug">{job.title}</h1>
             <div className="flex items-center gap-3 mt-1.5 flex-wrap">
               <span className="font-semibold text-foreground">{job.company}</span>
@@ -150,16 +156,27 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
           <span className="ml-auto flex items-center gap-1 text-xs text-muted-foreground">
             <Clock className="size-3" />
             Posted {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
+            {job.expires_at && (
+              <>
+                {" · "}
+                {new Date(job.expires_at) > new Date()
+                  ? `Expires ${format(new Date(job.expires_at), "MMM d, yyyy")}`
+                  : `Expired ${format(new Date(job.expires_at), "MMM d, yyyy")}`}
+              </>
+            )}
           </span>
         </div>
 
         {/* Apply / Edit buttons */}
         <div className="pt-1 flex items-center gap-3">
         {isAuthor && (
-          <Link href={`/jobs/${id}/edit`}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:bg-muted transition-colors">
-            <Pencil className="size-3.5" /> Edit listing
-          </Link>
+          <>
+            <Link href={`/jobs/${id}/edit`}
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:bg-muted transition-colors">
+              <Pencil className="size-3.5" /> Edit listing
+            </Link>
+            <JobStatusToggle jobId={id} status={job.status} />
+          </>
         )}
         {applyHref && (
           <div>
