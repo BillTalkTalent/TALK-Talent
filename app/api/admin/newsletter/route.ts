@@ -9,6 +9,7 @@ import { getRecentJobsForNewsletter, buildJobsBlock } from '@/lib/newsletter-job
 import { getOpenToWorkForNewsletter, buildTalentBlock } from '@/lib/newsletter-talent'
 import { getForumTeaserForNewsletter, buildForumTeaserBlock } from '@/lib/newsletter-forum'
 import { getLastWeekRecordingForNewsletter, buildRecordingBlock } from '@/lib/newsletter-recording'
+import { PROMPT_AND_CIRCUMSTANCE_CALLOUT } from '@/lib/newsletter-promo'
 import { unsubUrl } from '@/lib/unsubscribe'
 import { buildNewsletterTextFromHtml } from '@/lib/email'
 import { Resend } from 'resend'
@@ -139,6 +140,8 @@ function buildEmailHtml(subject: string, sections: Record<string, string>, membe
     <hr style="border:none;border-top:1px solid #f3f4f6;margin-bottom:28px;">
     ${sectionsHtml}
   </td></tr>
+
+  ${PROMPT_AND_CIRCUMSTANCE_CALLOUT}
 
   <!-- Footer -->
   <tr><td style="background:#f9fafb;border-top:1px solid #f3f4f6;border-radius:0 0 16px 16px;padding:24px 36px;text-align:center;">
