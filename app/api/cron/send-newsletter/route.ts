@@ -124,12 +124,12 @@ function buildEmailHtml(subject: string, rawBodyHtml: string, memberName: string
   ${recordingBlock}
   ${eventsBlock}
   ${jobsBlock}
+  ${PROMPT_AND_CIRCUMSTANCE_CALLOUT}
   ${talentBlock}
   ${forumBlock}
   <tr><td style="background:#fff;padding:8px 36px 32px;">
     <div class="prose">${bodyHtml}</div>
   </td></tr>
-  ${PROMPT_AND_CIRCUMSTANCE_CALLOUT}
   <tr><td style="background:#f9fafb;border-top:1px solid #f3f4f6;border-radius:0 0 16px 16px;padding:20px 36px;text-align:center;">
     <p style="margin:0 0 14px;color:#6b7280;font-size:12px;line-height:1.6;">
       TALK is a community for Talent Acquisition leaders to connect, share what's working, and grow together —

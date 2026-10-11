@@ -131,6 +131,11 @@ function buildEmailHtml(subject: string, sections: Record<string, string>, membe
 
   ${jobsBlock}
 
+  <!-- Mid-newsletter — a natural breather between the job board and the
+       talent/forum sections, instead of competing with the footer where a
+       plain text line was too easy to scroll past. -->
+  ${PROMPT_AND_CIRCUMSTANCE_CALLOUT}
+
   ${talentBlock}
 
   ${forumBlock}
@@ -140,8 +145,6 @@ function buildEmailHtml(subject: string, sections: Record<string, string>, membe
     <hr style="border:none;border-top:1px solid #f3f4f6;margin-bottom:28px;">
     ${sectionsHtml}
   </td></tr>
-
-  ${PROMPT_AND_CIRCUMSTANCE_CALLOUT}
 
   <!-- Footer -->
   <tr><td style="background:#f9fafb;border-top:1px solid #f3f4f6;border-radius:0 0 16px 16px;padding:24px 36px;text-align:center;">
