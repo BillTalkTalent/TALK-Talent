@@ -13,7 +13,8 @@
     { "path": "/api/cron/process-job-notifications", "schedule": "*/5 * * * *" },
     { "path": "/api/cron/incomplete-profile-nudge", "schedule": "0 15 * * *" },
     { "path": "/api/cron/chapter-weekly-prompt", "schedule": "0 8 * * 1" },
-    { "path": "/api/cron/expire-jobs", "schedule": "0 6 * * *" }
+    { "path": "/api/cron/expire-jobs", "schedule": "0 6 * * *" },
+    { "path": "/api/cron/rsvp-nudge", "schedule": "0 17 * * *" }
   ],
   "redirects": [
     {

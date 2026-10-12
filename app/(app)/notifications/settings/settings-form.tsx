@@ -53,7 +53,7 @@ const ROWS: { key: keyof Prefs; label: string; section: 'email' | 'push' }[] = [
   { key: 'push_mentions', label: 'When someone @mentions you', section: 'push' },
   { key: 'push_poll_comments', label: 'Comments on your polls', section: 'push' },
   { key: 'push_poll_votes', label: 'Votes on your polls', section: 'push' },
-  { key: 'push_events', label: 'Upcoming events', section: 'push' },
+  { key: 'push_events', label: "Reminder to RSVP for this week's event", section: 'push' },
   { key: 'push_new_polls', label: 'When a new poll is posted', section: 'push' },
   { key: 'push_new_jobs', label: 'When a new job is posted', section: 'push' },
 ]
