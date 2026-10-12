@@ -18,6 +18,7 @@ interface Prefs {
   push_poll_comments: boolean
   push_poll_votes: boolean
   push_events: boolean
+  push_new_polls: boolean
 }
 
 const DEFAULTS: Prefs = {
@@ -34,6 +35,7 @@ const DEFAULTS: Prefs = {
   push_poll_comments: true,
   push_poll_votes: true,
   push_events: true,
+  push_new_polls: true,
 }
 
 const ROWS: { key: keyof Prefs; label: string; section: 'email' | 'push' }[] = [
@@ -50,6 +52,7 @@ const ROWS: { key: keyof Prefs; label: string; section: 'email' | 'push' }[] = [
   { key: 'push_poll_comments', label: 'Comments on your polls', section: 'push' },
   { key: 'push_poll_votes', label: 'Votes on your polls', section: 'push' },
   { key: 'push_events', label: 'Upcoming events', section: 'push' },
+  { key: 'push_new_polls', label: 'When a new poll is posted', section: 'push' },
 ]
 
 export default function SettingsForm({ userId, initialPrefs }: { userId: string; initialPrefs: Partial<Prefs> | null }) {
