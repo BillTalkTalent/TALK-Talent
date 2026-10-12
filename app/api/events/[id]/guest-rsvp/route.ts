@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Resend } from "resend";
-import { formatInZone } from "@/lib/timezone";
+import { buildGuestPendingEmail } from "@/lib/guest-rsvp-email";
 
 // Public — no TALK account needed. Only works for an event an admin has
 // explicitly opted into guest RSVPs (events.allow_guest_rsvp), which is the
@@ -9,12 +9,6 @@ import { formatInZone } from "@/lib/timezone";
 // non-members. See migration 083.
 const isEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
 const isLinkedIn = (s: string) => /linkedin\.com\//i.test(s);
-
-function icsFor(event: { title: string; description: string | null; event_date: string; end_date: string | null; is_virtual: boolean; virtual_url: string | null; venue_name: string | null; location: string | null }): string {
-  const fmt = (d: string) => new Date(d).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
-  const location = event.is_virtual ? (event.virtual_url ?? "Online") : [event.venue_name, event.location].filter(Boolean).join(", ");
-  return `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nSUMMARY:${event.title}\r\nDTSTART:${fmt(event.event_date)}\r\nDTEND:${fmt(event.end_date ?? event.event_date)}\r\nDESCRIPTION:${(event.description ?? "").slice(0, 400).replace(/\r?\n/g, "\\n")}\r\nLOCATION:${location}\r\nEND:VEVENT\r\nEND:VCALENDAR`;
-}
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: eventId } = await params;
@@ -50,14 +44,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   // form-filling bot will. Pretend success without touching the DB or
   // sending an email — don't tip the bot off that it was caught.
   if (typeof company === "string" && company.trim()) {
-    return NextResponse.json({
-      ok: true,
-      rsvpId: "00000000-0000-0000-0000-000000000000",
-      is_virtual: false,
-      virtual_url: null,
-      venue_name: null,
-      location: null,
-    });
+    return NextResponse.json({ ok: true, rsvpId: "00000000-0000-0000-0000-000000000000", status: "pending" });
   }
 
   const name = (fullName ?? "").trim();
@@ -70,7 +57,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const { data: event } = await adminDb
     .from("events")
-    .select("id, title, description, event_date, end_date, is_virtual, virtual_url, venue_name, location, allow_guest_rsvp, status, timezone")
+    .select("id, title, allow_guest_rsvp, status, event_date")
     .eq("id", eventId)
     .single();
 
@@ -81,10 +68,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "This event has already happened." }, { status: 400 });
   }
 
+  // Starts as 'pending' — an admin has to approve it before it's a real
+  // "going" RSVP. See migration 099.
   const { data: rsvpRow, error } = await adminDb
     .from("event_guest_rsvps")
     .upsert(
-      { event_id: eventId, full_name: name, email: mail, linkedin_url: li, status: "going" },
+      { event_id: eventId, full_name: name, email: mail, linkedin_url: li, status: "pending" },
       { onConflict: "event_id,email" }
     )
     .select("id")
@@ -92,42 +81,70 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   if (error) return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
 
-  // Best-effort confirmation — a failed email shouldn't fail the RSVP.
+  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.talktalent.com";
+
+  // Best-effort holding email — a failed send shouldn't fail the RSVP.
   try {
     const resend = new Resend(process.env.RESEND_API_KEY);
     const from = process.env.FROM_EMAIL ?? "TALK Community <onboarding@resend.dev>";
-    const origin = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.talktalent.com";
-    // event_date is stored as a UTC instant — format it in the event's own
-    // timezone (not the server's, which on Vercel is UTC) or a webinar
-    // scheduled for 1pm ET shows up in the email as 5pm.
-    const when = formatInZone(event.event_date, event.timezone || "America/New_York");
-    const cancelUrl = `${origin}/events/${eventId}/cancel-rsvp?rsvp=${rsvpRow.id}`;
 
     await resend.emails.send({
       from,
       replyTo: process.env.REPLY_TO_EMAIL ?? "bill@talktalent.com",
       to: mail,
-      subject: `You're going: ${event.title}`,
-      html: `
-        <p>Hi ${name.split(" ")[0]},</p>
-        <p>You're confirmed for <strong>${event.title}</strong> — ${when}.</p>
-        <p><a href="${origin}/events/${eventId}">View event details</a></p>
-        <p>A calendar invite is attached.</p>
-        <p style="color:#667;font-size:13px;">Can't make it anymore? <a href="${cancelUrl}">Cancel your RSVP</a>.</p>
-      `,
-      attachments: [{ filename: "event.ics", content: icsFor(event) }],
+      subject: `We got your RSVP: ${event.title}`,
+      html: buildGuestPendingEmail({ firstName: name.split(" ")[0], eventTitle: event.title, eventId, origin }),
     });
   } catch {
     // Notification failure shouldn't block the RSVP itself.
   }
 
-  // Only revealed now, post-RSVP — not to anyone browsing the public page.
-  return NextResponse.json({
-    ok: true,
-    rsvpId: rsvpRow.id,
-    is_virtual: event.is_virtual,
-    virtual_url: event.is_virtual ? event.virtual_url : null,
-    venue_name: event.venue_name,
-    location: event.location,
-  });
+  // Best-effort admin alert so a pending RSVP doesn't just sit unreviewed —
+  // same opt-in flag used for new-member alerts, since both are "someone
+  // new wants in and needs your review."
+  try {
+    const { data: admins } = await adminDb
+      .from("profiles")
+      .select("id, email")
+      .eq("role", "admin")
+      .eq("status", "approved")
+      .eq("receive_new_member_alerts", true);
+
+    if (admins && admins.length > 0) {
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      const from = process.env.FROM_EMAIL ?? "TALK Community <onboarding@resend.dev>";
+      const reviewUrl = `${origin}/admin/guest-rsvps`;
+
+      await Promise.allSettled(
+        admins.map((a: { email: string }) =>
+          resend.emails.send({
+            from,
+            replyTo: process.env.REPLY_TO_EMAIL ?? "bill@talktalent.com",
+            to: a.email,
+            subject: `New guest RSVP to review: ${event.title}`,
+            html: `<p>${name} (${mail}) just RSVPed to <strong>${event.title}</strong> and is waiting on your review.</p><p><a href="${reviewUrl}">Review in Admin Panel →</a></p>`,
+          })
+        )
+      );
+
+      await Promise.allSettled(
+        admins.map((a: { id: string }) =>
+          adminDb.from("notifications").insert({
+            user_id: a.id,
+            type: "guest_rsvp_pending",
+            title: "New guest RSVP to review",
+            body: `${name} RSVPed to ${event.title}.`,
+            link: "/admin/guest-rsvps",
+            is_read: false,
+          })
+        )
+      );
+    }
+  } catch {
+    // Admin alert failure shouldn't block the RSVP itself.
+  }
+
+  // Location/virtual-link details are withheld until an admin approves —
+  // revealing them here, before review, would defeat the point of the gate.
+  return NextResponse.json({ ok: true, rsvpId: rsvpRow.id, status: "pending" });
 }

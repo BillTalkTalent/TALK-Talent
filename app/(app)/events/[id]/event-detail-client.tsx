@@ -225,7 +225,7 @@ function GuestRsvpForm({ event, eventId }: { event: PaidEvent; eventId: string }
   const [company, setCompany] = useState(""); // honeypot — left blank by real visitors
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [confirmed, setConfirmed] = useState<{ rsvpId: string; is_virtual: boolean; virtual_url: string | null; venue_name: string | null; location: string | null } | null>(null);
+  const [confirmed, setConfirmed] = useState<{ rsvpId: string; status: string } | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -251,26 +251,12 @@ function GuestRsvpForm({ event, eventId }: { event: PaidEvent; eventId: string }
         <div className="flex items-start gap-2.5">
           <CheckCircle2 className="size-5 text-emerald-500 shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-bold text-emerald-900">You&apos;re on the list!</p>
-            <p className="text-xs text-emerald-700 mt-0.5">A confirmation with a calendar invite is on its way to {email}.</p>
+            <p className="text-sm font-bold text-emerald-900">We got your RSVP!</p>
+            <p className="text-xs text-emerald-700 mt-0.5">
+              Someone from TALK will review it shortly. You&apos;ll get a confirmation email with the full details and a calendar invite once you&apos;re approved.
+            </p>
           </div>
         </div>
-        {confirmed.is_virtual && confirmed.virtual_url && (
-          <a
-            href={confirmed.virtual_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 w-full px-5 py-2.5 rounded-lg text-sm font-bold text-white transition-all hover:scale-[1.01]"
-            style={{ background: "#0d9488" }}
-          >
-            <ExternalLink className="size-4" /> Join Virtual Event
-          </a>
-        )}
-        {!confirmed.is_virtual && (confirmed.venue_name || confirmed.location) && (
-          <p className="text-sm text-emerald-800">
-            <MapPin className="inline size-3.5 mb-0.5" /> {confirmed.venue_name ?? confirmed.location}
-          </p>
-        )}
         <div className="space-y-1">
           <p className="text-xs font-medium text-emerald-700/70">Add to calendar:</p>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
