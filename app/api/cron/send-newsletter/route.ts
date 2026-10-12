@@ -55,6 +55,26 @@ export async function GET(req: NextRequest) {
 
   const results = []
   for (const newsletter of newsletters) {
+    // Atomically claim this row before sending anything. Without this, if
+    // this route ever runs twice close together for the same newsletter —
+    // a Vercel cron retry, an overlapping invocation, anything — both runs
+    // would see status='scheduled' and both send the full batch to every
+    // recipient, since status only flips to 'sent' at the very end. The
+    // conditional UPDATE below only succeeds for whichever invocation gets
+    // there first; Postgres's row-level locking makes the two outcomes
+    // (claimed vs. not) mutually exclusive even if both requests land at
+    // nearly the same instant.
+    const { data: claimed } = await adminDb
+      .from('newsletters')
+      .update({ status: 'sending' })
+      .eq('id', newsletter.id)
+      .eq('status', 'scheduled')
+      .select('id')
+    if (!claimed || claimed.length === 0) {
+      results.push({ id: newsletter.id, sent: 0, skipped: 'already claimed by another run' })
+      continue
+    }
+
     const sponsor = newsletter.skip_sponsor ? null : await getActiveSponsor(adminDb, 'masthead')
     const midSponsor = newsletter.skip_sponsor ? null : await getActiveSponsor(adminDb, 'mid')
     const sponsorTop = sponsor ? buildSponsorTop(sponsor) : ''
