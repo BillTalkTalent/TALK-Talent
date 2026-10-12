@@ -18,21 +18,37 @@ export async function GET(request: NextRequest) {
   }
 
   const admin = createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = admin as any
   const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const events = await getUpcomingEventsForNewsletter(admin as any, { limit: 25 })
+  const events = await getUpcomingEventsForNewsletter(db, { limit: 25 })
   if (events.length === 0) {
     return NextResponse.json({ sent: 0, message: 'No upcoming events — nothing to send' })
   }
 
+  // The soonest event (events[0], same "next real event" ordering the
+  // newsletter's own spotlight uses) gets led with as its own card instead
+  // of buried in the flat list — same reasoning as the newsletter's
+  // single-event spotlight: this is the one real RSVP-driving CTA, the
+  // rest below is just an fyi calendar.
+  const spotlight = events[0]
+  const restEvents = events.slice(1)
+
+  const [{ count: memberGoing }, { count: guestGoing }, { data: extRow }] = await Promise.all([
+    db.from('event_rsvps').select('id', { count: 'exact', head: true }).eq('event_id', spotlight.id).eq('status', 'going'),
+    db.from('event_guest_rsvps').select('id', { count: 'exact', head: true }).eq('event_id', spotlight.id).eq('status', 'going'),
+    db.from('events').select('external_attendee_count').eq('id', spotlight.id).single(),
+  ])
+  const spotlightGoingCount = (memberGoing ?? 0) + (guestGoing ?? 0) + (extRow?.external_attendee_count ?? 0)
+
   const { sent, skipped, total } = await sendBulkEmail(admin, {
     subject: `${events.length} upcoming event${events.length > 1 ? 's' : ''} at TALK`,
     renderEmail: (u) => ({
-      html: buildEventDigestEmail(events, origin, u),
-      text: buildEventDigestText(events, origin, u),
+      html: buildEventDigestEmail(spotlight, spotlightGoingCount, restEvents, origin, u),
+      text: buildEventDigestText(spotlight, spotlightGoingCount, restEvents, origin, u),
     }),
   })
 
-  return NextResponse.json({ sent, skipped, total, events: events.length })
+  return NextResponse.json({ sent, skipped, total, events: events.length, spotlightGoingCount })
 }

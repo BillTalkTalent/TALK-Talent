@@ -1,11 +1,14 @@
 import { emailShell } from '@/lib/email'
-import type { NewsletterEvent } from '@/lib/newsletter-events'
+import { buildThisWeeksDiscussionCard, type NewsletterEvent } from '@/lib/newsletter-events'
 import { formatInZone } from '@/lib/timezone'
 
 // Weekly "here's what's coming up" email — app/api/cron/event-digest.
-// Groups events into In-Person / Virtual sections (rather than one flat
-// list) and ends with a CTA to /topics/suggest so members can pitch what
-// they want a future event or discussion to cover.
+// Leads with a spotlight on the soonest event (same pitch + live "going"
+// count as the Monday newsletter's single-event spotlight) since a flat
+// list of up to 25 events had no urgency or CTA of its own — then groups
+// the rest into In-Person / Virtual sections and ends with a CTA to
+// /topics/suggest so members can pitch what they want a future event or
+// discussion to cover.
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
@@ -65,9 +68,9 @@ const TOPIC_CTA_HTML = (origin: string) => `
     </a>
   </div>`
 
-export function buildEventDigestEmail(events: NewsletterEvent[], origin: string, unsubscribeUrl: string): string {
-  const inPerson = events.filter((e) => !e.is_virtual)
-  const virtual = events.filter((e) => e.is_virtual)
+export function buildEventDigestEmail(spotlight: NewsletterEvent | null, spotlightGoingCount: number, restEvents: NewsletterEvent[], origin: string, unsubscribeUrl: string): string {
+  const inPerson = restEvents.filter((e) => !e.is_virtual)
+  const virtual = restEvents.filter((e) => e.is_virtual)
 
   const intro = `
     <p style="margin:0 0 4px;font-size:15px;color:#374151;">Hi there,</p>
@@ -76,6 +79,7 @@ export function buildEventDigestEmail(events: NewsletterEvent[], origin: string,
     </p>`
 
   const body = `${intro}
+    ${buildThisWeeksDiscussionCard(spotlight, origin, spotlightGoingCount)}
     ${eventSection('In-person events', '#E8503A', inPerson, origin)}
     ${eventSection('Virtual events', '#7c3aed', virtual, origin)}
     ${TOPIC_CTA_HTML(origin)}`
@@ -83,9 +87,9 @@ export function buildEventDigestEmail(events: NewsletterEvent[], origin: string,
   return emailShell(body, unsubscribeUrl)
 }
 
-export function buildEventDigestText(events: NewsletterEvent[], origin: string, unsubscribeUrl: string): string {
-  const inPerson = events.filter((e) => !e.is_virtual)
-  const virtual = events.filter((e) => e.is_virtual)
+export function buildEventDigestText(spotlight: NewsletterEvent | null, spotlightGoingCount: number, restEvents: NewsletterEvent[], origin: string, unsubscribeUrl: string): string {
+  const inPerson = restEvents.filter((e) => !e.is_virtual)
+  const virtual = restEvents.filter((e) => e.is_virtual)
 
   const lineFor = (e: NewsletterEvent) => {
     const tz = e.timezone || 'America/New_York'
@@ -99,11 +103,15 @@ export function buildEventDigestText(events: NewsletterEvent[], origin: string, 
   const section = (label: string, list: NewsletterEvent[]) =>
     list.length === 0 ? '' : `${label.toUpperCase()}\n${list.map(lineFor).join('\n\n')}\n\n`
 
+  const spotlightText = spotlight
+    ? `THIS WEEK'S DISCUSSION: ${spotlight.title}${spotlightGoingCount > 0 ? ` (${spotlightGoingCount} already going)` : ''}\n${spotlight.description ? spotlight.description.trim().slice(0, 320) + '\n' : ''}${origin}/events/${spotlight.id}\n\n`
+    : ''
+
   return `Hi there,
 
 Here's what's coming up at TALK this week.
 
-${section('In-person events', inPerson)}${section('Virtual events', virtual)}Want us to cover something specific? Suggest a topic for a future event or discussion:
+${spotlightText}${section('In-person events', inPerson)}${section('Virtual events', virtual)}Want us to cover something specific? Suggest a topic for a future event or discussion:
 ${origin}/topics/suggest
 
 — TALK Talent Community

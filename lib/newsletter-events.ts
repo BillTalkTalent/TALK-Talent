@@ -75,9 +75,10 @@ function cityFor(e: NewsletterEvent): string | null {
 //
 // Returns '' (renders nothing) when there's no upcoming event, same
 // graceful-hide pattern as the rest of the newsletter's blocks.
-export function buildThisWeeksDiscussionBlock(event: NewsletterEvent | null | undefined, origin: string): string {
-  if (!event) return ''
-
+// Shared innards for the spotlight — just the badge/title/date/pitch/CTA
+// stack, with no outer wrapper, so each caller can drop it into whatever
+// table-row vs. plain-div shell its email shell expects.
+function discussionCardInner(event: NewsletterEvent, origin: string, goingCount?: number): string {
   const tz = event.timezone || 'America/New_York'
   const dateLine = formatInZone(event.event_date, tz, { year: undefined })
   const city = event.is_virtual ? 'Virtual' : cityFor(event)
@@ -90,17 +91,46 @@ export function buildThisWeeksDiscussionBlock(event: NewsletterEvent | null | un
     ? (why.length > 320 ? `${why.slice(0, 317).trim()}…` : why)
     : "Join fellow TA leaders for this week's live discussion — bring your questions, trade notes with peers who've been there."
 
+  // Social proof only once there's something to show off — an empty
+  // "0 people going" line undercuts the urgency it's meant to create.
+  const goingLine = goingCount && goingCount > 0
+    ? `<p style="margin:0 0 14px;font-size:12px;font-weight:700;color:#E8503A;">${goingCount} ${goingCount === 1 ? 'person' : 'people'} already going</p>`
+    : ''
+
+  return `
+  <p style="margin:0;font-size:10px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:#9ca3af;">This week's discussion</p>
+  <p style="margin:6px 0 4px;font-size:18px;font-weight:800;color:#0F1F35;line-height:1.3;">${esc(event.title)}</p>
+  <p style="margin:0 0 10px;font-size:13px;color:#6b7280;">${esc(dateLine)}${locationLine ? ` &middot; ${esc(locationLine)}` : ''}</p>
+  ${goingLine}
+  <p style="margin:0 0 18px;font-size:14px;color:#374151;line-height:1.6;">${esc(whyLine)}</p>
+  <a href="${url}" style="display:inline-block;padding:11px 24px;background:#E8503A;color:#ffffff;font-weight:700;font-size:13px;text-decoration:none;border-radius:8px;">Save Your Spot &rarr;</a>`
+}
+
+export function buildThisWeeksDiscussionBlock(event: NewsletterEvent | null | undefined, origin: string, goingCount?: number): string {
+  if (!event) return ''
+
   return `
   <tr><td style="background:#fff;padding:6px 36px 26px;">
     <table cellpadding="0" cellspacing="0" width="100%" style="border:1px solid #eef0f2;border-radius:14px;overflow:hidden;">
       <tr><td style="background:linear-gradient(90deg,#E8503A,#F07058);height:4px;line-height:4px;font-size:0;">&nbsp;</td></tr>
       <tr><td style="padding:22px 24px;">
-        <p style="margin:0;font-size:10px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:#9ca3af;">This week's discussion</p>
-        <p style="margin:6px 0 4px;font-size:18px;font-weight:800;color:#0F1F35;line-height:1.3;">${esc(event.title)}</p>
-        <p style="margin:0 0 14px;font-size:13px;color:#6b7280;">${esc(dateLine)}${locationLine ? ` &middot; ${esc(locationLine)}` : ''}</p>
-        <p style="margin:0 0 18px;font-size:14px;color:#374151;line-height:1.6;">${esc(whyLine)}</p>
-        <a href="${url}" style="display:inline-block;padding:11px 24px;background:#E8503A;color:#ffffff;font-weight:700;font-size:13px;text-decoration:none;border-radius:8px;">Save Your Spot &rarr;</a>
+        ${discussionCardInner(event, origin, goingCount)}
       </td></tr>
     </table>
   </td></tr>`
+}
+
+// Same spotlight, as a standalone div for emails whose shell (lib/email.ts
+// emailShell) drops the body straight into a <td> rather than building its
+// own <table> of <tr> rows — e.g. the Thursday event-digest.
+export function buildThisWeeksDiscussionCard(event: NewsletterEvent | null | undefined, origin: string, goingCount?: number): string {
+  if (!event) return ''
+
+  return `
+  <div style="border:1px solid #eef0f2;border-radius:14px;overflow:hidden;margin-bottom:20px;">
+    <div style="background:linear-gradient(90deg,#E8503A,#F07058);height:4px;line-height:4px;font-size:0;">&nbsp;</div>
+    <div style="padding:22px 24px;">
+      ${discussionCardInner(event, origin, goingCount)}
+    </div>
+  </div>`
 }

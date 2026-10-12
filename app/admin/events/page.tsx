@@ -32,10 +32,20 @@ async function sendEventDigestTest(): Promise<{ ok: boolean; to?: string; error?
   if (!to) return { ok: false, error: 'No email on your account.' }
 
   const admin = createAdminClient()
-  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const events = await getUpcomingEventsForNewsletter(admin as any, { limit: 25 })
+  const db = admin as any
+  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
+  const events = await getUpcomingEventsForNewsletter(db, { limit: 25 })
   if (events.length === 0) return { ok: false, error: 'No upcoming events to preview right now.' }
+
+  const spotlight = events[0]
+  const restEvents = events.slice(1)
+  const [{ count: memberGoing }, { count: guestGoing }, { data: extRow }] = await Promise.all([
+    db.from('event_rsvps').select('id', { count: 'exact', head: true }).eq('event_id', spotlight.id).eq('status', 'going'),
+    db.from('event_guest_rsvps').select('id', { count: 'exact', head: true }).eq('event_id', spotlight.id).eq('status', 'going'),
+    db.from('events').select('external_attendee_count').eq('id', spotlight.id).single(),
+  ])
+  const spotlightGoingCount = (memberGoing ?? 0) + (guestGoing ?? 0) + (extRow?.external_attendee_count ?? 0)
 
   const resend = new Resend(process.env.RESEND_API_KEY)
   const from = process.env.FROM_EMAIL ?? 'TALK Community <onboarding@resend.dev>'
@@ -46,8 +56,8 @@ async function sendEventDigestTest(): Promise<{ ok: boolean; to?: string; error?
       replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
       to,
       subject: `[TEST] ${events.length} upcoming event${events.length > 1 ? 's' : ''} at TALK`,
-      html: buildEventDigestEmail(events, origin, u),
-      text: buildEventDigestText(events, origin, u),
+      html: buildEventDigestEmail(spotlight, spotlightGoingCount, restEvents, origin, u),
+      text: buildEventDigestText(spotlight, spotlightGoingCount, restEvents, origin, u),
     })
     return { ok: true, to }
   } catch {
