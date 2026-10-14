@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Resend } from "resend";
-import { buildGuestPendingEmail } from "@/lib/guest-rsvp-email";
+import { formatInZone } from "@/lib/timezone";
+import { buildGuestPendingEmail, buildGuestConfirmedEmail, icsFor } from "@/lib/guest-rsvp-email";
 
 // Public — no TALK account needed. Only works for an event an admin has
 // explicitly opted into guest RSVPs (events.allow_guest_rsvp), which is the
@@ -57,7 +58,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const { data: event } = await adminDb
     .from("events")
-    .select("id, title, allow_guest_rsvp, status, event_date")
+    .select("id, title, description, allow_guest_rsvp, status, event_date, end_date, is_virtual, virtual_url, venue_name, location, timezone")
     .eq("id", eventId)
     .single();
 
@@ -68,12 +69,19 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "This event has already happened." }, { status: 400 });
   }
 
-  // Starts as 'pending' — an admin has to approve it before it's a real
-  // "going" RSVP. See migration 099.
+  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.talktalent.com";
+  const firstName = name.split(" ")[0];
+
+  // Approval is only for non-members showing up to a real, local, in-person
+  // event — not a blanket gate on every guest RSVP. A virtual event (the
+  // weekly discussion, webinars) auto-confirms immediately, same as before
+  // migration 099.
+  const requiresApproval = !event.is_virtual;
+
   const { data: rsvpRow, error } = await adminDb
     .from("event_guest_rsvps")
     .upsert(
-      { event_id: eventId, full_name: name, email: mail, linkedin_url: li, status: "pending" },
+      { event_id: eventId, full_name: name, email: mail, linkedin_url: li, status: requiresApproval ? "pending" : "going" },
       { onConflict: "event_id,email" }
     )
     .select("id")
@@ -81,19 +89,39 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   if (error) return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
 
-  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.talktalent.com";
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const from = process.env.FROM_EMAIL ?? "TALK Community <onboarding@resend.dev>";
+
+  if (!requiresApproval) {
+    // Auto-confirmed — send the real confirmation (calendar invite
+    // included) right away, same content approveGuestRsvp sends for the
+    // in-person/pending path once an admin signs off.
+    try {
+      const when = formatInZone(event.event_date, event.timezone || "America/New_York");
+      const cancelUrl = `${origin}/events/${eventId}/cancel-rsvp?rsvp=${rsvpRow.id}`;
+      await resend.emails.send({
+        from,
+        replyTo: process.env.REPLY_TO_EMAIL ?? "bill@talktalent.com",
+        to: mail,
+        subject: `You're confirmed: ${event.title}`,
+        html: buildGuestConfirmedEmail({ firstName, eventTitle: event.title, eventId, when, origin, cancelUrl }),
+        attachments: [{ filename: "event.ics", content: icsFor(event) }],
+      });
+    } catch {
+      // Notification failure shouldn't block the RSVP itself.
+    }
+
+    return NextResponse.json({ ok: true, rsvpId: rsvpRow.id, status: "going" });
+  }
 
   // Best-effort holding email — a failed send shouldn't fail the RSVP.
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY);
-    const from = process.env.FROM_EMAIL ?? "TALK Community <onboarding@resend.dev>";
-
     await resend.emails.send({
       from,
       replyTo: process.env.REPLY_TO_EMAIL ?? "bill@talktalent.com",
       to: mail,
       subject: `We got your RSVP: ${event.title}`,
-      html: buildGuestPendingEmail({ firstName: name.split(" ")[0], eventTitle: event.title, eventId, origin }),
+      html: buildGuestPendingEmail({ firstName, eventTitle: event.title, eventId, origin }),
     });
   } catch {
     // Notification failure shouldn't block the RSVP itself.
@@ -111,8 +139,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       .eq("receive_new_member_alerts", true);
 
     if (admins && admins.length > 0) {
-      const resend = new Resend(process.env.RESEND_API_KEY);
-      const from = process.env.FROM_EMAIL ?? "TALK Community <onboarding@resend.dev>";
       const reviewUrl = `${origin}/admin/guest-rsvps`;
 
       await Promise.allSettled(

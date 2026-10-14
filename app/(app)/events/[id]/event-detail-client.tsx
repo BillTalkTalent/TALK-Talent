@@ -251,9 +251,13 @@ function GuestRsvpForm({ event, eventId }: { event: PaidEvent; eventId: string }
         <div className="flex items-start gap-2.5">
           <CheckCircle2 className="size-5 text-emerald-500 shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-bold text-emerald-900">We got your RSVP!</p>
+            <p className="text-sm font-bold text-emerald-900">
+              {confirmed.status === "going" ? "You're confirmed!" : "We got your RSVP!"}
+            </p>
             <p className="text-xs text-emerald-700 mt-0.5">
-              Someone from TALK will review it shortly. You&apos;ll get a confirmation email with the full details and a calendar invite once you&apos;re approved.
+              {confirmed.status === "going"
+                ? "Check your email for the full details and a calendar invite."
+                : "Someone from TALK will review it shortly. You’ll get a confirmation email with the full details and a calendar invite once you’re approved."}
             </p>
           </div>
         </div>
