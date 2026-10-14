@@ -34,6 +34,23 @@ export default async function DashboardPage() {
   const ninetyDaysAgo = new Date();
   ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
 
+  // Fetched ahead of the main batch below so the vote-count query can be
+  // scoped to just these polls' ids — selecting poll_votes unfiltered hit
+  // PostgREST's default 1000-row cap (poll_votes has 17k+ rows across every
+  // poll ever run) and silently dropped whichever polls' votes didn't fall
+  // in that arbitrary slice, showing 0 for real, currently-active polls.
+  const { data: activePollsRaw } = await supabase
+    .from("polls")
+    .select("id, question, closes_at, status")
+    .neq("status", "closed")
+    .order("created_at", { ascending: false })
+    .limit(5);
+  const activePollIds = (activePollsRaw ?? []).map((p) => p.id);
+  // .in() with an empty array errors client-side — fall back to a value
+  // that matches nothing rather than skipping the filter (which would
+  // reintroduce the unfiltered-table-scan bug this is fixing).
+  const pollIdsFilter = activePollIds.length > 0 ? activePollIds : ["00000000-0000-0000-0000-000000000000"];
+
   const [
     profileResult,
     eventsResult,
@@ -49,7 +66,6 @@ export default async function DashboardPage() {
     myChapterMembershipsResult,
     trendingTopicsResult,
     recentRepliesResult,
-    activePollsResult,
     allPollVotesResult,
     myPollVotesResult,
     unreadNotificationsResult,
@@ -121,22 +137,18 @@ export default async function DashboardPage() {
       .from("forum_replies")
       .select("topic_id")
       .gte("created_at", ninetyDaysAgo.toISOString()),
-    // Active polls
-    supabase
-      .from("polls")
-      .select("id, question, closes_at, status")
-      .neq("status", "closed")
-      .order("created_at", { ascending: false })
-      .limit(5),
-    // Total vote counts per poll (all users)
+    // Total vote counts per poll (all users) — scoped to the active polls
+    // fetched above, not the whole table (see comment above).
     supabase
       .from("poll_votes")
-      .select("poll_id"),
+      .select("poll_id")
+      .in("poll_id", pollIdsFilter),
     // Which polls the current user has voted on
     supabase
       .from("poll_votes")
       .select("poll_id")
-      .eq("user_id", user?.id ?? ""),
+      .eq("user_id", user?.id ?? "")
+      .in("poll_id", pollIdsFilter),
     // Unread notifications count
     supabase
       .from("notifications")
@@ -248,7 +260,7 @@ export default async function DashboardPage() {
 
   // Active polls — exclude any past closes_at even if status is still "open"
   type PollEntry = { id: string; question: string; closes_at: string | null; status: string };
-  const activePolls = ((activePollsResult.data ?? []) as PollEntry[]).filter(
+  const activePolls = ((activePollsRaw ?? []) as PollEntry[]).filter(
     (p) => !p.closes_at || new Date(p.closes_at) > new Date()
   );
   // Vote counts per poll (all users)
