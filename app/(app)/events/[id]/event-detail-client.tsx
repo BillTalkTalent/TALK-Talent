@@ -395,11 +395,6 @@ function PublicEventTeaser({ event, eventId }: { event: PaidEvent; eventId: stri
               {formatPrice(event.price!, event.currency)}
             </span>
           )}
-          {typeof event.going_count === "number" && event.going_count > 0 && (
-            <span className="inline-flex items-center gap-1 text-sm font-semibold" style={{ color: "#5A7090" }}>
-              <Users className="size-3.5" /> {event.going_count} going
-            </span>
-          )}
         </div>
 
         <div className="rounded-2xl bg-white border shadow-sm mt-6 divide-y" style={{ borderColor: "#DDE6F0" }}>
