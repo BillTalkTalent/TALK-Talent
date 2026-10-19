@@ -125,26 +125,29 @@ function buildEmailHtml(subject: string, sections: Record<string, string>, membe
        the personal voice, not buried after every auto-generated widget. -->
   ${sponsorTop}
 
-  ${recordingBlock}
-
   ${eventsBlock}
+
+  <!-- Sections (Industry News, Career Opportunities, etc.) lead right after
+       the week's discussion — on a phone, these plus the discussion spotlight
+       are what a member actually scrolls for. The auto-generated widgets
+       below (job board, Open to Work, the sponsor promo, last week's
+       recording) used to sit ahead of this and ate the whole first screen
+       before a reader got to anything written for that issue. -->
+  <tr><td style="background:#fff;padding:8px 36px 32px;">
+    ${sectionsHtml}
+  </td></tr>
 
   ${jobsBlock}
 
-  <!-- Mid-newsletter — a natural breather between the job board and the
-       talent/forum sections, instead of competing with the footer where a
-       plain text line was too easy to scroll past. -->
-  ${PROMPT_AND_CIRCUMSTANCE_CALLOUT}
-
   ${talentBlock}
+
+  <!-- From Bill's Desk — a natural breather between the news/jobs sections
+       above and the forum/recording below. -->
+  ${PROMPT_AND_CIRCUMSTANCE_CALLOUT}
 
   ${forumBlock}
 
-  <!-- Sections -->
-  <tr><td style="background:#fff;padding:8px 36px 32px;">
-    <hr style="border:none;border-top:1px solid #f3f4f6;margin-bottom:28px;">
-    ${sectionsHtml}
-  </td></tr>
+  ${recordingBlock}
 
   <!-- Footer -->
   <tr><td style="background:#f9fafb;border-top:1px solid #f3f4f6;border-radius:0 0 16px 16px;padding:24px 36px;text-align:center;">

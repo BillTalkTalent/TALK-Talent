@@ -24,11 +24,13 @@ export type NewsletterJob = {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function getRecentJobsForNewsletter(adminDb: any, limit = 3): Promise<NewsletterJob[]> {
+  // Strictly newest-to-oldest — a featured-first secondary sort used to
+  // override this, which could show an older featured post ahead of a
+  // newer one.
   const { data } = await adminDb
     .from('job_posts')
     .select('id, title, company, location, is_remote, is_featured, salary_min, salary_max, profiles(full_name)')
     .eq('status', 'active')
-    .order('is_featured', { ascending: false })
     .order('created_at', { ascending: false })
     .limit(limit)
   return data ?? []
