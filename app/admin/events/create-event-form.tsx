@@ -95,6 +95,7 @@ export default function CreateEventForm({ chapters }: { chapters: ChapterOption[
       const isVirtual = eventType !== "in_person"; // virtual + hybrid have a link
       const additionalChapterIds = fd.getAll("additional_chapter_ids") as string[];
       const allowGuestRsvp = (fd.get("allow_guest_rsvp") as string) === "on";
+      const newsletterFeature = (fd.get("newsletter_feature") as string) === "on";
       const externalAttendeeCountStr = fd.get("external_attendee_count") as string;
       const externalAttendeeCount = externalAttendeeCountStr ? Math.max(0, parseInt(externalAttendeeCountStr, 10)) : 0;
 
@@ -121,6 +122,7 @@ export default function CreateEventForm({ chapters }: { chapters: ChapterOption[
         price: priceCents,
         currency: (fd.get("currency") as string) || "usd",
         allow_guest_rsvp: allowGuestRsvp,
+        newsletter_feature: newsletterFeature,
         external_attendee_count: externalAttendeeCount,
         organizer_id: (await supabase.auth.getUser()).data.user?.id,
       });
@@ -386,6 +388,26 @@ export default function CreateEventForm({ chapters }: { chapters: ChapterOption[
         <p className="text-xs text-zinc-400">
           Anyone with the event link can RSVP with just their name, email, and LinkedIn profile — no account or
           approval needed. Good for a recruiting/growth event; leave off for members-first events.
+        </p>
+      </div>
+
+      {/* Newsletter spotlight override */}
+      <div className="sm:col-span-2 rounded-xl border border-zinc-200 p-4 space-y-2">
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="newsletter_feature"
+            name="newsletter_feature"
+            className="size-4 rounded border-zinc-300"
+          />
+          <Label htmlFor="newsletter_feature" className="cursor-pointer font-semibold">
+            Feature in newsletter/digest spotlight
+          </Label>
+        </div>
+        <p className="text-xs text-zinc-400">
+          The newsletter and Thursday digest normally spotlight whichever upcoming event is chronologically soonest —
+          check this when a second event (a chapter meet-and-greet, a happy hour) happens to land first that same
+          week, so the one actually worth a member&apos;s attention gets the slot instead.
         </p>
       </div>
 

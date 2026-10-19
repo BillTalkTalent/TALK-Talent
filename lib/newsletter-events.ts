@@ -19,6 +19,7 @@ export type NewsletterEvent = {
   is_virtual: boolean
   description: string | null
   chapters: { name: string } | null
+  newsletter_feature?: boolean
 }
 
 export async function getUpcomingEventsForNewsletter(
@@ -26,13 +27,18 @@ export async function getUpcomingEventsForNewsletter(
   adminDb: any,
   opts: { limit?: number; windowDays?: number } = {},
 ): Promise<NewsletterEvent[]> {
+  // newsletter_feature first — an admin-flagged event always wins the
+  // spotlight (and leads a full event list) over pure chronological order,
+  // so two same-week events don't leave the wrong one picked just for
+  // happening a couple hours earlier in the day.
   let query = adminDb
     .from('events')
-    .select('id, title, event_date, timezone, venue_name, location, is_virtual, description, chapters(name)')
+    .select('id, title, event_date, timezone, venue_name, location, is_virtual, description, chapters(name), newsletter_feature')
     .eq('status', 'published')
     .eq('is_test', false)
     .eq('visibility', 'all')
     .gte('event_date', new Date().toISOString())
+    .order('newsletter_feature', { ascending: false })
     .order('event_date', { ascending: true })
 
   if (opts.windowDays) {
