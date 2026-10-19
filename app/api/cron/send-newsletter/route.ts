@@ -99,13 +99,14 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ sent: results })
 }
 
-// Matches the identical marker baked into body_html at save/schedule time by
+// Matches the identical markers baked into body_html at save/schedule time by
 // compileSectionsToHtml in app/api/admin/newsletter/route.ts.
 const MID_AD_MARKER = '<!--MID_AD_SLOT-->'
+const JOBS_BLOCK_MARKER = '<!--JOBS_BLOCK_SLOT-->'
 
 function buildEmailHtml(subject: string, rawBodyHtml: string, memberName: string, unsubscribeUrl: string, intro = '', sponsorTop = '', eventsBlock = '', statsBlock = '', jobsBlock = '', talentBlock = '', sponsorMidHtml = '', forumBlock = '', recordingBlock = '') {
   const introLine = (intro || '').trim() || "Here's your weekly roundup from the TALK community."
-  const bodyHtml = rawBodyHtml.replace(MID_AD_MARKER, sponsorMidHtml)
+  const bodyHtml = rawBodyHtml.replace(MID_AD_MARKER, sponsorMidHtml).replace(JOBS_BLOCK_MARKER, jobsBlock)
   const issueDate = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
   return `<!DOCTYPE html>
 <html>
@@ -148,7 +149,6 @@ function buildEmailHtml(subject: string, rawBodyHtml: string, memberName: string
   <tr><td style="background:#fff;padding:8px 36px 32px;">
     <div class="prose">${bodyHtml}</div>
   </td></tr>
-  ${jobsBlock}
   ${talentBlock}
   ${PROMPT_AND_CIRCUMSTANCE_CALLOUT}
   ${forumBlock}
