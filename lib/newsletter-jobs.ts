@@ -68,8 +68,14 @@ export function buildJobsBlock(jobs: NewsletterJob[], origin: string): string {
       </tr>`
   }).join('')
 
+  // A plain div, not a standalone <tr><td> — this gets spliced into
+  // sectionsHtml (JOBS_BLOCK_MARKER in the newsletter routes), which already
+  // sits inside one <td> cell of the outer email table. A nested <tr><td>
+  // there is invalid HTML (a table row inside a table cell, not inside a
+  // table) — email clients "fix" it by yanking the <tr> out to sit beside
+  // the table instead of inside it, which is what broke the layout in two.
   return `
-  <tr><td style="background:#ffffff;padding:6px 36px 26px;">
+  <div style="margin:6px 0 36px;">
     <table cellpadding="0" cellspacing="0" width="100%" style="border:1px solid #eef0f2;border-radius:14px;overflow:hidden;">
       <tr><td style="background:linear-gradient(90deg,#E8503A,#F07058);height:4px;line-height:4px;font-size:0;">&nbsp;</td></tr>
       <tr><td style="padding:20px 22px;">
@@ -84,5 +90,5 @@ export function buildJobsBlock(jobs: NewsletterJob[], origin: string): string {
         </p>
       </td></tr>
     </table>
-  </td></tr>`
+  </div>`
 }
