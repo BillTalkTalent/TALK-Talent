@@ -68,27 +68,35 @@ export function buildJobsBlock(jobs: NewsletterJob[], origin: string): string {
       </tr>`
   }).join('')
 
-  // A plain div, not a standalone <tr><td> — this gets spliced into
-  // sectionsHtml (JOBS_BLOCK_MARKER in the newsletter routes), which already
-  // sits inside one <td> cell of the outer email table. A nested <tr><td>
-  // there is invalid HTML (a table row inside a table cell, not inside a
-  // table) — email clients "fix" it by yanking the <tr> out to sit beside
-  // the table instead of inside it, which is what broke the layout in two.
+  // A plain badge-plus-content div, matching the visual language of the
+  // admin-composed sections it now sits between (compileSectionsToHtml in
+  // the newsletter routes) — not its old bordered card with its own
+  // gradient top bar. That styling was fine back when this was the only
+  // auto-generated widget in its stretch of the newsletter, but sandwiched
+  // between Industry News and Career Opportunities (both plain badge+text,
+  // no border), a boxed card read as a different, unrelated thing dropped
+  // into the middle of the content — which is what looked like the
+  // newsletter breaking into two pieces. (Also must stay a <div>, never a
+  // standalone <tr><td>: this gets spliced into sectionsHtml, which already
+  // sits inside one <td> cell of the outer table — a nested <tr><td> there
+  // is invalid HTML and gets hoisted out by email clients, which is the
+  // first thing that broke here.)
   return `
-  <div style="margin:6px 0 36px;">
-    <table cellpadding="0" cellspacing="0" width="100%" style="border:1px solid #eef0f2;border-radius:14px;overflow:hidden;">
-      <tr><td style="background:linear-gradient(90deg,#E8503A,#F07058);height:4px;line-height:4px;font-size:0;">&nbsp;</td></tr>
-      <tr><td style="padding:20px 22px;">
-        <p style="margin:0;font-size:10px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:#9ca3af;">New jobs this week</p>
-        <p style="margin:4px 0 16px;font-size:13px;font-weight:600;color:#0F1F35;">Posted directly by TALK members and their companies — not pulled from a public job board.</p>
-        <table cellpadding="0" cellspacing="0" width="100%">
-          <tbody>${rows}</tbody>
-        </table>
-        <a href="${origin}/jobs" style="display:inline-block;margin-top:14px;font-size:12px;font-weight:700;color:#4f46e5;text-decoration:none;">See all open roles &rarr;</a>
-        <p style="margin:12px 0 0;padding-top:12px;border-top:1px solid #f3f4f6;">
-          <a href="${origin}/jobs/new" style="font-size:12.5px;font-weight:700;color:#E8503A;text-decoration:none;">Have a job for the community? Click here &rarr;</a>
-        </p>
-      </td></tr>
-    </table>
+  <div style="margin-bottom:36px;">
+    <table cellpadding="0" cellspacing="0" style="margin-bottom:16px;"><tr>
+      <td style="background:#E8503A;border-radius:6px;padding:6px 14px;">
+        <span style="font-size:11px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:#ffffff;">TALK Job Board</span>
+      </td>
+    </tr></table>
+    <div style="color:#374151;font-size:15px;line-height:1.7;">
+      <p style="margin:0 0 14px;font-size:13px;color:#6b7280;">Posted directly by TALK members and their companies — not pulled from a public job board.</p>
+      <table cellpadding="0" cellspacing="0" width="100%">
+        <tbody>${rows}</tbody>
+      </table>
+      <a href="${origin}/jobs" style="display:inline-block;margin-top:14px;font-size:12px;font-weight:700;color:#4f46e5;text-decoration:none;">See all open roles &rarr;</a>
+      <p style="margin:12px 0 0;padding-top:12px;border-top:1px solid #f3f4f6;">
+        <a href="${origin}/jobs/new" style="font-size:12.5px;font-weight:700;color:#E8503A;text-decoration:none;">Have a job for the community? Click here &rarr;</a>
+      </p>
+    </div>
   </div>`
 }
