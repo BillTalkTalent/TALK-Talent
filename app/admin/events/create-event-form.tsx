@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ImageIcon, Upload, X, Loader2, DollarSign } from "lucide-react";
 import { TIME_ZONES, zonedWallTimeToUTC, localZone } from "@/lib/timezone";
+import VirtualUrlInput from "@/components/virtual-url-input";
 
 // Default the picker to the organizer's own browser zone when it's one we list,
 // otherwise Eastern.
@@ -213,9 +214,8 @@ export default function CreateEventForm({ chapters }: { chapters: ChapterOption[
         <Label htmlFor="location">Address</Label>
         <Input id="location" name="location" placeholder="85 Newbury St, Boston, MA 02116" />
       </div>
-      <div className="space-y-2 sm:col-span-2">
-        <Label htmlFor="virtual_url">Virtual URL</Label>
-        <Input id="virtual_url" name="virtual_url" type="url" placeholder="https://zoom.us/…" />
+      <div className="sm:col-span-2">
+        <VirtualUrlInput id="virtual_url" />
       </div>
 
       {/* Dates */}

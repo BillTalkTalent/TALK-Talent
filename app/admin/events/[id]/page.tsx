@@ -10,6 +10,7 @@ import { format } from 'date-fns'
 import Link from 'next/link'
 import { TIME_ZONES, zonedWallTimeToUTC, utcToZonedInputValue } from '@/lib/timezone'
 import MaterialsManager from './materials-manager'
+import VirtualUrlInput from '@/components/virtual-url-input'
 
 async function updateEvent(id: string, formData: FormData) {
   'use server'
@@ -132,9 +133,8 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
               <Label htmlFor="location">Address</Label>
               <Input id="location" name="location" defaultValue={event.location ?? ''} placeholder="85 Newbury St, Boston, MA 02116" />
             </div>
-            <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="virtual_url">Virtual URL</Label>
-              <Input id="virtual_url" name="virtual_url" type="url" defaultValue={event.virtual_url ?? ''} placeholder="https://zoom.us/…" />
+            <div className="sm:col-span-2">
+              <VirtualUrlInput id="virtual_url" defaultValue={event.virtual_url ?? ''} />
             </div>
 
             <div className="space-y-2">
