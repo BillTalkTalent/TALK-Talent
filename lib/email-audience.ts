@@ -39,19 +39,22 @@ export async function fetchApprovedEmails(
   const emails = new Set<string>()
   const pageSize = 1000
   for (let from = 0; ; from += pageSize) {
+    // effective_email (migration 105) is contact_email when an admin has set
+    // one, falling back to the login email otherwise — so "update a
+    // member's email" never has to touch their actual login/auth identity.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let query = (admin as any)
       .from('profiles')
-      .select('email')
+      .select('effective_email')
       .eq('status', 'approved')
       .eq('is_bot', false)
-      .not('email', 'is', null)
+      .not('effective_email', 'is', null)
     if (memberIdFilter) query = query.in('id', memberIdFilter)
     if (role) query = query.eq('role', role)
     const { data, error } = await query.range(from, from + pageSize - 1)
     if (error || !data || data.length === 0) break
-    for (const r of data as { email: string | null }[]) {
-      const e = (r.email ?? '').toLowerCase().trim()
+    for (const r of data as { effective_email: string | null }[]) {
+      const e = (r.effective_email ?? '').toLowerCase().trim()
       if (isEmail(e)) emails.add(e)
     }
     if (data.length < pageSize) break

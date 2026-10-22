@@ -59,8 +59,26 @@ export default function EditMemberDialog({
             <Input id={`full_name-${member.id}`} name="full_name" defaultValue={member.full_name ?? ''} required />
           </div>
           <div className="space-y-1">
-            <Label htmlFor={`email-${member.id}`}>Email</Label>
-            <Input id={`email-${member.id}`} name="email" type="email" defaultValue={member.email} required />
+            <Label htmlFor={`login_email-${member.id}`}>Login email</Label>
+            <Input id={`login_email-${member.id}`} value={member.email} disabled />
+            <p className="text-xs text-zinc-400">
+              This is their login — changing it here can silently detach a LinkedIn sign-in. Use Contact
+              email below for correcting what address TALK sends mail to.
+            </p>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor={`contact_email-${member.id}`}>Contact email</Label>
+            <Input
+              id={`contact_email-${member.id}`}
+              name="contact_email"
+              type="email"
+              placeholder={member.email}
+              defaultValue={member.contact_email ?? ''}
+            />
+            <p className="text-xs text-zinc-400">
+              Newsletters and notifications go here when set, otherwise the login email above. Leave blank
+              to keep using the login email.
+            </p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">

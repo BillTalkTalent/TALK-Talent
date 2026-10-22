@@ -2,7 +2,6 @@ import { revalidatePath } from 'next/cache'
 import { redirect, unstable_rethrow } from 'next/navigation'
 import { format } from 'date-fns'
 import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -18,6 +17,18 @@ export type UpdateProfileState = { error: string } | { ok: true } | null
 // (not a throw) per Next's guidance for expected/validation failures, so
 // the edit dialog can show the error inline via useActionState instead of
 // crashing the page the way an uncaught throw would.
+//
+// Deliberately never touches profiles.email or auth.users here (see
+// migration 105) — email doubles as a member's login identity, and for
+// anyone who signed up via LinkedIn OAuth, their login is actually tied to
+// a separate auth.identities row keyed by LinkedIn's own account id, not by
+// this email string at all. "Fixing" the email field here changed the
+// address but silently left that identity pointed at whatever account it
+// already belonged to — confirmed live for three different members this
+// session (David Marr, Tom Elliott, Pamela Griffin). contact_email is the
+// address this form edits instead: freely editable, no login risk, and
+// every outbound email (newsletter, digests) already prefers it over the
+// login email via the effective_email generated column.
 async function updateMemberProfile(
   id: string,
   _prevState: UpdateProfileState,
@@ -28,7 +39,8 @@ async function updateMemberProfile(
   const supabase = await createClient()
 
   const fullName = (formData.get('full_name') as string)?.trim()
-  const email = (formData.get('email') as string)?.trim().toLowerCase()
+  const contactEmailRaw = (formData.get('contact_email') as string)?.trim().toLowerCase()
+  const contactEmail = contactEmailRaw || null
   const company = (formData.get('company') as string)?.trim() || null
   const title = (formData.get('title') as string)?.trim() || null
   const linkedinUrl = (formData.get('linkedin_url') as string)?.trim() || null
@@ -36,24 +48,12 @@ async function updateMemberProfile(
   const avatarUrl = (formData.get('avatar_url') as string)?.trim() || null
 
   if (!fullName) return { error: 'Full name is required.' }
-  if (!email) return { error: 'Email is required.' }
-
-  const { data: current } = await supabase.from('profiles').select('email').eq('id', id).single()
-
-  // Email doubles as their login — keep auth.users in sync *before* touching
-  // profiles, so a rejected change (e.g. address already in use) doesn't
-  // leave profiles.email pointing at an address they can no longer log in with.
-  if (current?.email && current.email.toLowerCase() !== email) {
-    const admin = createAdminClient()
-    const { error: authError } = await admin.auth.admin.updateUserById(id, { email, email_confirm: true })
-    if (authError) return { error: `Failed to update email: ${authError.message}` }
-  }
 
   const { error } = await supabase
     .from('profiles')
     .update({
       full_name: fullName,
-      email,
+      contact_email: contactEmail,
       company,
       title,
       linkedin_url: linkedinUrl,

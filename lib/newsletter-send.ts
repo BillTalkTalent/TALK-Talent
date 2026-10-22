@@ -13,18 +13,20 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AdminDb = any
 
+// effective_email (migration 105) is contact_email when an admin has set
+// one for this member, falling back to their login email otherwise.
 async function fetchApprovedMembers(adminDb: AdminDb): Promise<{ email: string; full_name: string | null }[]> {
   const out: { email: string; full_name: string | null }[] = []
   for (let from = 0; ; from += 1000) {
     const { data, error } = await adminDb
       .from('profiles')
-      .select('email, full_name')
+      .select('effective_email, full_name')
       .eq('status', 'approved')
       .eq('is_bot', false)
-      .not('email', 'is', null)
+      .not('effective_email', 'is', null)
       .range(from, from + 999)
     if (error || !data || data.length === 0) break
-    out.push(...data)
+    out.push(...data.map((r: { effective_email: string; full_name: string | null }) => ({ email: r.effective_email, full_name: r.full_name })))
     if (data.length < 1000) break
   }
   return out
