@@ -1,6 +1,8 @@
+import Link from 'next/link'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Building2, Users, MapPin, Compass, GraduationCap, Briefcase } from 'lucide-react'
+import { Building2, Users, MapPin, Compass, GraduationCap, Briefcase, ChevronLeft, ChevronRight } from 'lucide-react'
+import ChapterFilter from './chapter-filter'
 
 // Same "PostgREST caps an unpaginated select at 1000 rows" lesson learned
 // the hard way on the dashboard's poll vote counts (app/(app)/dashboard) —
@@ -50,9 +52,18 @@ const COMPANY_SIZE_LABELS: Record<string, string> = {
   '10001_plus': '10,001+',
 }
 
-type Profile = { id: string; industry: string | null; company_size: string | null; ta_level: string | null }
+type Profile = {
+  id: string
+  full_name: string | null
+  email: string
+  company: string | null
+  title: string | null
+  industry: string | null
+  company_size: string | null
+  ta_level: string | null
+}
 type ChapterMembership = { user_id: string; chapter_id: string }
-type Chapter = { id: string; name: string; type: string }
+type Chapter = { id: string; name: string; type: 'geographic' | 'topic' }
 type TalentPoolRow = { user_id: string }
 
 function groupCounts(values: (string | null)[], labels?: Record<string, string>): { label: string; count: number }[] {
@@ -100,30 +111,47 @@ function BreakdownCard({
   )
 }
 
-export default async function AdminDemographicsPage() {
+const MEMBERS_PAGE_SIZE = 50
+
+export default async function AdminDemographicsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ chapter?: string; page?: string }>
+}) {
+  const sp = await searchParams
+  const pageNum = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
+
   const admin = createAdminClient()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = admin as any
 
   const [profiles, chapterMemberships, { data: chapters }, talentPool] = await Promise.all([
-    listAll<Profile>('profiles', 'id, industry, company_size, ta_level', db, (q) => q.eq('status', 'approved').eq('is_bot', false)),
+    listAll<Profile>('profiles', 'id, full_name, email, company, title, industry, company_size, ta_level', db, (q) => q.eq('status', 'approved').eq('is_bot', false)),
     listAll<ChapterMembership>('chapter_memberships', 'user_id, chapter_id', db),
     db.from('chapters').select('id, name, type'),
     listAll<TalentPoolRow>('talent_pool', 'user_id', db),
   ])
 
-  const totalMembers = profiles.length
   const approvedIds = new Set(profiles.map((p) => p.id))
-
   const chapterById = new Map<string, Chapter>((chapters ?? []).map((c: Chapter) => [c.id, c]))
+  const selectedChapter = sp.chapter ? chapterById.get(sp.chapter) ?? null : null
 
-  // Count distinct approved members per chapter — a member who joined a
-  // chapter twice (shouldn't happen, but joined_at has no unique constraint
-  // visible from here) shouldn't double-count.
+  // Scope everything below to the selected chapter's members, or to every
+  // approved member when nothing's selected — the two breakdown functions
+  // and the member list all read from this one set, so "All members" and
+  // "just this chapter" go through identical logic.
+  const scopedIds = selectedChapter
+    ? new Set(chapterMemberships.filter((m) => m.chapter_id === selectedChapter.id && approvedIds.has(m.user_id)).map((m) => m.user_id))
+    : approvedIds
+  const scopedProfiles = profiles.filter((p) => scopedIds.has(p.id))
+  const totalMembers = scopedProfiles.length
+
+  const openToWorkIds = new Set(talentPool.map((t) => t.user_id))
+
   function chapterBreakdown(type: 'geographic' | 'topic') {
     const membersByChapterName = new Map<string, Set<string>>()
     for (const m of chapterMemberships) {
-      if (!approvedIds.has(m.user_id)) continue
+      if (!scopedIds.has(m.user_id)) continue
       const chapter = chapterById.get(m.chapter_id)
       if (!chapter || chapter.type !== type) continue
       if (!membersByChapterName.has(chapter.name)) membersByChapterName.set(chapter.name, new Set())
@@ -135,31 +163,41 @@ export default async function AdminDemographicsPage() {
       .slice(0, 12)
   }
 
-  const industryRows = groupCounts(profiles.map((p) => p.industry))
-  const companySizeRows = groupCounts(profiles.map((p) => p.company_size), COMPANY_SIZE_LABELS)
-  const taLevelRows = groupCounts(profiles.map((p) => p.ta_level), TA_LEVEL_LABELS)
+  const industryRows = groupCounts(scopedProfiles.map((p) => p.industry))
+  const companySizeRows = groupCounts(scopedProfiles.map((p) => p.company_size), COMPANY_SIZE_LABELS)
+  const taLevelRows = groupCounts(scopedProfiles.map((p) => p.ta_level), TA_LEVEL_LABELS)
   const geoRows = chapterBreakdown('geographic')
   const topicRows = chapterBreakdown('topic')
 
-  const industryFilled = profiles.filter((p) => p.industry).length
-  const companySizeFilled = profiles.filter((p) => p.company_size).length
-  const taLevelFilled = profiles.filter((p) => p.ta_level).length
-  const membersInAnyChapter = new Set(chapterMemberships.filter((m) => approvedIds.has(m.user_id)).map((m) => m.user_id)).size
-
-  const openToWorkCount = new Set(talentPool.map((t) => t.user_id).filter((id) => approvedIds.has(id))).size
+  const industryFilled = scopedProfiles.filter((p) => p.industry).length
+  const companySizeFilled = scopedProfiles.filter((p) => p.company_size).length
+  const taLevelFilled = scopedProfiles.filter((p) => p.ta_level).length
+  const membersInAnyChapter = new Set(chapterMemberships.filter((m) => scopedIds.has(m.user_id)).map((m) => m.user_id)).size
+  const openToWorkCount = scopedProfiles.filter((p) => openToWorkIds.has(p.id)).length
 
   const pct = (n: number) => totalMembers === 0 ? '0%' : `${Math.round((n / totalMembers) * 100)}%`
 
+  // The member list is sliced from the already-fully-loaded scopedProfiles
+  // array (no second round trip) — sorted alphabetically since that's the
+  // most useful order for scanning a list this long.
+  const sortedMembers = [...scopedProfiles].sort((a, b) => (a.full_name ?? a.email).localeCompare(b.full_name ?? b.email))
+  const totalPages = Math.max(1, Math.ceil(sortedMembers.length / MEMBERS_PAGE_SIZE))
+  const safePage = Math.min(pageNum, totalPages)
+  const pageMembers = sortedMembers.slice((safePage - 1) * MEMBERS_PAGE_SIZE, safePage * MEMBERS_PAGE_SIZE)
+  const chapterQuery = selectedChapter ? `chapter=${selectedChapter.id}` : ''
+  const pageHref = (p: number) => `/admin/demographics?${[chapterQuery, `page=${p}`].filter(Boolean).join('&')}`
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-zinc-900">Demographics</h1>
           <p className="text-sm text-zinc-500 mt-0.5">
-            Who the {totalMembers.toLocaleString()} approved members actually are — for segmenting marketing and
-            messaging, not for tracking engagement (see Activity for that).
+            Who the {totalMembers.toLocaleString()} {selectedChapter ? `${selectedChapter.name} members` : 'approved members'} actually
+            are — for segmenting marketing and messaging, not for tracking engagement (see Activity for that).
           </p>
         </div>
+        <ChapterFilter chapters={chapters ?? []} selectedId={selectedChapter?.id ?? ''} />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
@@ -167,7 +205,7 @@ export default async function AdminDemographicsPage() {
           <CardContent className="p-4">
             <Users className="size-4 mb-2 text-zinc-400" />
             <p className="text-xl font-black text-zinc-900 leading-none">{totalMembers.toLocaleString()}</p>
-            <p className="text-xs font-medium text-zinc-500 mt-1.5">Approved members</p>
+            <p className="text-xs font-medium text-zinc-500 mt-1.5">{selectedChapter ? 'Members in this chapter' : 'Approved members'}</p>
           </CardContent>
         </Card>
         <Card>
@@ -175,7 +213,7 @@ export default async function AdminDemographicsPage() {
             <MapPin className="size-4 mb-2 text-zinc-400" />
             <p className="text-xl font-black text-zinc-900 leading-none">{membersInAnyChapter.toLocaleString()}</p>
             <p className="text-xs font-medium text-zinc-500 mt-1.5">In a chapter</p>
-            <p className="text-[11px] text-zinc-400">{pct(membersInAnyChapter)} of members</p>
+            <p className="text-[11px] text-zinc-400">{pct(membersInAnyChapter)} of this group</p>
           </CardContent>
         </Card>
         <Card>
@@ -183,7 +221,7 @@ export default async function AdminDemographicsPage() {
             <Briefcase className="size-4 mb-2 text-zinc-400" />
             <p className="text-xl font-black text-zinc-900 leading-none">{openToWorkCount.toLocaleString()}</p>
             <p className="text-xs font-medium text-zinc-500 mt-1.5">Open to work</p>
-            <p className="text-[11px] text-zinc-400">{pct(openToWorkCount)} of members</p>
+            <p className="text-[11px] text-zinc-400">{pct(openToWorkCount)} of this group</p>
           </CardContent>
         </Card>
         <Card>
@@ -200,39 +238,100 @@ export default async function AdminDemographicsPage() {
         <BreakdownCard
           icon={Building2}
           title="Industry"
-          caption={`${industryFilled.toLocaleString()} of ${totalMembers.toLocaleString()} members (${pct(industryFilled)}) have this set`}
+          caption={`${industryFilled.toLocaleString()} of ${totalMembers.toLocaleString()} (${pct(industryFilled)}) have this set`}
           rows={industryRows}
           barColor="#E8503A"
         />
         <BreakdownCard
           icon={Users}
           title="Company Size"
-          caption={`${companySizeFilled.toLocaleString()} of ${totalMembers.toLocaleString()} members (${pct(companySizeFilled)}) have this set`}
+          caption={`${companySizeFilled.toLocaleString()} of ${totalMembers.toLocaleString()} (${pct(companySizeFilled)}) have this set`}
           rows={companySizeRows}
           barColor="#3b82f6"
         />
         <BreakdownCard
           icon={GraduationCap}
           title="Leadership Level"
-          caption={`${taLevelFilled.toLocaleString()} of ${totalMembers.toLocaleString()} members (${pct(taLevelFilled)}) have this set`}
+          caption={`${taLevelFilled.toLocaleString()} of ${totalMembers.toLocaleString()} (${pct(taLevelFilled)}) have this set`}
           rows={taLevelRows}
           barColor="#f59e0b"
         />
         <BreakdownCard
           icon={MapPin}
           title="Geographic Chapter"
-          caption="Top 12 by member count — a member can belong to more than one"
+          caption={selectedChapter?.type === 'geographic' ? 'Everyone here is in this chapter by definition' : 'Top 12 by member count — a member can belong to more than one'}
           rows={geoRows}
           barColor="#15803d"
         />
         <BreakdownCard
           icon={Compass}
           title="Topic Chapter"
-          caption="What members say they care about — top 12 by member count"
+          caption={selectedChapter?.type === 'topic' ? 'Everyone here is in this chapter by definition' : 'What members say they care about — top 12 by member count'}
           rows={topicRows}
           barColor="#8b5cf6"
         />
       </div>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
+            <Users className="size-4" />
+            Members
+          </CardTitle>
+          <p className="text-xs text-zinc-400">
+            {totalMembers.toLocaleString()} {selectedChapter ? `in ${selectedChapter.name}` : 'approved members'} · showing page {safePage} of {totalPages}
+          </p>
+        </CardHeader>
+        <CardContent className="p-0">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-zinc-100 bg-zinc-50/50 text-left text-zinc-400 text-xs uppercase tracking-wide">
+                <th className="py-2.5 pr-4 pl-4 font-semibold">Name</th>
+                <th className="py-2.5 pr-4 font-semibold">Company / Title</th>
+                <th className="py-2.5 pr-4 font-semibold">Industry</th>
+                <th className="py-2.5 pr-4 font-semibold">Company Size</th>
+                <th className="py-2.5 pr-4 font-semibold">TA Level</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-50">
+              {pageMembers.map((m) => (
+                <tr key={m.id} className="hover:bg-zinc-50/50">
+                  <td className="py-3 pr-4 pl-4">
+                    <Link href={`/admin/members?q=${encodeURIComponent(m.email)}`} className="font-medium text-zinc-700 hover:underline">
+                      {m.full_name ?? m.email}
+                    </Link>
+                  </td>
+                  <td className="py-3 pr-4 text-zinc-500 text-xs">{[m.title, m.company].filter(Boolean).join(' at ') || '—'}</td>
+                  <td className="py-3 pr-4 text-zinc-500 text-xs">{m.industry ?? '—'}</td>
+                  <td className="py-3 pr-4 text-zinc-500 text-xs">{m.company_size ? (COMPANY_SIZE_LABELS[m.company_size] ?? m.company_size) : '—'}</td>
+                  <td className="py-3 pr-4 text-zinc-500 text-xs">{m.ta_level ? (TA_LEVEL_LABELS[m.ta_level] ?? m.ta_level) : '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-zinc-100">
+              <span className="text-xs text-zinc-400">Page {safePage} of {totalPages}</span>
+              <div className="flex items-center gap-2">
+                {safePage > 1 ? (
+                  <Link href={pageHref(safePage - 1)} className="inline-flex items-center gap-1 text-xs font-medium text-zinc-600 hover:text-zinc-900">
+                    <ChevronLeft className="size-4" /> Prev
+                  </Link>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-xs font-medium text-zinc-300"><ChevronLeft className="size-4" /> Prev</span>
+                )}
+                {safePage < totalPages ? (
+                  <Link href={pageHref(safePage + 1)} className="inline-flex items-center gap-1 text-xs font-medium text-zinc-600 hover:text-zinc-900">
+                    Next <ChevronRight className="size-4" />
+                  </Link>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-xs font-medium text-zinc-300">Next <ChevronRight className="size-4" /></span>
+                )}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }
