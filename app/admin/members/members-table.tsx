@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { format } from 'date-fns'
 import { Input } from '@/components/ui/input'
 import type { Profile } from '@/lib/supabase/types'
-import { Shield, Star, User, ChevronDown, Trash2, Search, ChevronLeft, ChevronRight, Crown } from 'lucide-react'
+import { Shield, Star, User, ChevronDown, Trash2, Search, ChevronLeft, ChevronRight, Crown, Download } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import EditMemberDialog from './edit-member-dialog'
 import type { UpdateProfileState } from './page'
@@ -169,6 +169,15 @@ export default function MembersTable({
             Clear
           </Link>
         )}
+        {/* Exports whatever this search currently matches — the full
+            result set, not just the page showing on screen. */}
+        <a
+          href={`/api/admin/members/export${query ? `?q=${encodeURIComponent(query)}` : ''}`}
+          className="ml-auto inline-flex items-center gap-1.5 text-sm font-medium px-3 py-2 rounded-lg border border-zinc-200 text-zinc-600 hover:bg-zinc-50 transition-colors"
+        >
+          <Download className="size-3.5" />
+          Download CSV
+        </a>
       </form>
 
       <p className="text-xs text-zinc-400">

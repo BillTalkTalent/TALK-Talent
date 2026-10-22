@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Building2, Users, MapPin, Compass, GraduationCap, Briefcase, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Building2, Users, MapPin, Compass, GraduationCap, Briefcase, ChevronLeft, ChevronRight, Download } from 'lucide-react'
 import ChapterFilter from './chapter-filter'
 
 // Same "PostgREST caps an unpaginated select at 1000 rows" lesson learned
@@ -281,6 +281,18 @@ export default async function AdminDemographicsPage({
           <p className="text-xs text-zinc-400">
             {totalMembers.toLocaleString()} {selectedChapter ? `in ${selectedChapter.name}` : 'approved members'} · showing page {safePage} of {totalPages}
           </p>
+          {/* Exports every member currently in scope (the whole chapter,
+              not just this page of 50) — same scopedProfiles the charts
+              above are built from. */}
+          <CardAction>
+            <a
+              href={`/api/admin/demographics/export${chapterQuery ? `?${chapterQuery}` : ''}`}
+              className="inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg border border-zinc-200 text-zinc-600 hover:bg-zinc-50 transition-colors"
+            >
+              <Download className="size-3.5" />
+              Download CSV
+            </a>
+          </CardAction>
         </CardHeader>
         <CardContent className="p-0">
           <table className="w-full text-sm">
