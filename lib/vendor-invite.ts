@@ -8,13 +8,29 @@ export async function createVendorAccountAndInvite(vendorId: string, email: stri
   const admin = createAdminClient();
   const origin = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.talktalent.com";
 
+  // vendor_accounts is deliberately NOT a profiles row (migration 076) — a
+  // vendor contact isn't a TALK member. But generateLink on a brand-new
+  // email fires handle_new_user (migration 095), which always inserts one
+  // (pending, so it'd otherwise sit in the member-approval queue). Check
+  // first so we know whether to clean that unwanted row up afterward,
+  // without touching a real member's profile if this contact happens to
+  // already be one.
+  const { data: existingProfile } = await admin.from("profiles").select("id").eq("email", email).maybeSingle();
+
+  // handle_new_user (migration 095) requires a name or LinkedIn URL on any
+  // brand-new auth.users row — pass full_name through so a vendor contact
+  // who isn't already a TALK member doesn't fail account creation outright.
   const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
     type: "magiclink",
     email,
-    options: { redirectTo: `${origin}/vendor-portal` },
+    options: { redirectTo: `${origin}/vendor-portal`, data: { full_name: fullName || email } },
   });
   if (linkError || !linkData?.user) {
     throw new Error(linkError?.message ?? "Could not create the vendor account");
+  }
+
+  if (!existingProfile) {
+    await admin.from("profiles").delete().eq("id", linkData.user.id);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
