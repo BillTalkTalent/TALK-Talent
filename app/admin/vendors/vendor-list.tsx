@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Pencil, Trash2, Check, X, Building2, Send, Loader2 } from "lucide-react";
+import { Pencil, Trash2, Check, X, Building2, Send, Loader2, Link2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Vendor } from "@/lib/supabase/types";
 import LogoUpload from "./logo-upload";
@@ -94,6 +94,12 @@ export default function VendorList({
     } finally {
       setInviteSending(false);
     }
+  }
+
+  function copyClaimLink(vendorId: string) {
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    navigator.clipboard.writeText(`${origin}/vendor-portal/claim/${vendorId}`);
+    toast.success("Claim link copied.");
   }
 
   function handleDelete(vendorId: string) {
@@ -261,6 +267,14 @@ export default function VendorList({
               <Button
                 size="sm"
                 variant="outline"
+                onClick={() => copyClaimLink(vendor.id)}
+                className="gap-1.5"
+              >
+                <Link2 className="size-3.5" /> Copy claim link
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
                 onClick={() => startEdit(vendor)}
                 className="gap-1.5"
               >
@@ -279,8 +293,7 @@ export default function VendorList({
             </div>
           </div>
 
-          {vendor.is_paying && (
-            invitingId === vendor.id ? (
+          {invitingId === vendor.id ? (
               <div className="rounded-xl border border-dashed border-zinc-200 p-3 flex flex-wrap items-end gap-2">
                 <div className="space-y-1">
                   <Label className="text-xs">Invite email</Label>
@@ -306,8 +319,7 @@ export default function VendorList({
               <Button size="sm" variant="outline" onClick={() => startInvite(vendor.id)} className="gap-1.5">
                 <Send className="size-3.5" /> Invite manager
               </Button>
-            )
-          )}
+            )}
           </li>
         )
       )}
