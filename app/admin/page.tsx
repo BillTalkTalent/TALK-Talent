@@ -12,7 +12,7 @@ import AdminMemberSearch from '@/components/admin-member-search'
 import { requireSuperAdmin } from '@/lib/admin-auth'
 import { isValidLinkedinUrl, LINKEDIN_URL_HINT } from '@/lib/linkedin-url'
 
-async function approveMember(id: string) {
+async function approveMember(id: string, skipLinkedinCheck = false) {
   'use server'
   try {
     await requireSuperAdmin()
@@ -30,8 +30,13 @@ async function approveMember(id: string) {
     // 2. Approve them — the DB blocks this (profiles_require_linkedin_for_approval
     // trigger) if they have no LinkedIn URL on file, so surface that clearly
     // instead of silently sending a "you're approved" email for an approval
-    // that didn't actually happen.
-    const { error: approveError } = await supabase.from('profiles').update({ status: 'approved' }).eq('id', id)
+    // that didn't actually happen. skipLinkedinCheck sets linkedin_exempt
+    // (migration 106) in the same write, for a real member who genuinely
+    // doesn't use LinkedIn — an explicit, auditable per-person override
+    // rather than disabling that trigger for everyone.
+    const updatePayload: { status: 'approved'; linkedin_exempt?: boolean } = { status: 'approved' }
+    if (skipLinkedinCheck) updatePayload.linkedin_exempt = true
+    const { error: approveError } = await supabase.from('profiles').update(updatePayload).eq('id', id)
     if (approveError) {
       throw new Error(
         approveError.message.includes('LinkedIn')
@@ -487,11 +492,18 @@ export default async function AdminPage({
                         </Button>
                       </form>
                     )}
-                    <form action={approveMember.bind(null, member.id)}>
+                    <form action={approveMember.bind(null, member.id, false)}>
                       <Button type="submit" size="sm" variant="default">
                         {member.claimed_match_id ? 'Approve as new instead' : 'Approve'}
                       </Button>
                     </form>
+                    {!member.linkedin_url && (
+                      <form action={approveMember.bind(null, member.id, true)}>
+                        <Button type="submit" size="sm" variant="outline" className="border-amber-300 text-amber-700 hover:bg-amber-50">
+                          Approve anyway (no LinkedIn)
+                        </Button>
+                      </form>
+                    )}
                     <form action={rejectMember} className="flex flex-col gap-1.5 items-end">
                       <input type="hidden" name="id" value={member.id} />
                       <textarea

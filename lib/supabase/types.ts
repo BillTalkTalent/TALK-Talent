@@ -55,6 +55,7 @@ export type Database = {
           id: string;
           email: string;
           contact_email: string | null;
+          linkedin_exempt: boolean;
           full_name: string | null;
           avatar_url: string | null;
           title: string | null;
@@ -74,6 +75,7 @@ export type Database = {
           id: string;
           email: string;
           contact_email?: string | null;
+          linkedin_exempt?: boolean;
           full_name?: string | null;
           avatar_url?: string | null;
           title?: string | null;
