@@ -8,16 +8,20 @@ import type { Profile } from '@/lib/supabase/types'
 import { Shield, Star, User, ChevronDown, Trash2, Search, ChevronLeft, ChevronRight, Crown, Download } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import EditMemberDialog from './edit-member-dialog'
-import type { UpdateProfileState } from './page'
+import ConvertToVendorDialog from './convert-to-vendor-dialog'
+import type { UpdateProfileState, ConvertToVendorState } from './page'
 
 type Role = 'member' | 'board_member' | 'admin'
+type VendorOption = { id: string; name: string }
 
 interface MembersTableProps {
   members: Profile[]
+  vendors: VendorOption[]
   setRole: (id: string, role: Role) => Promise<void>
   setSuperAdmin: (id: string, value: boolean) => Promise<void>
   suspendMember: (id: string) => Promise<void>
   updateMemberProfile: (id: string, prevState: UpdateProfileState, formData: FormData) => Promise<UpdateProfileState>
+  convertToVendor: (id: string, prevState: ConvertToVendorState, formData: FormData) => Promise<ConvertToVendorState>
   isSuperAdmin: boolean
   currentUserId: string
   query: string
@@ -131,10 +135,12 @@ function SuperAdminToggle({
 
 export default function MembersTable({
   members,
+  vendors,
   setRole,
   setSuperAdmin,
   suspendMember,
   updateMemberProfile,
+  convertToVendor,
   isSuperAdmin,
   currentUserId,
   query,
@@ -245,6 +251,7 @@ export default function MembersTable({
                     ) : (
                       <div className="flex items-center gap-0.5">
                         <EditMemberDialog member={member} updateMemberProfile={updateMemberProfile} />
+                        <ConvertToVendorDialog member={member} vendors={vendors} convertToVendor={convertToVendor} />
                         <button
                           type="button"
                           onClick={() => setConfirmId(member.id)}

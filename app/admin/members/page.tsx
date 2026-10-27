@@ -1,7 +1,9 @@
 import { revalidatePath } from 'next/cache'
 import { redirect, unstable_rethrow } from 'next/navigation'
 import { format } from 'date-fns'
+import { Resend } from 'resend'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,6 +13,7 @@ import { RotateCcw, AlertCircle, AlertTriangle } from 'lucide-react'
 import { requireSuperAdmin } from '@/lib/admin-auth'
 
 export type UpdateProfileState = { error: string } | { ok: true } | null
+export type ConvertToVendorState = { error: string } | { ok: true } | null
 
 // Lets the super admin correct a member's profile directly — typo'd name,
 // stale company/title, wrong LinkedIn URL, etc. Modeled as a return value
@@ -99,6 +102,92 @@ async function suspendMember(id: string) {
   revalidatePath('/admin/members')
 }
 
+// Repoints a member's account at a vendor listing instead of deleting
+// anything — reuses the same status:'rejected' convention as suspendMember
+// (no member-only RLS policy grants anything but 'approved', so this is a
+// clean no-op for every one of them), but with a rejection_note that reads
+// as a conversion, not a decline, so it's not confused with a real one in
+// the Rejected/Suspended list below. vendor_accounts.id references
+// auth.users directly (migration 076), not profiles, so attaching it here
+// needs no new auth user — they keep signing in with the same email.
+async function convertMemberToVendor(
+  id: string,
+  _prevState: ConvertToVendorState,
+  formData: FormData,
+): Promise<ConvertToVendorState> {
+  'use server'
+  try {
+    const viewerId = await requireSuperAdmin()
+    if (id === viewerId) return { error: "You can't convert your own account." }
+
+    const supabase = await createClient()
+    const admin = createAdminClient()
+
+    const { data: member } = await supabase.from('profiles').select('full_name, email').eq('id', id).single()
+    if (!member) return { error: 'Member not found.' }
+
+    const pickedVendorId = (formData.get('vendor_id') as string)?.trim()
+    const newVendorName = (formData.get('new_vendor_name') as string)?.trim()
+
+    let vendorId = pickedVendorId
+    let vendorName = ''
+
+    if (!vendorId && newVendorName) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: created, error: createErr } = await (admin as any)
+        .from('vendors')
+        .insert({ name: newVendorName, submitted_by: id })
+        .select('id, name')
+        .single()
+      if (createErr) return { error: `Failed to create vendor: ${createErr.message}` }
+      vendorId = created.id
+      vendorName = created.name
+    } else if (vendorId) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: vendor } = await (admin as any).from('vendors').select('name').eq('id', vendorId).single()
+      vendorName = vendor?.name ?? 'their vendor listing'
+    } else {
+      return { error: 'Pick an existing vendor, or enter a name to create a new one.' }
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error: acctError } = await (admin as any)
+      .from('vendor_accounts')
+      .upsert({ id, vendor_id: vendorId, full_name: member.full_name, email: member.email })
+    if (acctError) return { error: `Failed to create vendor account: ${acctError.message}` }
+
+    const { error: statusError } = await supabase
+      .from('profiles')
+      .update({ status: 'rejected', rejection_note: `Converted to vendor contact — ${vendorName}` })
+      .eq('id', id)
+    if (statusError) return { error: `Failed to update member status: ${statusError.message}` }
+
+    try {
+      const resend = new Resend(process.env.RESEND_API_KEY)
+      const from = process.env.FROM_EMAIL ?? 'TALK Community <onboarding@resend.dev>'
+      const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
+      const firstName = member.full_name?.split(' ')[0] ?? 'there'
+      await resend.emails.send({
+        from,
+        replyTo: process.env.REPLY_TO_EMAIL ?? 'bill@talktalent.com',
+        to: member.email,
+        subject: `You're now connected to ${vendorName}'s TALK vendor listing`,
+        html: `<p>Hi ${firstName},</p>
+          <p>You're now set up to manage <strong>${vendorName}</strong>'s listing in the TALK vendor directory — update the description, logo, contact info, and post updates members will see.</p>
+          <p>Sign in at <a href="${origin}/vendor-portal/login">${origin}/vendor-portal/login</a> using this same email (${member.email}).</p>`,
+      })
+    } catch {
+      // notification failure shouldn't block the conversion
+    }
+
+    revalidatePath('/admin/members')
+    revalidatePath('/admin/vendors')
+    return { ok: true }
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : 'Failed to convert to vendor' }
+  }
+}
+
 async function reactivateMember(id: string) {
   'use server'
   try {
@@ -175,6 +264,7 @@ export default async function AdminMembersPage({
     { count: totalApproved },
     { count: onboardedCount },
     { data: rejectedMembers },
+    { data: vendors },
   ] = await Promise.all([
     membersQuery.order('created_at', { ascending: false }).range(fromRow, fromRow + PAGE_SIZE - 1),
     supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'approved').eq('is_bot', false),
@@ -190,6 +280,7 @@ export default async function AdminMembersPage({
       .eq('status', 'rejected')
       .order('updated_at', { ascending: false })
       .limit(50),
+    supabase.from('vendors').select('id, name').order('name', { ascending: true }),
   ])
 
   const resultCount = count ?? 0
@@ -217,10 +308,12 @@ export default async function AdminMembersPage({
         <CardContent>
           <MembersTable
             members={members ?? []}
+            vendors={vendors ?? []}
             setRole={setRole}
             setSuperAdmin={setSuperAdmin}
             suspendMember={suspendMember}
             updateMemberProfile={updateMemberProfile}
+            convertToVendor={convertMemberToVendor}
             isSuperAdmin={isSuperAdmin}
             currentUserId={user?.id ?? ''}
             query={q}
