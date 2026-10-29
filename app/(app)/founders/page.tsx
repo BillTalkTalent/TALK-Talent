@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { Lightbulb, MessageSquare, Flag, ArrowRight } from "lucide-react";
+import { Lightbulb, MessageSquare, FolderOpen, HeartHandshake, Flag, ArrowRight } from "lucide-react";
 
 const STATUS_LABELS: Record<string, string> = {
   new: "New",
@@ -13,11 +13,12 @@ const STATUS_LABELS: Record<string, string> = {
 export default async function FoundersHubPage() {
   const supabase = await createClient();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: suggestions } = await (supabase as any)
-    .from("founder_suggestions")
-    .select("status")
-    .order("created_at", { ascending: false });
+  const db = supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> };
+  const [{ data: suggestions }, { count: postCount }, { count: fileCount }] = await Promise.all([
+    db.from("founder_suggestions").select("status").order("created_at", { ascending: false }),
+    db.from("founder_posts").select("id", { count: "exact", head: true }),
+    db.from("founder_files").select("id", { count: "exact", head: true }),
+  ]);
 
   const counts = (suggestions ?? []).reduce(
     (acc: Record<string, number>, s: { status: string }) => {
@@ -75,9 +76,49 @@ export default async function FoundersHubPage() {
         )}
       </Link>
 
+      <Link
+        href="/founders/discussion"
+        className="block rounded-2xl bg-card border border-border shadow-sm p-5 hover:shadow-md transition-all"
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="size-9 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
+              <MessageSquare className="size-4 text-indigo-600" />
+            </div>
+            <div>
+              <h2 className="font-semibold text-foreground">Discussion</h2>
+              <p className="text-sm text-muted-foreground">
+                {postCount ? `${postCount} post${postCount === 1 ? "" : "s"}` : "General back-and-forth"}
+              </p>
+            </div>
+          </div>
+          <ArrowRight className="size-4 text-muted-foreground" />
+        </div>
+      </Link>
+
+      <Link
+        href="/founders/files"
+        className="block rounded-2xl bg-card border border-border shadow-sm p-5 hover:shadow-md transition-all"
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="size-9 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
+              <FolderOpen className="size-4 text-indigo-600" />
+            </div>
+            <div>
+              <h2 className="font-semibold text-foreground">Files &amp; Recordings</h2>
+              <p className="text-sm text-muted-foreground">
+                {fileCount ? `${fileCount} shared` : "Shared resources and meeting recordings"}
+              </p>
+            </div>
+          </div>
+          <ArrowRight className="size-4 text-muted-foreground" />
+        </div>
+      </Link>
+
       <div className="rounded-2xl border border-dashed border-border p-5 text-sm text-muted-foreground flex items-center gap-3">
-        <MessageSquare className="size-4 flex-shrink-0" />
-        Discussion, shared files, and volunteer opportunities are coming to this hub next.
+        <HeartHandshake className="size-4 flex-shrink-0" />
+        Volunteer opportunities and a founding-member directory are coming to this hub next.
       </div>
     </div>
   );
