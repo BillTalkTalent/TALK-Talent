@@ -158,7 +158,7 @@ export default async function FoundersHubPage() {
       </Link>
 
       <Link
-        href="/invite"
+        href="/founders/nominate"
         className="block rounded-2xl bg-card border border-border shadow-sm p-5 hover:shadow-md transition-all"
       >
         <div className="flex items-center justify-between gap-3">
@@ -167,8 +167,8 @@ export default async function FoundersHubPage() {
               <UserPlus className="size-4 text-indigo-600" />
             </div>
             <div>
-              <h2 className="font-semibold text-foreground">Refer a Member</h2>
-              <p className="text-sm text-muted-foreground">Know someone who should be in TALK? Invite them.</p>
+              <h2 className="font-semibold text-foreground">Nominate a Founder</h2>
+              <p className="text-sm text-muted-foreground">Know someone who should join this group?</p>
             </div>
           </div>
           <ArrowRight className="size-4 text-muted-foreground" />

@@ -36,14 +36,13 @@ export default function FoundersNav() {
             </Link>
           );
         })}
-        {/* Leaves the Founders section on purpose — referring someone to TALK is a
-            platform-wide feature (/invite), not Founders-specific, but founding
-            members asked where to do it from inside the hub. */}
+        {/* Nominating someone into the founding group, not into TALK generally
+            (that's the separate, platform-wide /invite flow). */}
         <Link
-          href="/invite"
+          href="/founders/nominate"
           className="ml-auto text-sm font-semibold px-3 py-3 whitespace-nowrap text-indigo-600 hover:text-indigo-700 transition-colors"
         >
-          Refer a Member →
+          Nominate a Founder →
         </Link>
       </nav>
     </div>
