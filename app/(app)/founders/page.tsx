@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { Lightbulb, MessageSquare, FolderOpen, HeartHandshake, Users, Flag, ArrowRight } from "lucide-react";
+import { Lightbulb, MessageSquare, FolderOpen, HeartHandshake, Users, UserPlus, Flag, ArrowRight } from "lucide-react";
 
 const STATUS_LABELS: Record<string, string> = {
   new: "New",
@@ -151,6 +151,24 @@ export default async function FoundersHubPage() {
             <div>
               <h2 className="font-semibold text-foreground">Founding Members</h2>
               <p className="text-sm text-muted-foreground">{memberCount ?? 0} people</p>
+            </div>
+          </div>
+          <ArrowRight className="size-4 text-muted-foreground" />
+        </div>
+      </Link>
+
+      <Link
+        href="/invite"
+        className="block rounded-2xl bg-card border border-border shadow-sm p-5 hover:shadow-md transition-all"
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="size-9 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
+              <UserPlus className="size-4 text-indigo-600" />
+            </div>
+            <div>
+              <h2 className="font-semibold text-foreground">Refer a Member</h2>
+              <p className="text-sm text-muted-foreground">Know someone who should be in TALK? Invite them.</p>
             </div>
           </div>
           <ArrowRight className="size-4 text-muted-foreground" />

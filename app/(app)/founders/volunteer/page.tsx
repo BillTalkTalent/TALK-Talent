@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { HeartHandshake } from "lucide-react";
 import SignupControl from "./signup-control";
@@ -10,10 +11,12 @@ export default async function FounderVolunteerPage() {
   const { data: { user } } = await supabase.auth.getUser();
 
   const db = supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> };
-  const [{ data: opportunities }, { data: mySignups }] = await Promise.all([
+  const [{ data: opportunities }, { data: mySignups }, { data: viewerProfile }] = await Promise.all([
     db.from("founder_opportunities").select("id, title, description").order("sort_order", { ascending: true }).order("created_at", { ascending: true }),
     user ? db.from("founder_volunteer_signups").select("opportunity_id, note").eq("member_id", user.id) : Promise.resolve({ data: [] }),
+    user ? db.from("profiles").select("role").eq("id", user.id).maybeSingle() : Promise.resolve({ data: null }),
   ]);
+  const isAdmin = (viewerProfile as { role?: string } | null)?.role === "admin";
 
   const signupMap = new Map(((mySignups ?? []) as Signup[]).map((s) => [s.opportunity_id, s.note]));
 
@@ -33,7 +36,17 @@ export default async function FounderVolunteerPage() {
         <div className="rounded-2xl bg-card border border-border shadow-sm p-16 text-center">
           <HeartHandshake className="size-10 text-muted-foreground/40 mx-auto mb-3" />
           <p className="text-muted-foreground font-medium">Nothing posted yet</p>
-          <p className="text-sm text-muted-foreground mt-1">Check back soon.</p>
+          {isAdmin ? (
+            <p className="text-sm text-muted-foreground mt-1">
+              Post the first one from{" "}
+              <Link href="/admin/founders" className="text-indigo-600 font-semibold hover:underline">
+                /admin/founders
+              </Link>
+              .
+            </p>
+          ) : (
+            <p className="text-sm text-muted-foreground mt-1">Check back soon.</p>
+          )}
         </div>
       ) : (
         <ul className="space-y-3">
