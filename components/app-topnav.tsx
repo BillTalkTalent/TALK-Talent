@@ -72,16 +72,19 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
 
   // Creators is a soft-launched preview — only the super admin can see the
   // entry point until it's ready to open up to everyone.
-  // Founders Hub is invite-only (migration 108) — only shows for someone
-  // who actually has access, same gate middleware.ts enforces server-side.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const isFoundingMember = !!(profile as any).is_founding_member
-  let moreNavItems = profile.is_superadmin
+  const moreNavItems = profile.is_superadmin
     ? [...moreNav, { href: '/creators', label: 'Creators', icon: Sparkles }]
     : moreNav
-  if (isFoundingMember || profile.role === 'admin') {
-    moreNavItems = [...moreNavItems, { href: '/founders', label: 'Founders Hub', icon: Flag }]
-  }
+
+  // Founders Hub is invite-only (migration 108) — only shows for someone
+  // who actually has access, same gate middleware.ts enforces server-side.
+  // Lives in the primary row, not the More dropdown, so founding members
+  // don't have to go hunting for it.
+  const isFoundingMember = !!profile.is_founding_member
+  const mainNavItems =
+    isFoundingMember || profile.role === 'admin'
+      ? [...mainNav, { href: '/founders', label: 'Founders Hub', icon: Flag }]
+      : mainNav
   const [unreadCount, setUnreadCount] = useState(0)
   const [notifCount, setNotifCount] = useState(0)
   const [notifOpen, setNotifOpen] = useState(false)
@@ -264,7 +267,7 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
 
         {/* ── Main nav (links only; scrolls on narrow screens) ── */}
         <nav className="flex items-center gap-0.5 min-w-0 overflow-x-auto scrollbar-none">
-          {mainNav.map(({ href, label, icon: Icon }) => {
+          {mainNavItems.map(({ href, label, icon: Icon }) => {
             const active = pathname === href || pathname.startsWith(href + '/')
             return (
               <Link
