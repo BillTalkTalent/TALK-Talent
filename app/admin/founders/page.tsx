@@ -2,6 +2,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import StatusSelect from './status-select'
+import VolunteerOpportunities from './volunteer-opportunities'
 
 async function setStatus(id: string, status: string) {
   'use server'
@@ -25,6 +26,13 @@ export default async function AdminFoundersPage() {
     .from('profiles')
     .select('id', { count: 'exact', head: true })
     .eq('is_founding_member', true)
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: opportunities } = await (supabase as any)
+    .from('founder_opportunities')
+    .select('id, title, description, is_active, sort_order, founder_volunteer_signups(id, note, profiles(full_name))')
+    .order('sort_order', { ascending: true })
+    .order('created_at', { ascending: true })
 
   return (
     <div className="space-y-6">
@@ -69,6 +77,18 @@ export default async function AdminFoundersPage() {
               </tbody>
             </table>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Volunteer Opportunities</CardTitle>
+          <p className="text-sm text-zinc-500">
+            Shown to founding members at /founders/volunteer. Signups appear under each one.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <VolunteerOpportunities opportunities={opportunities ?? []} />
         </CardContent>
       </Card>
     </div>

@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { ExternalLink, Mail, Building2, Briefcase, Star, Shield, MessageSquare } from "lucide-react";
+import { ExternalLink, Mail, Building2, Briefcase, Star, Shield, MessageSquare, Flag } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 function getInitials(name: string | null): string {
@@ -130,6 +130,12 @@ export default async function MemberProfilePage({
                 <span className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-full">
                   <Shield className="size-3" />
                   Admin
+                </span>
+              )}
+              {member.is_founding_member && (
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-full">
+                  <Flag className="size-3" />
+                  Founding Member
                 </span>
               )}
             </div>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { Lightbulb, MessageSquare, FolderOpen, HeartHandshake, Flag, ArrowRight } from "lucide-react";
+import { Lightbulb, MessageSquare, FolderOpen, HeartHandshake, Users, Flag, ArrowRight } from "lucide-react";
 
 const STATUS_LABELS: Record<string, string> = {
   new: "New",
@@ -14,11 +14,14 @@ export default async function FoundersHubPage() {
   const supabase = await createClient();
 
   const db = supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> };
-  const [{ data: suggestions }, { count: postCount }, { count: fileCount }] = await Promise.all([
-    db.from("founder_suggestions").select("status").order("created_at", { ascending: false }),
-    db.from("founder_posts").select("id", { count: "exact", head: true }),
-    db.from("founder_files").select("id", { count: "exact", head: true }),
-  ]);
+  const [{ data: suggestions }, { count: postCount }, { count: fileCount }, { count: opportunityCount }, { count: memberCount }] =
+    await Promise.all([
+      db.from("founder_suggestions").select("status").order("created_at", { ascending: false }),
+      db.from("founder_posts").select("id", { count: "exact", head: true }),
+      db.from("founder_files").select("id", { count: "exact", head: true }),
+      db.from("founder_opportunities").select("id", { count: "exact", head: true }).eq("is_active", true),
+      db.from("profiles").select("id", { count: "exact", head: true }).eq("is_founding_member", true).eq("status", "approved"),
+    ]);
 
   const counts = (suggestions ?? []).reduce(
     (acc: Record<string, number>, s: { status: string }) => {
@@ -116,10 +119,43 @@ export default async function FoundersHubPage() {
         </div>
       </Link>
 
-      <div className="rounded-2xl border border-dashed border-border p-5 text-sm text-muted-foreground flex items-center gap-3">
-        <HeartHandshake className="size-4 flex-shrink-0" />
-        Volunteer opportunities and a founding-member directory are coming to this hub next.
-      </div>
+      <Link
+        href="/founders/volunteer"
+        className="block rounded-2xl bg-card border border-border shadow-sm p-5 hover:shadow-md transition-all"
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="size-9 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
+              <HeartHandshake className="size-4 text-indigo-600" />
+            </div>
+            <div>
+              <h2 className="font-semibold text-foreground">Volunteer Options</h2>
+              <p className="text-sm text-muted-foreground">
+                {opportunityCount ? `${opportunityCount} open` : "Ways to pitch in"}
+              </p>
+            </div>
+          </div>
+          <ArrowRight className="size-4 text-muted-foreground" />
+        </div>
+      </Link>
+
+      <Link
+        href="/founders/members"
+        className="block rounded-2xl bg-card border border-border shadow-sm p-5 hover:shadow-md transition-all"
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="size-9 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
+              <Users className="size-4 text-indigo-600" />
+            </div>
+            <div>
+              <h2 className="font-semibold text-foreground">Founding Members</h2>
+              <p className="text-sm text-muted-foreground">{memberCount ?? 0} people</p>
+            </div>
+          </div>
+          <ArrowRight className="size-4 text-muted-foreground" />
+        </div>
+      </Link>
     </div>
   );
 }
