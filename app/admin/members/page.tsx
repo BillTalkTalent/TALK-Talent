@@ -93,6 +93,15 @@ async function setSuperAdmin(id: string, value: boolean) {
   revalidatePath('/admin/members')
 }
 
+async function setFoundingMember(id: string, value: boolean) {
+  'use server'
+  await requireSuperAdmin()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = (await createClient()) as any
+  await supabase.from('profiles').update({ is_founding_member: value }).eq('id', id)
+  revalidatePath('/admin/members')
+}
+
 async function suspendMember(id: string) {
   'use server'
   const viewerId = await requireSuperAdmin()
@@ -311,6 +320,7 @@ export default async function AdminMembersPage({
             vendors={vendors ?? []}
             setRole={setRole}
             setSuperAdmin={setSuperAdmin}
+            setFoundingMember={setFoundingMember}
             suspendMember={suspendMember}
             updateMemberProfile={updateMemberProfile}
             convertToVendor={convertMemberToVendor}

@@ -56,6 +56,7 @@ export type Database = {
           email: string;
           contact_email: string | null;
           linkedin_exempt: boolean;
+          is_founding_member: boolean;
           full_name: string | null;
           avatar_url: string | null;
           title: string | null;
@@ -76,6 +77,7 @@ export type Database = {
           email: string;
           contact_email?: string | null;
           linkedin_exempt?: boolean;
+          is_founding_member?: boolean;
           full_name?: string | null;
           avatar_url?: string | null;
           title?: string | null;

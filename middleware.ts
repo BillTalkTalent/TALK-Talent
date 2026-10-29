@@ -98,6 +98,21 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Founders Hub — invite-only via profiles.is_founding_member (migration
+  // 108), same additive-flag shape as linkedin_exempt. Admins always get in
+  // too, same as the admin section itself.
+  if (pathname.startsWith("/founders")) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role, is_founding_member")
+      .eq("id", user.id)
+      .single();
+
+    if (profile?.role !== "admin" && !profile?.is_founding_member) {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+  }
+
   return supabaseResponse;
 }
 

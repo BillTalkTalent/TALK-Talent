@@ -24,6 +24,7 @@ import {
   ChevronDown,
   Sparkles,
   Search,
+  Flag,
 } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
@@ -71,9 +72,16 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
 
   // Creators is a soft-launched preview — only the super admin can see the
   // entry point until it's ready to open up to everyone.
-  const moreNavItems = profile.is_superadmin
+  // Founders Hub is invite-only (migration 108) — only shows for someone
+  // who actually has access, same gate middleware.ts enforces server-side.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const isFoundingMember = !!(profile as any).is_founding_member
+  let moreNavItems = profile.is_superadmin
     ? [...moreNav, { href: '/creators', label: 'Creators', icon: Sparkles }]
     : moreNav
+  if (isFoundingMember || profile.role === 'admin') {
+    moreNavItems = [...moreNavItems, { href: '/founders', label: 'Founders Hub', icon: Flag }]
+  }
   const [unreadCount, setUnreadCount] = useState(0)
   const [notifCount, setNotifCount] = useState(0)
   const [notifOpen, setNotifOpen] = useState(false)

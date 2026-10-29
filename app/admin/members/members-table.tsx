@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { format } from 'date-fns'
 import { Input } from '@/components/ui/input'
 import type { Profile } from '@/lib/supabase/types'
-import { Shield, Star, User, ChevronDown, Trash2, Search, ChevronLeft, ChevronRight, Crown, Download } from 'lucide-react'
+import { Shield, Star, User, ChevronDown, Trash2, Search, ChevronLeft, ChevronRight, Crown, Download, Flag } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import EditMemberDialog from './edit-member-dialog'
 import ConvertToVendorDialog from './convert-to-vendor-dialog'
@@ -19,6 +19,7 @@ interface MembersTableProps {
   vendors: VendorOption[]
   setRole: (id: string, role: Role) => Promise<void>
   setSuperAdmin: (id: string, value: boolean) => Promise<void>
+  setFoundingMember: (id: string, value: boolean) => Promise<void>
   suspendMember: (id: string) => Promise<void>
   updateMemberProfile: (id: string, prevState: UpdateProfileState, formData: FormData) => Promise<UpdateProfileState>
   convertToVendor: (id: string, prevState: ConvertToVendorState, formData: FormData) => Promise<ConvertToVendorState>
@@ -133,11 +134,47 @@ function SuperAdminToggle({
   )
 }
 
+function FoundingMemberToggle({
+  member,
+  setFoundingMember,
+}: {
+  member: Profile
+  setFoundingMember: (id: string, value: boolean) => Promise<void>
+}) {
+  const [saving, setSaving] = useState(false)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const isFounding = !!(member as any).is_founding_member
+
+  async function toggle() {
+    setSaving(true)
+    await setFoundingMember(member.id, !isFounding)
+    setSaving(false)
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      disabled={saving}
+      title={isFounding ? 'Remove from Founders Hub' : 'Add to Founders Hub'}
+      className={cn(
+        'flex items-center gap-1 px-1.5 py-0.5 rounded-lg border text-[10px] font-bold transition-colors disabled:opacity-40',
+        isFounding
+          ? 'bg-indigo-100 text-indigo-700 border-indigo-300 hover:bg-indigo-200'
+          : 'bg-white text-zinc-300 border-zinc-200 hover:text-indigo-500 hover:border-indigo-200'
+      )}
+    >
+      <Flag className="size-2.5" />
+    </button>
+  )
+}
+
 export default function MembersTable({
   members,
   vendors,
   setRole,
   setSuperAdmin,
+  setFoundingMember,
   suspendMember,
   updateMemberProfile,
   convertToVendor,
@@ -231,6 +268,9 @@ export default function MembersTable({
                           setSuperAdmin={setSuperAdmin}
                           disabled={member.id === currentUserId}
                         />
+                      )}
+                      {isSuperAdmin && (
+                        <FoundingMemberToggle member={member} setFoundingMember={setFoundingMember} />
                       )}
                     </div>
                   </td>
