@@ -53,7 +53,7 @@ export async function middleware(request: NextRequest) {
   // (still authenticated, gates on that itself) but also right after its
   // own "that's me" action signs the visitor out — that confirmation state
   // has to render for a now-signed-out visitor, not bounce to /login.
-  const publicRoutes = ["/login", "/signup", "/claim", "/auth/callback", "/auth/duplicate-check", "/auth/reset-password", "/forgot-password", "/mockup", "/pending", "/privacy", "/terms", "/unsubscribe", "/api/auth", "/api/notify-admin-signup", "/api/unsubscribe", "/api/webhooks", "/api/cron/", "/events/", "/api/events/", "/api/signup/", "/newsletter", "/vendor-portal", "/partners", "/api/vendor-leads"];
+  const publicRoutes = ["/login", "/signup", "/claim", "/auth/callback", "/auth/duplicate-check", "/auth/reset-password", "/auth/magic-link", "/forgot-password", "/mockup", "/pending", "/privacy", "/terms", "/unsubscribe", "/api/auth", "/api/notify-admin-signup", "/api/unsubscribe", "/api/webhooks", "/api/cron/", "/events/", "/api/events/", "/api/signup/", "/newsletter", "/vendor-portal", "/partners", "/api/vendor-leads"];
   if (publicRoutes.some((r) => pathname.startsWith(r))) {
     // app/(app)/layout.tsx has its own independent auth redirect and can't
     // see the matched route below it, so hand it the pathname explicitly —

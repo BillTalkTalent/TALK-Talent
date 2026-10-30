@@ -45,7 +45,16 @@ export async function createVendorAccountAndInvite(vendorId: string, email: stri
   const { Resend } = await import("resend");
   const resend = new Resend(process.env.RESEND_API_KEY);
   const from = process.env.FROM_EMAIL ?? "TALK Community <onboarding@resend.dev>";
-  const loginUrl = linkData.properties?.action_link ?? `${origin}/vendor-portal/login`;
+  // Our own token_hash page (app/auth/magic-link), not Supabase's PKCE
+  // action_link — the latter is single-use and gets silently burned by
+  // corporate email security scanners that fetch links before the human
+  // clicks, leaving them a dead link. See lib/magic-link.ts. A brand-new
+  // vendor contact (the common case here) gets a "signup"-type token
+  // regardless of the "magiclink" type requested above — verification_type
+  // is whatever Supabase actually issued, and /auth/magic-link must use it.
+  const loginUrl = linkData.properties?.hashed_token
+    ? `${origin}/auth/magic-link?token_hash=${linkData.properties.hashed_token}&type=${linkData.properties.verification_type ?? "magiclink"}&redirect_to=${encodeURIComponent(`${origin}/vendor-portal`)}`
+    : `${origin}/vendor-portal/login`;
 
   await resend.emails.send({
     from,

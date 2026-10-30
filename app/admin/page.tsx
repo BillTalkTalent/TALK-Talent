@@ -11,6 +11,7 @@ import { Resend } from 'resend'
 import AdminMemberSearch from '@/components/admin-member-search'
 import { requireSuperAdmin } from '@/lib/admin-auth'
 import { isValidLinkedinUrl, LINKEDIN_URL_HINT } from '@/lib/linkedin-url'
+import { buildMagicLink } from '@/lib/magic-link'
 
 async function approveMember(id: string, skipLinkedinCheck = false) {
   'use server'
@@ -60,12 +61,7 @@ async function approveMember(id: string, skipLinkedinCheck = false) {
         const destination = profile.interested_event_id
           ? `${origin}/events/${profile.interested_event_id}`
           : `${origin}/dashboard`
-        const { data: linkData } = await admin.auth.admin.generateLink({
-          type: 'magiclink',
-          email: profile.email,
-          options: { redirectTo: destination },
-        })
-        const loginUrl = linkData?.properties?.action_link ?? `${origin}/login`
+        const loginUrl = await buildMagicLink(admin, profile.email, destination, origin)
 
         const firstName = profile.full_name?.split(' ')[0] ?? 'there'
         const resend = new Resend(process.env.RESEND_API_KEY)

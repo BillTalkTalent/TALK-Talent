@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { buildMagicLink } from '@/lib/magic-link'
 import { Resend } from 'resend'
 
 // Nudges approved members who have no name on file yet — the accounts that
@@ -37,12 +38,7 @@ export async function GET(request: NextRequest) {
   let sent = 0
   for (const profile of incomplete as { id: string; email: string }[]) {
     try {
-      const { data: linkData } = await admin.auth.admin.generateLink({
-        type: 'magiclink',
-        email: profile.email,
-        options: { redirectTo: `${origin}/profile` },
-      })
-      const loginUrl = linkData?.properties?.action_link ?? `${origin}/login`
+      const loginUrl = await buildMagicLink(admin, profile.email, `${origin}/profile`, origin)
 
       await resend.emails.send({
         from,
