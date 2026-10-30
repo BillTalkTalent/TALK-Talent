@@ -4,6 +4,7 @@ import { format } from 'date-fns'
 import { Resend } from 'resend'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { grantFoundingMemberAccess, sendFoundingMemberWelcomeEmail } from '@/lib/founders-invite'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -96,10 +97,23 @@ async function setSuperAdmin(id: string, value: boolean) {
 async function setFoundingMember(id: string, value: boolean) {
   'use server'
   await requireSuperAdmin()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const supabase = (await createClient()) as any
-  await supabase.from('profiles').update({ is_founding_member: value }).eq('id', id)
+  if (value) {
+    await grantFoundingMemberAccess(id)
+  } else {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const supabase = (await createClient()) as any
+    await supabase.from('profiles').update({ is_founding_member: false }).eq('id', id)
+  }
   revalidatePath('/admin/members')
+}
+
+// Covers the 4 founding members already granted access before this email
+// existed — lets an admin send them the welcome note without touching
+// their access either way.
+async function resendFoundersWelcome(id: string) {
+  'use server'
+  await requireSuperAdmin()
+  await sendFoundingMemberWelcomeEmail(id)
 }
 
 async function suspendMember(id: string) {
@@ -321,6 +335,7 @@ export default async function AdminMembersPage({
             setRole={setRole}
             setSuperAdmin={setSuperAdmin}
             setFoundingMember={setFoundingMember}
+            resendFoundersWelcome={resendFoundersWelcome}
             suspendMember={suspendMember}
             updateMemberProfile={updateMemberProfile}
             convertToVendor={convertMemberToVendor}

@@ -5,8 +5,9 @@ import Link from 'next/link'
 import { format } from 'date-fns'
 import { Input } from '@/components/ui/input'
 import type { Profile } from '@/lib/supabase/types'
-import { Shield, Star, User, ChevronDown, Trash2, Search, ChevronLeft, ChevronRight, Crown, Download, Flag } from 'lucide-react'
+import { Shield, Star, User, ChevronDown, Trash2, Search, ChevronLeft, ChevronRight, Crown, Download, Flag, Mail, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
 import EditMemberDialog from './edit-member-dialog'
 import ConvertToVendorDialog from './convert-to-vendor-dialog'
 import type { UpdateProfileState, ConvertToVendorState } from './page'
@@ -20,6 +21,7 @@ interface MembersTableProps {
   setRole: (id: string, role: Role) => Promise<void>
   setSuperAdmin: (id: string, value: boolean) => Promise<void>
   setFoundingMember: (id: string, value: boolean) => Promise<void>
+  resendFoundersWelcome: (id: string) => Promise<void>
   suspendMember: (id: string) => Promise<void>
   updateMemberProfile: (id: string, prevState: UpdateProfileState, formData: FormData) => Promise<UpdateProfileState>
   convertToVendor: (id: string, prevState: ConvertToVendorState, formData: FormData) => Promise<ConvertToVendorState>
@@ -169,12 +171,47 @@ function FoundingMemberToggle({
   )
 }
 
+function ResendFoundersWelcomeButton({
+  member,
+  resendFoundersWelcome,
+}: {
+  member: Profile
+  resendFoundersWelcome: (id: string) => Promise<void>
+}) {
+  const [sending, setSending] = useState(false)
+
+  async function send() {
+    setSending(true)
+    try {
+      await resendFoundersWelcome(member.id)
+      toast.success(`Welcome email sent to ${member.full_name ?? member.email}.`)
+    } catch {
+      toast.error('Failed to send.')
+    } finally {
+      setSending(false)
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={send}
+      disabled={sending}
+      title="Resend Founders Hub welcome email"
+      className="flex items-center justify-center size-5 rounded-lg text-zinc-300 hover:text-indigo-600 transition-colors disabled:opacity-40"
+    >
+      {sending ? <Loader2 className="size-2.5 animate-spin" /> : <Mail className="size-2.5" />}
+    </button>
+  )
+}
+
 export default function MembersTable({
   members,
   vendors,
   setRole,
   setSuperAdmin,
   setFoundingMember,
+  resendFoundersWelcome,
   suspendMember,
   updateMemberProfile,
   convertToVendor,
@@ -271,6 +308,10 @@ export default function MembersTable({
                       )}
                       {isSuperAdmin && (
                         <FoundingMemberToggle member={member} setFoundingMember={setFoundingMember} />
+                      )}
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                      {isSuperAdmin && (member as any).is_founding_member && (
+                        <ResendFoundersWelcomeButton member={member} resendFoundersWelcome={resendFoundersWelcome} />
                       )}
                     </div>
                   </td>

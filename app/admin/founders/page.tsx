@@ -1,6 +1,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect, unstable_rethrow } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { grantFoundingMemberAccess } from '@/lib/founders-invite'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertTriangle, Check, X } from 'lucide-react'
 import StatusSelect from './status-select'
@@ -49,7 +50,7 @@ async function reviewNomination(id: string, decision: 'approve' | 'decline') {
       throw new Error(`No approved TALK member found with email ${nomination.email} yet — invite them first (via /invite), then approve this nomination.`)
     }
 
-    await db.from('profiles').update({ is_founding_member: true }).eq('id', matchedProfile.id)
+    await grantFoundingMemberAccess(matchedProfile.id)
     await db
       .from('founder_nominations')
       .update({ status: 'approved', reviewed_at: new Date().toISOString(), reviewed_by: user?.id ?? null })
