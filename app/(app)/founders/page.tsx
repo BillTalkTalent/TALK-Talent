@@ -1,39 +1,89 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { Lightbulb, MessageSquare, FolderOpen, HeartHandshake, Users, UserPlus, Flag, ArrowRight } from "lucide-react";
-
-const STATUS_LABELS: Record<string, string> = {
-  new: "New",
-  under_review: "Under review",
-  planned: "Planned",
-  shipped: "Shipped",
-  declined: "Declined",
-};
+import { Lightbulb, MessageSquare, FolderOpen, HeartHandshake, Users, UserPlus, Flag, type LucideIcon } from "lucide-react";
 
 export default async function FoundersHubPage() {
   const supabase = await createClient();
 
   const db = supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> };
-  const [{ data: suggestions }, { count: postCount }, { count: fileCount }, { count: opportunityCount }, { count: memberCount }] =
+  const [{ count: suggestionCount }, { count: postCount }, { count: fileCount }, { count: opportunityCount }, { count: memberCount }] =
     await Promise.all([
-      db.from("founder_suggestions").select("status").order("created_at", { ascending: false }),
+      db.from("founder_suggestions").select("id", { count: "exact", head: true }),
       db.from("founder_posts").select("id", { count: "exact", head: true }),
       db.from("founder_files").select("id", { count: "exact", head: true }),
       db.from("founder_opportunities").select("id", { count: "exact", head: true }).eq("is_active", true),
       db.from("profiles").select("id", { count: "exact", head: true }).eq("is_founding_member", true).eq("status", "approved"),
     ]);
 
-  const counts = (suggestions ?? []).reduce(
-    (acc: Record<string, number>, s: { status: string }) => {
-      acc[s.status] = (acc[s.status] ?? 0) + 1;
-      return acc;
+  type Tile = {
+    href: string;
+    gradient: string;
+    icon: LucideIcon;
+    label: string;
+    stat: number | null;
+    statLabel: string;
+    description: string;
+  };
+
+  const tiles: Tile[] = [
+    {
+      href: "/founders/suggestions",
+      gradient: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+      icon: Lightbulb,
+      label: "Ideas & Topics",
+      stat: suggestionCount ?? 0,
+      statLabel: "submitted",
+      description: "Submit, vote, and track where each one stands",
     },
-    {} as Record<string, number>,
-  );
-  const total = suggestions?.length ?? 0;
+    {
+      href: "/founders/discussion",
+      gradient: "linear-gradient(135deg, #3b82f6, #06b6d4)",
+      icon: MessageSquare,
+      label: "Discussion",
+      stat: postCount ?? 0,
+      statLabel: "posts",
+      description: "General back-and-forth that isn't a structured idea",
+    },
+    {
+      href: "/founders/files",
+      gradient: "linear-gradient(135deg, #f59e0b, #f97316)",
+      icon: FolderOpen,
+      label: "Files & Recordings",
+      stat: fileCount ?? 0,
+      statLabel: "shared",
+      description: "Shared resources and meeting recordings",
+    },
+    {
+      href: "/founders/volunteer",
+      gradient: "linear-gradient(135deg, #10b981, #059669)",
+      icon: HeartHandshake,
+      label: "Volunteer Options",
+      stat: opportunityCount ?? 0,
+      statLabel: "open",
+      description: "Ways to pitch in on the rebuild",
+    },
+    {
+      href: "/founders/members",
+      gradient: "linear-gradient(135deg, #ec4899, #f43f5e)",
+      icon: Users,
+      label: "Founding Members",
+      stat: memberCount ?? 0,
+      statLabel: "people",
+      description: "Who else is helping out",
+    },
+    {
+      href: "/founders/nominate",
+      gradient: "linear-gradient(135deg, #14b8a6, #0d9488)",
+      icon: UserPlus,
+      label: "Nominate a Founder",
+      stat: null,
+      statLabel: "",
+      description: "Know someone who should join this group?",
+    },
+  ];
 
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-6">
+    <div className="p-6 max-w-5xl mx-auto space-y-6">
       <div className="flex items-center gap-3">
         <div
           className="size-10 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -47,133 +97,32 @@ export default async function FoundersHubPage() {
         </div>
       </div>
 
-      <Link
-        href="/founders/suggestions"
-        className="block rounded-2xl bg-card border border-border shadow-sm p-5 hover:shadow-md transition-all"
-      >
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="size-9 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
-              <Lightbulb className="size-4 text-indigo-600" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {tiles.map((tile) => (
+          <Link
+            key={tile.href}
+            href={tile.href}
+            className="group block rounded-2xl p-5 text-white shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all"
+            style={{ background: tile.gradient }}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="size-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+                <tile.icon className="size-5 text-white" />
+              </div>
+              {tile.stat !== null && (
+                <div className="text-right">
+                  <p className="text-2xl font-black leading-none">{tile.stat}</p>
+                  <p className="text-[11px] font-semibold text-white/70 uppercase tracking-wide">{tile.statLabel}</p>
+                </div>
+              )}
             </div>
-            <div>
-              <h2 className="font-semibold text-foreground">Ideas &amp; Topics</h2>
-              <p className="text-sm text-muted-foreground">Submit, vote, and track where each one stands</p>
+            <div className="mt-4 space-y-0.5">
+              <h2 className="font-bold">{tile.label}</h2>
+              <p className="text-sm text-white/80 leading-snug">{tile.description}</p>
             </div>
-          </div>
-          <ArrowRight className="size-4 text-muted-foreground" />
-        </div>
-        {total > 0 && (
-          <div className="flex gap-2 flex-wrap mt-4 pt-4 border-t border-border/60">
-            {Object.entries(STATUS_LABELS).map(([key, label]) =>
-              counts[key] ? (
-                <span
-                  key={key}
-                  className="text-xs font-semibold text-muted-foreground bg-muted px-2.5 py-1 rounded-full"
-                >
-                  {counts[key]} {label}
-                </span>
-              ) : null,
-            )}
-          </div>
-        )}
-      </Link>
-
-      <Link
-        href="/founders/discussion"
-        className="block rounded-2xl bg-card border border-border shadow-sm p-5 hover:shadow-md transition-all"
-      >
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="size-9 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
-              <MessageSquare className="size-4 text-indigo-600" />
-            </div>
-            <div>
-              <h2 className="font-semibold text-foreground">Discussion</h2>
-              <p className="text-sm text-muted-foreground">
-                {postCount ? `${postCount} post${postCount === 1 ? "" : "s"}` : "General back-and-forth"}
-              </p>
-            </div>
-          </div>
-          <ArrowRight className="size-4 text-muted-foreground" />
-        </div>
-      </Link>
-
-      <Link
-        href="/founders/files"
-        className="block rounded-2xl bg-card border border-border shadow-sm p-5 hover:shadow-md transition-all"
-      >
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="size-9 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
-              <FolderOpen className="size-4 text-indigo-600" />
-            </div>
-            <div>
-              <h2 className="font-semibold text-foreground">Files &amp; Recordings</h2>
-              <p className="text-sm text-muted-foreground">
-                {fileCount ? `${fileCount} shared` : "Shared resources and meeting recordings"}
-              </p>
-            </div>
-          </div>
-          <ArrowRight className="size-4 text-muted-foreground" />
-        </div>
-      </Link>
-
-      <Link
-        href="/founders/volunteer"
-        className="block rounded-2xl bg-card border border-border shadow-sm p-5 hover:shadow-md transition-all"
-      >
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="size-9 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
-              <HeartHandshake className="size-4 text-indigo-600" />
-            </div>
-            <div>
-              <h2 className="font-semibold text-foreground">Volunteer Options</h2>
-              <p className="text-sm text-muted-foreground">
-                {opportunityCount ? `${opportunityCount} open` : "Ways to pitch in"}
-              </p>
-            </div>
-          </div>
-          <ArrowRight className="size-4 text-muted-foreground" />
-        </div>
-      </Link>
-
-      <Link
-        href="/founders/members"
-        className="block rounded-2xl bg-card border border-border shadow-sm p-5 hover:shadow-md transition-all"
-      >
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="size-9 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
-              <Users className="size-4 text-indigo-600" />
-            </div>
-            <div>
-              <h2 className="font-semibold text-foreground">Founding Members</h2>
-              <p className="text-sm text-muted-foreground">{memberCount ?? 0} people</p>
-            </div>
-          </div>
-          <ArrowRight className="size-4 text-muted-foreground" />
-        </div>
-      </Link>
-
-      <Link
-        href="/founders/nominate"
-        className="block rounded-2xl bg-card border border-border shadow-sm p-5 hover:shadow-md transition-all"
-      >
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="size-9 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
-              <UserPlus className="size-4 text-indigo-600" />
-            </div>
-            <div>
-              <h2 className="font-semibold text-foreground">Nominate a Founder</h2>
-              <p className="text-sm text-muted-foreground">Know someone who should join this group?</p>
-            </div>
-          </div>
-          <ArrowRight className="size-4 text-muted-foreground" />
-        </div>
-      </Link>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
