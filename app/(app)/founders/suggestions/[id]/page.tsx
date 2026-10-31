@@ -29,7 +29,7 @@ export default async function SuggestionDetailPage({ params }: { params: Promise
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: suggestion } = await (supabase as any)
     .from("founder_suggestions")
-    .select("id, type, title, body, status, created_at, profiles(full_name), founder_suggestion_votes(voter_id)")
+    .select("id, type, title, body, status, created_at, author_id, profiles(full_name), founder_suggestion_votes(voter_id)")
     .eq("id", id)
     .maybeSingle();
 
@@ -71,7 +71,13 @@ export default async function SuggestionDetailPage({ params }: { params: Promise
         </div>
       </div>
 
-      <CommentSection suggestionId={suggestion.id} comments={comments ?? []} currentUserId={user?.id ?? ""} />
+      <CommentSection
+        suggestionId={suggestion.id}
+        comments={comments ?? []}
+        currentUserId={user?.id ?? ""}
+        authorId={suggestion.author_id}
+        suggestionTitle={suggestion.title}
+      />
     </div>
   );
 }

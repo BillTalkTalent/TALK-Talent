@@ -20,6 +20,10 @@ interface Prefs {
   push_events: boolean
   push_new_polls: boolean
   push_new_jobs: boolean
+  email_founders_activity: boolean
+  email_founders_replies: boolean
+  push_founders_activity: boolean
+  push_founders_replies: boolean
 }
 
 const DEFAULTS: Prefs = {
@@ -38,6 +42,10 @@ const DEFAULTS: Prefs = {
   push_events: true,
   push_new_polls: true,
   push_new_jobs: true,
+  email_founders_activity: false,
+  email_founders_replies: true,
+  push_founders_activity: true,
+  push_founders_replies: true,
 }
 
 const ROWS: { key: keyof Prefs; label: string; section: 'email' | 'push' }[] = [
@@ -48,6 +56,8 @@ const ROWS: { key: keyof Prefs; label: string; section: 'email' | 'push' }[] = [
   { key: 'email_events', label: 'Upcoming events', section: 'email' },
   { key: 'email_chapter_announcements', label: 'Chapter announcements', section: 'email' },
   { key: 'email_digest', label: 'Weekly digest', section: 'email' },
+  { key: 'email_founders_activity', label: 'New posts in the Founders Hub', section: 'email' },
+  { key: 'email_founders_replies', label: 'Replies to your Founders Hub posts', section: 'email' },
   { key: 'push_forum_topics', label: 'New forum topics', section: 'push' },
   { key: 'push_forum_replies', label: 'Replies to your topics', section: 'push' },
   { key: 'push_mentions', label: 'When someone @mentions you', section: 'push' },
@@ -56,6 +66,8 @@ const ROWS: { key: keyof Prefs; label: string; section: 'email' | 'push' }[] = [
   { key: 'push_events', label: "Reminder to RSVP for this week's event", section: 'push' },
   { key: 'push_new_polls', label: 'When a new poll is posted', section: 'push' },
   { key: 'push_new_jobs', label: 'When a new job is posted', section: 'push' },
+  { key: 'push_founders_activity', label: 'New posts in the Founders Hub', section: 'push' },
+  { key: 'push_founders_replies', label: 'Replies to your Founders Hub posts', section: 'push' },
 ]
 
 export default function SettingsForm({ userId, initialPrefs }: { userId: string; initialPrefs: Partial<Prefs> | null }) {

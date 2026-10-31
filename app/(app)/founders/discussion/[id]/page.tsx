@@ -41,7 +41,13 @@ export default async function DiscussionPostPage({ params }: { params: Promise<{
         </p>
       </div>
 
-      <ReplySection postId={post.id} replies={replies ?? []} currentUserId={user?.id ?? ""} />
+      <ReplySection
+        postId={post.id}
+        replies={replies ?? []}
+        currentUserId={user?.id ?? ""}
+        authorId={post.author_id}
+        postTitle={post.title}
+      />
     </div>
   );
 }

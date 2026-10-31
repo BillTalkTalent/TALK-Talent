@@ -46,6 +46,11 @@ export default function NewSuggestionPage() {
     }
 
     toast.success(`${type === "idea" ? "Idea" : "Topic"} submitted!`);
+    fetch("/api/founders/notify-activity", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kind: type, title: title.trim(), link: `/founders/suggestions/${suggestion.id}` }),
+    }).catch(() => {});
     router.push(`/founders/suggestions/${suggestion.id}`);
   }
 

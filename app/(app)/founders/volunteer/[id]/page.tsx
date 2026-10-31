@@ -14,7 +14,7 @@ export default async function VolunteerOpportunityPage({ params }: { params: Pro
 
   const { data: opportunity } = await db
     .from("founder_opportunities")
-    .select("id, title, description, created_at, profiles(full_name)")
+    .select("id, title, description, created_at, created_by, profiles(full_name)")
     .eq("id", id)
     .maybeSingle();
 
@@ -24,6 +24,7 @@ export default async function VolunteerOpportunityPage({ params }: { params: Pro
     title: string;
     description: string | null;
     created_at: string;
+    created_by: string | null;
     profiles: { full_name: string | null } | null;
   };
 
@@ -61,8 +62,14 @@ export default async function VolunteerOpportunityPage({ params }: { params: Pro
         </div>
       </div>
 
-      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-      <OpportunityCommentSection opportunityId={o.id} comments={(comments ?? []) as any} currentUserId={user?.id ?? ""} />
+      <OpportunityCommentSection
+        opportunityId={o.id}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        comments={(comments ?? []) as any}
+        currentUserId={user?.id ?? ""}
+        authorId={o.created_by}
+        opportunityTitle={o.title}
+      />
     </div>
   );
 }

@@ -45,7 +45,13 @@ export default function NewVolunteerOpportunityPage() {
     }
 
     toast.success("Opportunity posted!");
-    router.push(`/founders/volunteer/${(opportunity as { id: string }).id}`);
+    const opportunityId = (opportunity as { id: string }).id;
+    fetch("/api/founders/notify-activity", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kind: "opportunity", title: title.trim(), link: `/founders/volunteer/${opportunityId}` }),
+    }).catch(() => {});
+    router.push(`/founders/volunteer/${opportunityId}`);
   }
 
   return (

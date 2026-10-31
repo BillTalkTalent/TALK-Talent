@@ -20,10 +20,14 @@ export default function OpportunityCommentSection({
   opportunityId,
   comments,
   currentUserId,
+  authorId,
+  opportunityTitle,
 }: {
   opportunityId: string;
   comments: Comment[];
   currentUserId: string;
+  authorId: string | null;
+  opportunityTitle: string;
 }) {
   const router = useRouter();
   const [body, setBody] = useState("");
@@ -38,6 +42,19 @@ export default function OpportunityCommentSection({
     await db
       .from("founder_opportunity_comments")
       .insert({ opportunity_id: opportunityId, author_id: currentUserId, body: body.trim() });
+    if (authorId) {
+      fetch("/api/founders/notify-reply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipientId: authorId,
+          kind: "opportunity",
+          contextTitle: opportunityTitle,
+          contentPreview: body.trim(),
+          link: `/founders/volunteer/${opportunityId}`,
+        }),
+      }).catch(() => {});
+    }
     setBody("");
     setSubmitting(false);
     router.refresh();

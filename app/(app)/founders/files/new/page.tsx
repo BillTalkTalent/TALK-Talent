@@ -67,6 +67,11 @@ export default function NewFounderFilePage() {
     }
 
     toast.success(kind === "file" ? "File added!" : "Recording added!");
+    fetch("/api/founders/notify-activity", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kind: "file", title: title.trim(), link: "/founders/files" }),
+    }).catch(() => {});
     router.push("/founders/files");
   }
 

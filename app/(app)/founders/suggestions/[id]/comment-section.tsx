@@ -20,10 +20,14 @@ export default function CommentSection({
   suggestionId,
   comments,
   currentUserId,
+  authorId,
+  suggestionTitle,
 }: {
   suggestionId: string;
   comments: Comment[];
   currentUserId: string;
+  authorId: string | null;
+  suggestionTitle: string;
 }) {
   const router = useRouter();
   const [body, setBody] = useState("");
@@ -38,6 +42,19 @@ export default function CommentSection({
     await (supabase as any)
       .from("founder_suggestion_comments")
       .insert({ suggestion_id: suggestionId, author_id: currentUserId, body: body.trim() });
+    if (authorId) {
+      fetch("/api/founders/notify-reply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipientId: authorId,
+          kind: "suggestion",
+          contextTitle: suggestionTitle,
+          contentPreview: body.trim(),
+          link: `/founders/suggestions/${suggestionId}`,
+        }),
+      }).catch(() => {});
+    }
     setBody("");
     setSubmitting(false);
     router.refresh();

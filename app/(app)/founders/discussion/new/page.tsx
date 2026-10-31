@@ -44,6 +44,11 @@ export default function NewDiscussionPostPage() {
       return;
     }
 
+    fetch("/api/founders/notify-activity", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kind: "discussion", title: title.trim(), link: `/founders/discussion/${post.id}` }),
+    }).catch(() => {});
     router.push(`/founders/discussion/${post.id}`);
   }
 

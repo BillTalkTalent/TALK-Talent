@@ -2,16 +2,42 @@ import { revalidatePath } from 'next/cache'
 import { redirect, unstable_rethrow } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { grantFoundingMemberAccess } from '@/lib/founders-invite'
+import { notifyFoundersReply } from '@/lib/founders-notify'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertTriangle, Check, X } from 'lucide-react'
 import StatusSelect from './status-select'
 import VolunteerOpportunities from './volunteer-opportunities'
 
+const STATUS_LABELS: Record<string, string> = {
+  new: 'New',
+  under_review: 'Under review',
+  planned: 'Planned',
+  shipped: 'Shipped',
+  declined: 'Declined',
+}
+
 async function setStatus(id: string, status: string) {
   'use server'
   const supabase = await createClient()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (supabase as any).from('founder_suggestions').update({ status }).eq('id', id)
+  const db = supabase as any
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const { data: suggestion } = await db.from('founder_suggestions').select('author_id, title').eq('id', id).maybeSingle()
+  await db.from('founder_suggestions').update({ status }).eq('id', id)
+
+  if (suggestion?.author_id && user) {
+    const label = STATUS_LABELS[status] ?? status
+    await notifyFoundersReply({
+      recipientId: suggestion.author_id,
+      actorId: user.id,
+      type: 'founders_status_change',
+      title: `Status updated to "${label}" on your suggestion: "${suggestion.title}"`,
+      body: `The status of your suggestion is now "${label}".`,
+      relativeLink: `/founders/suggestions/${id}`,
+    })
+  }
+
   revalidatePath('/admin/founders')
 }
 

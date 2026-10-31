@@ -20,10 +20,14 @@ export default function ReplySection({
   postId,
   replies,
   currentUserId,
+  authorId,
+  postTitle,
 }: {
   postId: string;
   replies: Reply[];
   currentUserId: string;
+  authorId: string | null;
+  postTitle: string;
 }) {
   const router = useRouter();
   const [body, setBody] = useState("");
@@ -38,6 +42,19 @@ export default function ReplySection({
     await (supabase as any)
       .from("founder_post_replies")
       .insert({ post_id: postId, author_id: currentUserId, body: body.trim() });
+    if (authorId) {
+      fetch("/api/founders/notify-reply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipientId: authorId,
+          kind: "discussion",
+          contextTitle: postTitle,
+          contentPreview: body.trim(),
+          link: `/founders/discussion/${postId}`,
+        }),
+      }).catch(() => {});
+    }
     setBody("");
     setSubmitting(false);
     router.refresh();
