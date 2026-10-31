@@ -8,6 +8,7 @@ const TABS = [
   { href: "/founders", label: "Overview", exact: true },
   { href: "/founders/suggestions", label: "Ideas & Topics" },
   { href: "/founders/discussion", label: "Discussion" },
+  { href: "/founders/calendar", label: "Calendar" },
   { href: "/founders/files", label: "Files" },
   { href: "/founders/volunteer", label: "Volunteer" },
   { href: "/founders/members", label: "Members" },

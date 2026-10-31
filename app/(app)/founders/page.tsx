@@ -1,15 +1,16 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { Lightbulb, MessageSquare, FolderOpen, HeartHandshake, Users, UserPlus, Flag, type LucideIcon } from "lucide-react";
+import { Lightbulb, MessageSquare, FolderOpen, HeartHandshake, Users, UserPlus, Flag, Calendar, type LucideIcon } from "lucide-react";
 
 export default async function FoundersHubPage() {
   const supabase = await createClient();
 
   const db = supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> };
-  const [{ count: suggestionCount }, { count: postCount }, { count: fileCount }, { count: opportunityCount }, { count: memberCount }] =
+  const [{ count: suggestionCount }, { count: postCount }, { count: eventCount }, { count: fileCount }, { count: opportunityCount }, { count: memberCount }] =
     await Promise.all([
       db.from("founder_suggestions").select("id", { count: "exact", head: true }),
       db.from("founder_posts").select("id", { count: "exact", head: true }),
+      db.from("founder_events").select("id", { count: "exact", head: true }).gte("event_date", new Date().toISOString()),
       db.from("founder_files").select("id", { count: "exact", head: true }),
       db.from("founder_opportunities").select("id", { count: "exact", head: true }).eq("is_active", true),
       db.from("profiles").select("id", { count: "exact", head: true }).eq("is_founding_member", true).eq("status", "approved"),
@@ -43,6 +44,15 @@ export default async function FoundersHubPage() {
       stat: postCount ?? 0,
       statLabel: "posts",
       description: "General back-and-forth that isn't a structured idea",
+    },
+    {
+      href: "/founders/calendar",
+      gradient: "linear-gradient(135deg, #8b5cf6, #d946ef)",
+      icon: Calendar,
+      label: "Calendar",
+      stat: eventCount ?? 0,
+      statLabel: "upcoming",
+      description: "Founder-only meetings and get-togethers",
     },
     {
       href: "/founders/files",

@@ -11,6 +11,7 @@ const KIND_META: Record<string, { type: string; verb: string }> = {
   discussion: { type: "founders_discussion", verb: "started a new discussion" },
   opportunity: { type: "founders_opportunity", verb: "posted a volunteer opportunity" },
   file: { type: "founders_file", verb: "shared a file" },
+  event: { type: "founders_event", verb: "posted a new event" },
 };
 
 export async function POST(req: NextRequest) {
