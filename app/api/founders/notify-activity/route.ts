@@ -6,7 +6,7 @@ import { notifyFoundersActivity } from "@/lib/founders-notify";
 // app/api/forum/notify-topic-mentions) — the actor is read from the
 // server's own session, never trusted from the request body.
 const KIND_META: Record<string, { type: string; verb: string }> = {
-  suggestion: { type: "founders_suggestion", verb: "posted a new idea" },
+  idea: { type: "founders_suggestion", verb: "posted a new idea" },
   topic: { type: "founders_suggestion", verb: "posted a new topic" },
   discussion: { type: "founders_discussion", verb: "started a new discussion" },
   opportunity: { type: "founders_opportunity", verb: "posted a volunteer opportunity" },
