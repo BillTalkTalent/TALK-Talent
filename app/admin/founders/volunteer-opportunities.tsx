@@ -17,6 +17,7 @@ type Opportunity = {
   description: string | null;
   is_active: boolean;
   sort_order: number;
+  profiles: { full_name: string | null } | null;
   founder_volunteer_signups: Signup[];
 };
 
@@ -146,6 +147,7 @@ export default function VolunteerOpportunities({ opportunities }: { opportunitie
                     )}
                   </div>
                   {o.description && <p className="text-sm text-zinc-500 mt-0.5">{o.description}</p>}
+                  <p className="text-xs text-zinc-400 mt-0.5">posted by {o.profiles?.full_name ?? "Unknown"}</p>
                 </div>
               </div>
               <div className="flex items-center gap-1 shrink-0">

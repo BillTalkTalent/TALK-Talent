@@ -88,7 +88,7 @@ export default async function AdminFoundersPage({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: opportunities } = await (supabase as any)
     .from('founder_opportunities')
-    .select('id, title, description, is_active, sort_order, founder_volunteer_signups(id, note, profiles(full_name))')
+    .select('id, title, description, is_active, sort_order, profiles(full_name), founder_volunteer_signups(id, note, profiles(full_name))')
     .order('sort_order', { ascending: true })
     .order('created_at', { ascending: true })
 
@@ -219,7 +219,8 @@ export default async function AdminFoundersPage({
         <CardHeader>
           <CardTitle>Volunteer Opportunities</CardTitle>
           <p className="text-sm text-zinc-500">
-            Shown to founding members at /founders/volunteer. Signups appear under each one.
+            Any founding member can post one from /founders/volunteer, not just admins — this is where you can
+            still manage any of them. Signups appear under each one.
           </p>
         </CardHeader>
         <CardContent>
