@@ -24,6 +24,7 @@ export default async function FoundersHubPage() {
     stat: number | null;
     statLabel: string;
     description: string;
+    fullWidth?: boolean;
   };
 
   const tiles: Tile[] = [
@@ -44,15 +45,6 @@ export default async function FoundersHubPage() {
       stat: postCount ?? 0,
       statLabel: "posts",
       description: "General back-and-forth that isn't a structured idea",
-    },
-    {
-      href: "/founders/calendar",
-      gradient: "linear-gradient(135deg, #8b5cf6, #d946ef)",
-      icon: Calendar,
-      label: "Calendar",
-      stat: eventCount ?? 0,
-      statLabel: "upcoming",
-      description: "Founder-only meetings and get-togethers",
     },
     {
       href: "/founders/files",
@@ -90,6 +82,16 @@ export default async function FoundersHubPage() {
       statLabel: "",
       description: "Know someone who should join this group?",
     },
+    {
+      href: "/founders/calendar",
+      gradient: "linear-gradient(135deg, #8b5cf6, #d946ef)",
+      icon: Calendar,
+      label: "Calendar",
+      stat: eventCount ?? 0,
+      statLabel: "upcoming",
+      description: "Founder-only meetings and get-togethers",
+      fullWidth: true,
+    },
   ];
 
   return (
@@ -108,30 +110,53 @@ export default async function FoundersHubPage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {tiles.map((tile) => (
-          <Link
-            key={tile.href}
-            href={tile.href}
-            className="group block rounded-2xl p-5 text-white shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all"
-            style={{ background: tile.gradient }}
-          >
-            <div className="flex items-start justify-between gap-3">
+        {tiles.map((tile) =>
+          tile.fullWidth ? (
+            <Link
+              key={tile.href}
+              href={tile.href}
+              className="group col-span-1 sm:col-span-2 lg:col-span-3 flex items-center gap-4 rounded-2xl p-5 text-white shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all"
+              style={{ background: tile.gradient }}
+            >
               <div className="size-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
                 <tile.icon className="size-5 text-white" />
               </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="font-bold">{tile.label}</h2>
+                <p className="text-sm text-white/80 leading-snug">{tile.description}</p>
+              </div>
               {tile.stat !== null && (
-                <div className="text-right">
+                <div className="text-right shrink-0">
                   <p className="text-2xl font-black leading-none">{tile.stat}</p>
                   <p className="text-[11px] font-semibold text-white/70 uppercase tracking-wide">{tile.statLabel}</p>
                 </div>
               )}
-            </div>
-            <div className="mt-4 space-y-0.5">
-              <h2 className="font-bold">{tile.label}</h2>
-              <p className="text-sm text-white/80 leading-snug">{tile.description}</p>
-            </div>
-          </Link>
-        ))}
+            </Link>
+          ) : (
+            <Link
+              key={tile.href}
+              href={tile.href}
+              className="group block rounded-2xl p-5 text-white shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all"
+              style={{ background: tile.gradient }}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="size-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+                  <tile.icon className="size-5 text-white" />
+                </div>
+                {tile.stat !== null && (
+                  <div className="text-right">
+                    <p className="text-2xl font-black leading-none">{tile.stat}</p>
+                    <p className="text-[11px] font-semibold text-white/70 uppercase tracking-wide">{tile.statLabel}</p>
+                  </div>
+                )}
+              </div>
+              <div className="mt-4 space-y-0.5">
+                <h2 className="font-bold">{tile.label}</h2>
+                <p className="text-sm text-white/80 leading-snug">{tile.description}</p>
+              </div>
+            </Link>
+          ),
+        )}
       </div>
     </div>
   );
