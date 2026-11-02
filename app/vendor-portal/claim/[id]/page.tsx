@@ -29,6 +29,22 @@ export default async function ClaimVendorPage({ params }: { params: Promise<{ id
   return (
     <div className="flex min-h-screen items-center justify-center p-8" style={{ background: "#F5F8FC" }}>
       <div className="w-full max-w-md space-y-6">
+        <div className="flex justify-center">
+          <span
+            style={{
+              fontFamily: "var(--font-poppins), system-ui",
+              fontWeight: 900,
+              fontSize: "1.5rem",
+              lineHeight: 1,
+              letterSpacing: "-0.03em",
+              display: "inline-flex",
+              alignItems: "baseline",
+            }}
+          >
+            <span style={{ color: "#E8503A" }}>TA</span>
+            <span style={{ color: "#0F1F35" }}>LK</span>
+          </span>
+        </div>
         <div className="flex flex-col items-center gap-3 text-center">
           {vendor.logo_url ? (
             <img src={vendor.logo_url} alt={vendor.name} className="size-16 rounded-xl object-contain border border-zinc-100 bg-white p-1" />
