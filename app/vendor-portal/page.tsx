@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import VendorPortalDashboard from "./vendor-portal-dashboard";
 
 export default async function VendorPortalPage() {
@@ -16,7 +17,16 @@ export default async function VendorPortalPage() {
 
   if (!account) redirect("/vendor-portal/login");
 
-  const [vendorResult, updatesResult, opportunitiesResult, inquiriesResult] = await Promise.all([
+  // page_views has no select policy (service-role/admin reads only — see
+  // migration 053), so the view count is computed here with the admin
+  // client and passed down as a plain number. The vendor never gets direct
+  // query access to the table, just this one aggregate.
+  const admin = createAdminClient();
+  const thirtyDaysAgoDate = new Date();
+  thirtyDaysAgoDate.setDate(thirtyDaysAgoDate.getDate() - 30);
+  const thirtyDaysAgo = thirtyDaysAgoDate.toISOString();
+
+  const [vendorResult, updatesResult, opportunitiesResult, inquiriesResult, viewsResult] = await Promise.all([
     supabase.from("vendors").select("*").eq("id", account.vendor_id).single(),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase as any)
@@ -36,6 +46,12 @@ export default async function VendorPortalPage() {
       .from("sponsorship_inquiries")
       .select("id, opportunity_id, status")
       .eq("vendor_id", account.vendor_id),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (admin as any)
+      .from("page_views")
+      .select("id", { count: "exact", head: true })
+      .eq("path", `/vendors/${account.vendor_id}`)
+      .gte("created_at", thirtyDaysAgo),
   ]);
 
   if (!vendorResult.data) redirect("/vendor-portal/login");
@@ -47,6 +63,7 @@ export default async function VendorPortalPage() {
       updates={updatesResult.data ?? []}
       opportunities={opportunitiesResult.data ?? []}
       inquiries={inquiriesResult.data ?? []}
+      viewCount={viewsResult.count ?? 0}
     />
   );
 }

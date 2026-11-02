@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Building2, LogOut, Send, Trash2, Loader2, MessageSquarePlus, Megaphone, Handshake } from "lucide-react";
+import { Building2, LogOut, Send, Trash2, Loader2, MessageSquarePlus, Megaphone, Handshake, Eye, Sparkles, TrendingUp } from "lucide-react";
 import { format } from "date-fns";
 import LogoUpload from "@/app/admin/vendors/logo-upload";
 import type { Vendor } from "@/lib/supabase/types";
@@ -32,12 +32,14 @@ export default function VendorPortalDashboard({
   updates,
   opportunities,
   inquiries,
+  viewCount,
 }: {
   vendorId: string;
   vendor: Vendor;
   updates: VendorUpdate[];
   opportunities: Opportunity[];
   inquiries: Inquiry[];
+  viewCount: number;
 }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
@@ -145,24 +147,72 @@ export default function VendorPortalDashboard({
     router.refresh();
   }
 
+  const liveUpdateCount = updates.filter((u) => u.status === "approved").length;
+
   return (
-    <div className="min-h-screen p-6" style={{ background: "#F5F8FC" }}>
-      <div className="max-w-3xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="size-10 rounded-xl flex items-center justify-center bg-white border border-zinc-200 shrink-0">
-              <Building2 className="size-5 text-zinc-500" />
+    <div className="min-h-screen" style={{ background: "#F5F8FC" }}>
+      <div
+        className="px-6 pt-8 pb-16"
+        style={{ background: "linear-gradient(160deg, #1E4B82 0%, #162D4A 55%, #0F1F35 100%)" }}
+      >
+        <div className="max-w-3xl mx-auto space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="size-12 rounded-xl flex items-center justify-center bg-white/10 border border-white/15 shrink-0 overflow-hidden">
+                {vendor.logo_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={vendor.logo_url} alt="" className="size-full object-cover" />
+                ) : (
+                  <Building2 className="size-6 text-white/70" />
+                )}
+              </div>
+              <div>
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-orange-300 mb-0.5">
+                  <Sparkles className="size-3" /> Partner Portal
+                </span>
+                <h1 className="text-xl font-extrabold text-white leading-tight">{vendor.name}</h1>
+              </div>
             </div>
-            <div>
-              <h1 className="text-lg font-bold text-zinc-900">{vendor.name}</h1>
-              <p className="text-xs text-zinc-500">Vendor Partner Portal</p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSignOut}
+              className="gap-1.5 bg-white/5 border-white/20 text-white hover:bg-white/15 hover:text-white"
+            >
+              <LogOut className="size-3.5" /> Sign out
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            <div className="rounded-2xl bg-white/10 border border-white/15 backdrop-blur-sm p-4">
+              <div className="flex items-center gap-1.5 text-orange-300 mb-1.5">
+                <Eye className="size-4" />
+                <span className="text-[10px] font-bold uppercase tracking-wide">Listing views</span>
+              </div>
+              <p className="text-2xl font-extrabold text-white leading-none">{viewCount}</p>
+              <p className="text-[11px] text-white/50 mt-1">last 30 days</p>
+            </div>
+            <div className="rounded-2xl bg-white/10 border border-white/15 backdrop-blur-sm p-4">
+              <div className="flex items-center gap-1.5 text-orange-300 mb-1.5">
+                <TrendingUp className="size-4" />
+                <span className="text-[10px] font-bold uppercase tracking-wide">Live updates</span>
+              </div>
+              <p className="text-2xl font-extrabold text-white leading-none">{liveUpdateCount}</p>
+              <p className="text-[11px] text-white/50 mt-1">posted to your listing</p>
+            </div>
+            <div className="rounded-2xl bg-white/10 border border-white/15 backdrop-blur-sm p-4">
+              <div className="flex items-center gap-1.5 text-orange-300 mb-1.5">
+                <Handshake className="size-4" />
+                <span className="text-[10px] font-bold uppercase tracking-wide">Inquiries sent</span>
+              </div>
+              <p className="text-2xl font-extrabold text-white leading-none">{inquiries.length}</p>
+              <p className="text-[11px] text-white/50 mt-1">sponsorship interest</p>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={handleSignOut} className="gap-1.5">
-            <LogOut className="size-3.5" /> Sign out
-          </Button>
         </div>
+      </div>
 
+      <div className="max-w-3xl mx-auto px-6 -mt-10 pb-10 space-y-6">
         {/* Listing editor */}
         <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-6 space-y-4">
           <h2 className="text-sm font-bold text-zinc-900">Your listing</h2>
@@ -218,7 +268,7 @@ export default function VendorPortalDashboard({
           <div className="rounded-2xl bg-white border border-zinc-100 shadow-sm p-6 space-y-4">
             <div>
               <h2 className="text-sm font-bold text-zinc-900 flex items-center gap-2">
-                <Megaphone className="size-4 text-violet-500" /> Sponsorship opportunities
+                <Megaphone className="size-4" style={{ color: "#E8503A" }} /> Sponsorship opportunities
               </h2>
               <p className="text-xs text-zinc-500 mt-0.5">
                 Ways to get more visibility with TALK members. Inquiring doesn&apos;t book anything — we&apos;ll follow up to work out details.
@@ -232,7 +282,7 @@ export default function VendorPortalDashboard({
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="font-semibold text-sm text-zinc-900">{o.title}</p>
-                        {o.price_label && <span className="text-xs font-semibold text-violet-700">{o.price_label}</span>}
+                        {o.price_label && <span className="text-xs font-semibold" style={{ color: "#E8503A" }}>{o.price_label}</span>}
                       </div>
                       {o.description && <p className="text-sm text-zinc-500 mt-0.5">{o.description}</p>}
                     </div>
@@ -247,7 +297,8 @@ export default function VendorPortalDashboard({
                           variant="outline"
                           disabled={inquiringId === o.id}
                           onClick={() => handleInquire(o.id)}
-                          className="gap-1.5 border-violet-200 text-violet-700 hover:bg-violet-50"
+                          className="gap-1.5 hover:bg-orange-50"
+                          style={{ borderColor: "#F7B9A8", color: "#E8503A" }}
                         >
                           {inquiringId === o.id ? <Loader2 className="size-3.5 animate-spin" /> : <Handshake className="size-3.5" />}
                           Inquire
