@@ -106,6 +106,7 @@ export type Database = {
           logo_url: string | null;
           is_featured: boolean;
           is_paying: boolean;
+          tier: "basic" | "pro" | "partner";
           submitted_by: string | null;
           created_at: string;
           updated_at: string;
@@ -121,6 +122,7 @@ export type Database = {
           logo_url?: string | null;
           is_featured?: boolean;
           is_paying?: boolean;
+          tier?: "basic" | "pro" | "partner";
           submitted_by?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["vendors"]["Insert"]>;

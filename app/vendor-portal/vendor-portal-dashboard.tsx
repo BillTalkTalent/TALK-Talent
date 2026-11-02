@@ -148,6 +148,8 @@ export default function VendorPortalDashboard({
   }
 
   const liveUpdateCount = updates.filter((u) => u.status === "approved").length;
+  const tierLabel = vendor.tier === "partner" ? "Partner" : vendor.tier === "pro" ? "Pro" : "Basic";
+  const hasAnalytics = vendor.tier === "pro" || vendor.tier === "partner";
 
   return (
     <div className="min-h-screen" style={{ background: "#F5F8FC" }}>
@@ -168,7 +170,7 @@ export default function VendorPortalDashboard({
               </div>
               <div>
                 <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-orange-300 mb-0.5">
-                  <Sparkles className="size-3" /> Partner Portal
+                  <Sparkles className="size-3" /> {tierLabel} Plan
                 </span>
                 <h1 className="text-xl font-extrabold text-white leading-tight">{vendor.name}</h1>
               </div>
@@ -189,8 +191,17 @@ export default function VendorPortalDashboard({
                 <Eye className="size-4" />
                 <span className="text-[10px] font-bold uppercase tracking-wide">Listing views</span>
               </div>
-              <p className="text-2xl font-extrabold text-white leading-none">{viewCount}</p>
-              <p className="text-[11px] text-white/50 mt-1">last 30 days</p>
+              {hasAnalytics ? (
+                <>
+                  <p className="text-2xl font-extrabold text-white leading-none">{viewCount}</p>
+                  <p className="text-[11px] text-white/50 mt-1">last 30 days</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-2xl font-extrabold text-white/30 leading-none blur-[3px] select-none">42</p>
+                  <p className="text-[11px] text-orange-300 mt-1 font-semibold">Pro feature</p>
+                </>
+              )}
             </div>
             <div className="rounded-2xl bg-white/10 border border-white/15 backdrop-blur-sm p-4">
               <div className="flex items-center gap-1.5 text-orange-300 mb-1.5">
@@ -262,6 +273,42 @@ export default function VendorPortalDashboard({
             </div>
           </form>
         </div>
+
+        {/* Upgrade card */}
+        {!hasAnalytics && (
+          <div
+            className="rounded-2xl p-6 text-white space-y-4"
+            style={{ background: "linear-gradient(135deg, #1E4B82, #0F1F35)" }}
+          >
+            <div className="flex items-center gap-2">
+              <Sparkles className="size-4 text-orange-300" />
+              <h2 className="text-sm font-bold">Get more out of your listing</h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="rounded-xl bg-white/10 border border-white/15 p-4 space-y-2">
+                <p className="font-bold">Pro — $299/mo</p>
+                <ul className="text-xs text-white/70 space-y-1 list-disc list-inside">
+                  <li>Featured placement in the directory</li>
+                  <li>Included in newsletter vendor spotlights</li>
+                  <li>Listing views analytics</li>
+                </ul>
+              </div>
+              <div className="rounded-xl bg-white/10 border border-white/15 p-4 space-y-2">
+                <p className="font-bold">Partner — $699/mo</p>
+                <ul className="text-xs text-white/70 space-y-1 list-disc list-inside">
+                  <li>Everything in Pro</li>
+                  <li>Priority on sponsorship opportunities</li>
+                  <li>Dedicated onboarding support</li>
+                </ul>
+              </div>
+            </div>
+            <a href="mailto:bill@talktalent.com?subject=Upgrading our TALK vendor listing">
+              <Button size="sm" className="font-semibold text-white" style={{ background: "#E8503A" }}>
+                Contact us to upgrade
+              </Button>
+            </a>
+          </div>
+        )}
 
         {/* Sponsorship opportunities */}
         {opportunities.length > 0 && (

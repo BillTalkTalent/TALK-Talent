@@ -42,6 +42,7 @@ export default function VendorList({
       contact_email: vendor.contact_email ?? "",
       is_featured: vendor.is_featured,
       is_paying: vendor.is_paying,
+      tier: vendor.tier,
       logo_url: vendor.logo_url ?? null,
     });
   }
@@ -54,6 +55,7 @@ export default function VendorList({
   function handleSave(vendorId: string) {
     startTransition(async () => {
       const supabase = createClient();
+      const tier = form.tier ?? "basic";
       await supabase
         .from("vendors")
         .update({
@@ -63,8 +65,11 @@ export default function VendorList({
           website: form.website || null,
           contact_name: form.contact_name || null,
           contact_email: form.contact_email || null,
-          is_featured: form.is_featured ?? false,
+          // Pro/Partner always implies featured placement — one toggle
+          // instead of remembering to flip both.
+          is_featured: tier === "pro" || tier === "partner" ? true : form.is_featured ?? false,
           is_paying: form.is_paying ?? false,
+          tier,
           logo_url: form.logo_url ?? null,
         })
         .eq("id", vendorId);
@@ -180,18 +185,38 @@ export default function VendorList({
                   type="email"
                 />
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id={`featured-${vendor.id}`}
-                  checked={form.is_featured ?? false}
-                  onChange={(e) => setForm((f) => ({ ...f, is_featured: e.target.checked }))}
-                  className="size-4 rounded border-zinc-300"
-                />
-                <Label htmlFor={`featured-${vendor.id}`} className="cursor-pointer text-xs">
-                  Featured vendor
+              <div className="space-y-1">
+                <Label htmlFor={`tier-${vendor.id}`} className="text-xs">
+                  Package
                 </Label>
+                <select
+                  id={`tier-${vendor.id}`}
+                  value={form.tier ?? "basic"}
+                  onChange={(e) => setForm((f) => ({ ...f, tier: e.target.value as "basic" | "pro" | "partner" }))}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                >
+                  <option value="basic">Basic — free</option>
+                  <option value="pro">Pro — $299/mo</option>
+                  <option value="partner">Partner — $699/mo</option>
+                </select>
+                {(form.tier === "pro" || form.tier === "partner") && (
+                  <p className="text-[11px] text-zinc-400">Featured placement turns on automatically.</p>
+                )}
               </div>
+              {(form.tier ?? "basic") === "basic" && (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id={`featured-${vendor.id}`}
+                    checked={form.is_featured ?? false}
+                    onChange={(e) => setForm((f) => ({ ...f, is_featured: e.target.checked }))}
+                    className="size-4 rounded border-zinc-300"
+                  />
+                  <Label htmlFor={`featured-${vendor.id}`} className="cursor-pointer text-xs">
+                    Featured vendor (manual override)
+                  </Label>
+                </div>
+              )}
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -238,6 +263,12 @@ export default function VendorList({
             <div className="space-y-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="font-medium text-zinc-900">{vendor.name}</p>
+                {vendor.tier === "pro" && (
+                  <Badge style={{ background: "#FDECE8", color: "#E8503A" }}>Pro</Badge>
+                )}
+                {vendor.tier === "partner" && (
+                  <Badge style={{ background: "#E8503A", color: "#FFFFFF" }}>Partner</Badge>
+                )}
                 {vendor.is_featured && <Badge variant="secondary">Featured</Badge>}
                 {vendor.is_paying && <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">Paying</Badge>}
                 {vendor.category && (
