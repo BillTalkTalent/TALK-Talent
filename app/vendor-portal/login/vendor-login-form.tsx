@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,14 +14,14 @@ export default function VendorLoginForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent("/vendor-portal")}` },
+    const res = await fetch("/api/vendor-portal/send-login-link", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
     });
     setLoading(false);
-    if (error) {
-      toast.error(error.message);
+    if (!res.ok) {
+      toast.error("Something went wrong. Please try again.");
       return;
     }
     setSent(true);
