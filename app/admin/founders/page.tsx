@@ -121,7 +121,7 @@ export default async function AdminFoundersPage({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: nominationsRaw } = await (supabase as any)
     .from('founder_nominations')
-    .select('id, name, email, note, created_at, nominator_id')
+    .select('id, name, email, note, created_at, nominator_id, is_self')
     .eq('status', 'pending')
     .order('created_at', { ascending: true })
 
@@ -166,11 +166,16 @@ export default async function AdminFoundersPage({
               {(nominations ?? []).map((n: any) => (
                 <li key={n.id} className="flex items-center justify-between gap-4 px-4 py-3">
                   <div className="min-w-0">
-                    <p className="font-medium text-zinc-700">
+                    <p className="font-medium text-zinc-700 flex items-center gap-2">
                       {n.name} <span className="text-zinc-400 font-normal">— {n.email}</span>
+                      {n.is_self && (
+                        <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100">
+                          Self-applied
+                        </span>
+                      )}
                     </p>
                     {n.note && <p className="text-sm text-zinc-500">{n.note}</p>}
-                    <p className="text-xs text-zinc-400">nominated by {n.nominator_name}</p>
+                    {!n.is_self && <p className="text-xs text-zinc-400">nominated by {n.nominator_name}</p>}
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <form action={reviewNomination.bind(null, n.id, 'approve')}>

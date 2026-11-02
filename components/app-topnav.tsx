@@ -70,21 +70,25 @@ export default function AppTopNav({ profile }: AppTopNavProps) {
   const pathname = usePathname()
   const router = useRouter()
 
-  // Creators is a soft-launched preview — only the super admin can see the
-  // entry point until it's ready to open up to everyone.
-  const moreNavItems = profile.is_superadmin
-    ? [...moreNav, { href: '/creators', label: 'Creators', icon: Sparkles }]
-    : moreNav
-
   // Founders Hub is invite-only (migration 108) — only shows for someone
   // who actually has access, same gate middleware.ts enforces server-side.
   // Lives in the primary row, not the More dropdown, so founding members
   // don't have to go hunting for it.
   const isFoundingMember = !!profile.is_founding_member
-  const mainNavItems =
-    isFoundingMember || profile.role === 'admin'
-      ? [...mainNav, { href: '/founders', label: 'Founders Hub', icon: Flag }]
-      : mainNav
+  const hasFoundersAccess = isFoundingMember || profile.role === 'admin'
+  const mainNavItems = hasFoundersAccess
+    ? [...mainNav, { href: '/founders', label: 'Founders Hub', icon: Flag }]
+    : mainNav
+
+  // Creators is a soft-launched preview — only the super admin can see the
+  // entry point until it's ready to open up to everyone. The self-apply
+  // link (migration 117) is the inverse of Founders Hub above — shown only
+  // to someone who DOESN'T already have access, since it's a dead end
+  // otherwise. Lives outside /founders entirely (see app/(app)/apply-founders)
+  // so it isn't swept up by that section's middleware gate or sub-nav.
+  let moreNavItems = moreNav
+  if (profile.is_superadmin) moreNavItems = [...moreNavItems, { href: '/creators', label: 'Creators', icon: Sparkles }]
+  if (!hasFoundersAccess) moreNavItems = [...moreNavItems, { href: '/apply-founders', label: 'Apply: Founders Group', icon: Flag }]
   const [unreadCount, setUnreadCount] = useState(0)
   const [notifCount, setNotifCount] = useState(0)
   const [notifOpen, setNotifOpen] = useState(false)
