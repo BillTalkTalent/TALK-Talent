@@ -32,18 +32,17 @@ export default function LoginForm() {
     e.preventDefault()
     setLoading(true)
 
-    const supabase = createClient()
-
     if (mode === 'magic-link') {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
-      })
-
-      if (error) {
-        toast.error(error.message)
-        setLoading(false)
-        return
+      try {
+        await fetch('/api/auth/send-login-link', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, next }),
+        })
+      } catch {
+        // Falls through to the "check your email" state either way — the
+        // route never reveals whether an account exists, so a network
+        // hiccup here isn't worth surfacing differently.
       }
 
       setMagicLinkSent(true)
@@ -51,6 +50,7 @@ export default function LoginForm() {
       return
     }
 
+    const supabase = createClient()
     const { error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
