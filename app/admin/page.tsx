@@ -132,12 +132,7 @@ async function confirmMatch(newProfileId: string, oldProfileId: string) {
 
   try {
     const origin = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.talktalent.com'
-    const { data: linkData } = await admin.auth.admin.generateLink({
-      type: 'magiclink',
-      email: newProfile.email,
-      options: { redirectTo: `${origin}/dashboard` },
-    })
-    const loginUrl = linkData?.properties?.action_link ?? `${origin}/login`
+    const loginUrl = await buildMagicLink(admin, newProfile.email, `${origin}/dashboard`, origin)
     const firstName = newProfile.full_name?.split(' ')[0] ?? 'there'
     const resend = new Resend(process.env.RESEND_API_KEY)
     const from = process.env.FROM_EMAIL ?? 'TALK Community <onboarding@resend.dev>'
