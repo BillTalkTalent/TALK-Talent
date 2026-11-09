@@ -51,12 +51,6 @@ function styleImages(html: string): string {
 // time.
 const MID_AD_MARKER = '<!--MID_AD_SLOT-->'
 
-// The member job board (jobsBlock) sits right before Career Opportunities —
-// TALK's own community board isn't a paid placement like GoodPeople's list,
-// so it leads rather than getting buried under someone else's jobs. Same
-// bake-at-compose-time / swap-at-send-time handling as MID_AD_MARKER.
-const JOBS_BLOCK_MARKER = '<!--JOBS_BLOCK_SLOT-->'
-
 function compileSectionsToHtml(sections: Record<string, string>): string {
   const activeKeys = SECTION_ORDER.filter(key => sections[key] && sections[key] !== '<p></p>' && sections[key].trim())
   const blocks = activeKeys.map((key, i) => {
@@ -74,14 +68,14 @@ function compileSectionsToHtml(sections: Record<string, string>): string {
   })
 
   const beforeCareerIdx = activeKeys.indexOf('career_opportunities')
-  blocks.splice(beforeCareerIdx === -1 ? blocks.length : beforeCareerIdx, 0, MID_AD_MARKER, JOBS_BLOCK_MARKER)
+  blocks.splice(beforeCareerIdx === -1 ? blocks.length : beforeCareerIdx, 0, MID_AD_MARKER)
 
   return blocks.join('\n')
 }
 
 function buildEmailHtml(subject: string, sections: Record<string, string>, memberName: string, unsubscribeUrl: string, intro = '', sponsorTop = '', eventsBlock = '', statsBlock = '', jobsBlock = '', talentBlock = '', sponsorMidHtml = '', forumBlock = '', recordingBlock = ''): string {
   const introLine = (intro || '').trim() || "Here's your weekly roundup from the TALK community."
-  const sectionsHtml = compileSectionsToHtml(sections).replace(MID_AD_MARKER, sponsorMidHtml).replace(JOBS_BLOCK_MARKER, jobsBlock)
+  const sectionsHtml = compileSectionsToHtml(sections).replace(MID_AD_MARKER, sponsorMidHtml)
   const issueDate = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
   return `<!DOCTYPE html>
 <html>
@@ -133,21 +127,23 @@ function buildEmailHtml(subject: string, sections: Record<string, string>, membe
 
   ${eventsBlock}
 
-  <!-- Sections (Industry News, Career Opportunities, etc.) lead right after
-       the week's discussion — on a phone, these plus the discussion spotlight
-       are what a member actually scrolls for. The auto-generated widgets
-       below (Open to Work, the sponsor promo, last week's recording) used to
-       sit ahead of this and ate the whole first screen before a reader got
-       to anything written for that issue. The member job board (jobsBlock)
-       is spliced into sectionsHtml itself, right before Career
-       Opportunities — see JOBS_BLOCK_MARKER above. -->
+  <!-- Community leads: the job board and Open to Work sit right under this
+       week's discussion spotlight, ahead of any written/sponsored content —
+       "here's what's happening, here's who's hiring, here's who's looking"
+       before the news sections below. The job board (jobsBlock) is a plain
+       div styled to match the written sections it used to sit between, but
+       that's fine wrapped in its own <tr><td> here too. -->
+  ${jobsBlock ? `<tr><td style="background:#fff;padding:8px 36px 0;">${jobsBlock}</td></tr>` : ''}
+
+  ${talentBlock}
+
+  <!-- Sections (Industry News, Career Opportunities, etc.) follow the
+       community blocks above. -->
   <tr><td style="background:#fff;padding:8px 36px 32px;">
     ${sectionsHtml}
   </td></tr>
 
-  ${talentBlock}
-
-  <!-- From Bill's Desk — a natural breather between the news/jobs sections
+  <!-- From Bill's Desk — a natural breather between the news sections
        above and the forum/recording below. -->
   ${PROMPT_AND_CIRCUMSTANCE_CALLOUT}
 

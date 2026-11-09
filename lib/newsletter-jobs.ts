@@ -69,18 +69,15 @@ export function buildJobsBlock(jobs: NewsletterJob[], origin: string): string {
   }).join('')
 
   // A plain badge-plus-content div, matching the visual language of the
-  // admin-composed sections it now sits between (compileSectionsToHtml in
-  // the newsletter routes) — not its old bordered card with its own
-  // gradient top bar. That styling was fine back when this was the only
-  // auto-generated widget in its stretch of the newsletter, but sandwiched
-  // between Industry News and Career Opportunities (both plain badge+text,
-  // no border), a boxed card read as a different, unrelated thing dropped
-  // into the middle of the content — which is what looked like the
-  // newsletter breaking into two pieces. (Also must stay a <div>, never a
-  // standalone <tr><td>: this gets spliced into sectionsHtml, which already
-  // sits inside one <td> cell of the outer table — a nested <tr><td> there
-  // is invalid HTML and gets hoisted out by email clients, which is the
-  // first thing that broke here.)
+  // admin-composed sections (compileSectionsToHtml in the newsletter
+  // routes) rather than its old bordered card with its own gradient top
+  // bar — kept even now that this renders ahead of those sections (right
+  // under the discussion spotlight, see app/api/admin/newsletter/route.ts),
+  // so it still reads as part of the same visual family as the written
+  // content below it, not an unrelated card dropped in. The caller wraps
+  // this div in its own <tr><td>; it must stay a <div> itself, not a
+  // standalone <tr><td>, since nesting a <tr><td> directly inside another
+  // <td> is invalid HTML and gets hoisted out by email clients.
   return `
   <div style="margin-bottom:36px;">
     <table cellpadding="0" cellspacing="0" style="margin-bottom:16px;"><tr>
