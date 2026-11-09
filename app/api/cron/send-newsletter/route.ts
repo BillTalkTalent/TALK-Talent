@@ -99,14 +99,18 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ sent: results })
 }
 
-// Matches the identical markers baked into body_html at save/schedule time by
-// compileSectionsToHtml in app/api/admin/newsletter/route.ts.
+// Matches the identical marker baked into body_html at save/schedule time by
+// compileSectionsToHtml in app/api/admin/newsletter/route.ts. The job board
+// used to be spliced in here too via a second marker, but it now renders as
+// its own block up top (see buildEmailHtml below) — removed along with the
+// marker in compileSectionsToHtml, since a replace() against a marker that's
+// no longer in body_html would just silently drop jobsBlock instead of
+// erroring.
 const MID_AD_MARKER = '<!--MID_AD_SLOT-->'
-const JOBS_BLOCK_MARKER = '<!--JOBS_BLOCK_SLOT-->'
 
 function buildEmailHtml(subject: string, rawBodyHtml: string, memberName: string, unsubscribeUrl: string, intro = '', sponsorTop = '', eventsBlock = '', statsBlock = '', jobsBlock = '', talentBlock = '', sponsorMidHtml = '', forumBlock = '', recordingBlock = '') {
   const introLine = (intro || '').trim() || "Here's your weekly roundup from the TALK community."
-  const bodyHtml = rawBodyHtml.replace(MID_AD_MARKER, sponsorMidHtml).replace(JOBS_BLOCK_MARKER, jobsBlock)
+  const bodyHtml = rawBodyHtml.replace(MID_AD_MARKER, sponsorMidHtml)
   const issueDate = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
   return `<!DOCTYPE html>
 <html>
@@ -143,13 +147,17 @@ function buildEmailHtml(subject: string, rawBodyHtml: string, memberName: string
        the personal voice, not buried after every auto-generated widget. -->
   ${sponsorTop}
   ${eventsBlock}
-  <!-- Admin-composed sections (Industry News, Career Opportunities, etc.)
-       lead right after the week's discussion — see the matching comment in
-       app/api/admin/newsletter/route.ts's buildEmailHtml for why. -->
+  <!-- Community leads: job board + Open to Work sit right under the
+       discussion spotlight, ahead of the admin-composed sections — mirrors
+       buildEmailHtml in app/api/admin/newsletter/route.ts, which this must
+       stay in sync with (duplicated here because the scheduled-send path
+       re-resolves sponsor/jobs/talent data fresh at send time rather than
+       reusing whatever was true when the issue was composed). -->
+  ${jobsBlock ? `<tr><td style="background:#fff;padding:8px 36px 0;">${jobsBlock}</td></tr>` : ''}
+  ${talentBlock}
   <tr><td style="background:#fff;padding:8px 36px 32px;">
     <div class="prose">${bodyHtml}</div>
   </td></tr>
-  ${talentBlock}
   ${PROMPT_AND_CIRCUMSTANCE_CALLOUT}
   ${forumBlock}
   ${recordingBlock}

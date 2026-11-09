@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { format } from 'date-fns'
+import { formatInZone } from '@/lib/timezone'
 import NewsletterForm from '../newsletter-form'
 import { ShareOnLinkedInButton } from '@/components/share-on-linkedin-button'
 import { NewsletterShareTools } from '@/components/newsletter-share-tools'
@@ -37,10 +37,10 @@ export default async function EditNewsletterPage({ params }: { params: Promise<{
           <h1 className="text-xl font-bold text-zinc-900">{newsletter.subject || 'Untitled draft'}</h1>
           <p className="text-sm text-zinc-500">
             {newsletter.status === 'sent' && newsletter.sent_at
-              ? `Sent ${format(new Date(newsletter.sent_at), 'MMM d, yyyy h:mm a')} · ${newsletter.recipient_count ?? 0} recipients`
+              ? `Sent ${formatInZone(newsletter.sent_at, 'America/New_York', { weekday: undefined, month: 'short' })} · ${newsletter.recipient_count ?? 0} recipients`
               : newsletter.status === 'scheduled' && newsletter.scheduled_for
-              ? `Scheduled for ${format(new Date(newsletter.scheduled_for), 'MMM d, yyyy h:mm a')}`
-              : `Last updated ${format(new Date(newsletter.updated_at), 'MMM d, yyyy h:mm a')}`}
+              ? `Scheduled for ${formatInZone(newsletter.scheduled_for, 'America/New_York', { weekday: undefined, month: 'short' })}`
+              : `Last updated ${formatInZone(newsletter.updated_at, 'America/New_York', { weekday: undefined, month: 'short' })}`}
           </p>
         </div>
         {newsletter.status === 'sent' && (

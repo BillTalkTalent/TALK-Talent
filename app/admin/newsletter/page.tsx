@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { format } from 'date-fns'
 import { Plus, Send, Clock, FileText, Users, Eye, MousePointerClick } from 'lucide-react'
 import NewsletterForm from './newsletter-form'
+import { formatInZone } from '@/lib/timezone'
 
 type EngagementRow = { newsletter_id: string; opens: number; unique_opens: number; clicks: number; unique_clicks: number }
 
@@ -132,7 +133,7 @@ export default async function AdminNewsletterPage() {
                     {n.status === 'sent' && n.sent_at
                       ? `Sent ${format(new Date(n.sent_at), 'MMM d, yyyy')} · ${n.recipient_count ?? 0} recipients`
                       : n.status === 'scheduled' && n.scheduled_for
-                      ? `Scheduled for ${format(new Date(n.scheduled_for), 'MMM d, yyyy h:mm a')}`
+                      ? `Scheduled for ${formatInZone(n.scheduled_for, 'America/New_York', { weekday: undefined, month: 'short' })}`
                       : `Created ${format(new Date(n.created_at), 'MMM d, yyyy')}`}
                   </p>
                 </div>
