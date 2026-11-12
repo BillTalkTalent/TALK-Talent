@@ -28,16 +28,28 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     .eq('id', user.id)
     .single()
 
-  if (!profile) {
+  // A member converted to a vendor contact (or anyone who only ever had a
+  // vendor account) has no usable profile here — !profile or 'rejected'
+  // either way. Bouncing them to /login with no explanation looks like a
+  // broken sign-in: they already authenticated, land back on the login
+  // screen, and reasonably assume it didn't take. Check whether they're
+  // actually a vendor contact before giving up, and send them to the
+  // portal that's actually theirs.
+  if (!profile || profile.status === 'rejected') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: vendorAccount } = await (supabase as any)
+      .from('vendor_accounts')
+      .select('id')
+      .eq('id', user.id)
+      .maybeSingle()
+    if (vendorAccount) {
+      redirect('/vendor-portal')
+    }
     redirect('/login')
   }
 
   if (profile.status === 'pending') {
     redirect('/pending')
-  }
-
-  if (profile.status === 'rejected') {
-    redirect('/login')
   }
 
   // Send new members through onboarding

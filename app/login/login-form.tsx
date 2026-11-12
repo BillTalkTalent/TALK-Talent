@@ -227,6 +227,13 @@ export default function LoginForm() {
               Apply to join
             </Link>
           </p>
+
+          <p className="text-xs text-zinc-400 text-center">
+            Are you a vendor partner?{' '}
+            <Link href="/vendor-portal/login" className="font-semibold hover:underline">
+              Sign in here
+            </Link>
+          </p>
         </div>
       </div>
     </div>
