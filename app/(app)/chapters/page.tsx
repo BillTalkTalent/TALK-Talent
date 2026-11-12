@@ -49,7 +49,7 @@ export default function ChaptersPage() {
       const [{ data: chaptersData }, { data: membershipsData }, { data: memberCounts }, { data: profileData }, { data: leadsData }] =
         await Promise.all([
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (supabase as any).from("chapters").select("*").order("sort_order"),
+          (supabase as any).from("chapters").select("*").eq("is_active", true).order("sort_order"),
           supabase.from("chapter_memberships").select("chapter_id").eq("user_id", user.id),
           // A real GROUP BY via RPC — fetching every membership row and
           // counting client-side silently undercounts once total rows pass

@@ -618,8 +618,8 @@ export type Database = {
         Relationships: [];
       };
       chapters: {
-        Row: { id: string; name: string; description: string | null; slug: string; icon: string | null; sort_order: number; created_at: string; };
-        Insert: { id?: string; name: string; description?: string | null; slug: string; icon?: string | null; sort_order?: number; };
+        Row: { id: string; name: string; description: string | null; slug: string; icon: string | null; sort_order: number; created_at: string; type: "topic" | "geographic"; long_description: string | null; banner_url: string | null; website_url: string | null; contact_email: string | null; is_active: boolean; };
+        Insert: { id?: string; name: string; description?: string | null; slug: string; icon?: string | null; sort_order?: number; type?: "topic" | "geographic"; long_description?: string | null; banner_url?: string | null; website_url?: string | null; contact_email?: string | null; is_active?: boolean; };
         Update: Partial<Database["public"]["Tables"]["chapters"]["Insert"]>;
         Relationships: [];
       };
