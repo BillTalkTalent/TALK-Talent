@@ -21,7 +21,7 @@ const C = {
 const members = [
   { name: 'Sarah Chen', title: 'VP Talent · Stripe', initials: 'SC', color: '#E8503A' },
   { name: 'Marcus Webb', title: 'TA Director · Airbnb', initials: 'MW', color: '#8B5CF6' },
-  { name: 'Priya Patel', title: 'Head of Recruiting · Figma', initials: 'PP', color: '#3B82F6' },
+  { name: 'Priya Patel', title: 'Head of Recruiting · Figma', initials: 'PP', color: '#3B82F6', photo: '/avatars/priya.png' },
   { name: 'Jordan Ellis', title: 'Talent Lead · Notion', initials: 'JE', color: '#10B981' },
   { name: 'Lena Kraft', title: 'People Ops · Linear', initials: 'LK', color: '#F59E0B' },
   { name: 'Darius Kim', title: 'VP People · Vercel', initials: 'DK', color: '#EC4899' },
@@ -123,7 +123,7 @@ export default function SlateMockup() {
             <div style={{ padding: '8px 0' }}>
               {members.map((m) => (
                 <div key={m.name} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 20px', borderBottom: `1px solid ${C.border}` }}>
-                  <div style={{ width: 38, height: 38, borderRadius: '50%', background: m.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: 'white', flexShrink: 0 }}>{m.initials}</div>
+                  <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'photo' in m && m.photo ? `url(${m.photo}) center/cover` : m.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: 'white', flexShrink: 0 }}>{'photo' in m && m.photo ? null : m.initials}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{m.name}</div>
                     <div style={{ fontSize: 11, color: C.textMuted, marginTop: 1 }}>{m.title}</div>

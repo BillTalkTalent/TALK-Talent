@@ -22,7 +22,7 @@ const C = {
 const members = [
   { name: 'Sarah Chen', title: 'VP Talent · Stripe', initials: 'SC', color: '#E8503A' },
   { name: 'Marcus Webb', title: 'TA Director · Airbnb', initials: 'MW', color: '#9B5CFF' },
-  { name: 'Priya Patel', title: 'Head of Recruiting · Figma', initials: 'PP', color: '#C084FC' },
+  { name: 'Priya Patel', title: 'Head of Recruiting · Figma', initials: 'PP', color: '#C084FC', photo: '/avatars/priya.png' },
   { name: 'Jordan Ellis', title: 'Talent Lead · Notion', initials: 'JE', color: '#10B981' },
   { name: 'Lena Kraft', title: 'People Ops · Linear', initials: 'LK', color: '#F59E0B' },
   { name: 'Darius Kim', title: 'VP People · Vercel', initials: 'DK', color: '#EC4899' },
@@ -123,7 +123,7 @@ export default function PlumMockup() {
             <div style={{ padding: '8px 0' }}>
               {members.map((m, i) => (
                 <div key={m.name} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 20px', borderBottom: i < members.length - 1 ? `1px solid ${C.border}` : 'none' }}>
-                  <div style={{ width: 38, height: 38, borderRadius: '50%', background: `linear-gradient(135deg, ${m.color}cc, ${m.color}66)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: 'white', flexShrink: 0, boxShadow: `0 0 10px ${m.color}44` }}>{m.initials}</div>
+                  <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'photo' in m && m.photo ? `url(${m.photo}) center/cover` : `linear-gradient(135deg, ${m.color}cc, ${m.color}66)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: 'white', flexShrink: 0, boxShadow: `0 0 10px ${m.color}44` }}>{'photo' in m && m.photo ? null : m.initials}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{m.name}</div>
                     <div style={{ fontSize: 11, color: C.textMuted, marginTop: 1 }}>{m.title}</div>

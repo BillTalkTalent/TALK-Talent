@@ -88,7 +88,7 @@ const themes = [
 const members = [
   { i:'SC', name:'Sarah Chen',   title:'VP Talent · Stripe',  c:'#2563EB' },
   { i:'MW', name:'Marcus Webb',  title:'TA Director · Airbnb', c:'#7C3AED' },
-  { i:'PP', name:'Priya Patel',  title:'Head of Recruiting',  c:'#059669' },
+  { i:'PP', name:'Priya Patel',  title:'Head of Recruiting',  c:'#059669', photo: '/avatars/priya.png' },
   { i:'JE', name:'Jordan Ellis', title:'Talent Lead · Notion', c:'#D97706' },
 ]
 
@@ -161,7 +161,7 @@ function Preview({ th }: { th: typeof themes[0] }) {
             </div>
             {members.map((m,i) => (
               <div key={m.i} style={{ display:'flex', alignItems:'center', gap:7, padding:'6px 11px', borderBottom:i<members.length-1?`1px solid ${th.cardBorder}`:'none' }}>
-                <div style={{ width:24,height:24,borderRadius:'50%',background:m.c,flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',fontSize:8,fontWeight:800,color:'white' }}>{m.i}</div>
+                <div style={{ width:24,height:24,borderRadius:'50%',background:'photo' in m && m.photo ? `url(${m.photo}) center/cover` : m.c,flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',fontSize:8,fontWeight:800,color:'white' }}>{'photo' in m && m.photo ? null : m.i}</div>
                 <div style={{ flex:1,minWidth:0 }}>
                   <div style={{ fontSize:10,fontWeight:700,color:th.textPrimary,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis' }}>{m.name}</div>
                   <div style={{ fontSize:8,color:th.textMuted,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis' }}>{m.title}</div>

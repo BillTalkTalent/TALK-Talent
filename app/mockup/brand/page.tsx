@@ -104,7 +104,7 @@ const themes = [
 const members = [
   { initials: 'SC', name: 'Sarah Chen', title: 'VP Talent · Stripe', c: '#E8503A' },
   { initials: 'MW', name: 'Marcus Webb', title: 'TA Director · Airbnb', c: '#8B5CF6' },
-  { initials: 'PP', name: 'Priya Patel', title: 'Head of Recruiting · Figma', c: '#3B82F6' },
+  { initials: 'PP', name: 'Priya Patel', title: 'Head of Recruiting · Figma', c: '#3B82F6', photo: '/avatars/priya.png' },
   { initials: 'JE', name: 'Jordan Ellis', title: 'Talent Lead · Notion', c: '#10B981' },
 ]
 
@@ -163,7 +163,7 @@ function ThemePreview({ t }: { t: typeof themes[0] }) {
             </div>
             {members.map((m, i) => (
               <div key={m.initials} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 12px', borderBottom: i < members.length - 1 ? `1px solid ${t.cardBorder}` : 'none' }}>
-                <div style={{ width: 26, height: 26, borderRadius: '50%', background: m.c, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 800, color: 'white' }}>{m.initials}</div>
+                <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'photo' in m && m.photo ? `url(${m.photo}) center/cover` : m.c, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 800, color: 'white' }}>{'photo' in m && m.photo ? null : m.initials}</div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 10, fontWeight: 700, color: t.textPrimary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.name}</div>
                   <div style={{ fontSize: 9, color: t.textMuted, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.title}</div>
