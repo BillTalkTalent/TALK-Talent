@@ -75,6 +75,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           { href: '/admin/suggestions',   label: 'Suggestions & Invites' },
           { href: '/admin/activity',      label: 'Activity' },
           { href: '/admin/email-health',  label: 'Email Health' },
+          ...(isSuperAdmin ? [{ href: '/admin/duplicate-profiles', label: 'Duplicate Profiles' }] : []),
         ].map(({ href, label }) => (
           <Link
             key={href}
